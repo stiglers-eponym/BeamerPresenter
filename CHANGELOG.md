@@ -1,5 +1,5 @@
 # Changelog
-## 0.2.5 (upcoming)
+## 0.2.5
 * embedded videos: play media files embedded in the PDF file (experimental)
 * bug fixes (includes crash on multi-touch)
 * page labels available in Qt PDF version

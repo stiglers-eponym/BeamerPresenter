@@ -10,9 +10,9 @@ The version with poppler as PDF engine and Qt 6 can be build using:
 _qt_version_major=6 makepkg -p PKGBUILD_poppler
 ```
 The packages for Qt 5 and with MuPDF can be built analogously.
-You can install the newly created package using (for version 0.2.4):
+You can install the newly created package using (for version 0.2.5):
 ```sh
-sudo pacman -U beamerpresenter-poppler-qt6-0.2.4-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt6-0.2.5-1-x86_64.pkg.tar.zst
 ```
 The "mupdf-small" packages are compiled with a custom build of MuPDF with disabled javascript that excludes some fonts (MuPDF compiled with `XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'`).
 
@@ -81,7 +81,7 @@ cpack --config build_dir/CPackConfig.cmake
 
 Now you can install the package:
 ```sh
-sudo apt install ./beamerpresenter-poppler-0.2.4-qt6.4-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.5-qt6.4-x86_64.deb
 ```
 
 

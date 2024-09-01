@@ -17,7 +17,7 @@ fi
 _basename='beamerpresenter'
 _pkgname="${_basename}${_renderer}-qt${_qt_version_major}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_pkgname}"
-pkgver=0.2.4
+pkgver=0.2.5
 pkgrel=1
 pkgdesc="Modular multi-screen pdf presenter (mingw-w64)"
 arch=('any')
@@ -30,7 +30,7 @@ provides=("beamerpresenter=${pkgver}")
 conflicts=('beamerpresenter')
 backup=("etc/xdg/beamerpresenter/beamerpresenter.conf" "etc/xdg/beamerpresenter/gui.json")
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
-sha256sums=('4ccdd747b2c829411de3f33548a125f8e7f16a768e03f56f71bd6b3f27f5bca1')
+sha256sums=('SKIP')
 
 if [ "${_use_mupdf}" == 'ON' ]
 then
@@ -59,6 +59,9 @@ build() {
         -DUSE_EXTERNAL_RENDERER=OFF \
         -DUSE_TRANSLATIONS=ON \
         -DINSTALL_LICENSE=ON \
+        -DLINK_MUPDF_THIRD=ON \
+        -DLINK_MUJS=OFF \
+        -DLINK_GUMBO=ON \
         -DQT_VERSION_MAJOR="${_qt_version_major}" \
         -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
         -DCMAKE_INSTALL_SYSCONFDIR="/etc"

@@ -17,9 +17,8 @@ jobs:
           - { sys: mingw64, env: x86_64, renderer: mupdf, poppler: OFF, mupdf: ON, qt: 6, icon: '🟦' }
           - { sys: ucrt64,  env: ucrt-x86_64, renderer: poppler, poppler: ON, mupdf: OFF, qt: 6, icon: '🟨' }
           - { sys: ucrt64,  env: ucrt-x86_64, renderer: mupdf, poppler: OFF, mupdf: ON, qt: 6, icon: '🟨' }
-          # On clang64, beamerpresenter always crashes with segmentation fault.
-          #- { sys: clang64, env: clang-x86_64, renderer: poppler, poppler: ON, mupdf: OFF, qt: 6, icon: '🟧' }
-          #- { sys: clang64, env: clang-x86_64, renderer: mupdf, poppler: OFF, mupdf: ON, qt: 6, icon: '🟧' }
+          - { sys: clang64, env: clang-x86_64, renderer: poppler, poppler: ON, mupdf: OFF, qt: 6, icon: '🟧' }
+          - { sys: clang64, env: clang-x86_64, renderer: mupdf, poppler: OFF, mupdf: ON, qt: 6, icon: '🟧' }
     name: 🚧${{ matrix.icon }} ${{ matrix.sys }} ${{ matrix.renderer }} qt${{ matrix.qt }} | makepkg
     defaults:
       run:
@@ -47,7 +46,7 @@ jobs:
       run: |
         cp packaging/PKGBUILD_MSYS2_git .
         dos2unix PKGBUILD_MSYS2_git
-        if [ ${{ matrix.sys }} != clang64 ]; then pacman -S --noconfirm --noprogressbar mingw-w64-${{ matrix.env }}-gcc; fi
+        if [ ${{ matrix.sys }} != clang64 ]; then pacman -S --noconfirm --noprogressbar mingw-w64-${{ matrix.env }}-gcc; else pacman -S --noconfirm --noprogressbar mingw-w64-${{ matrix.env }}-clang; fi
         makepkg-mingw --noconfirm --noprogressbar -sCLfp PKGBUILD_MSYS2_git
 
     - name: '📤 Upload artifact: package'

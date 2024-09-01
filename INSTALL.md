@@ -8,13 +8,13 @@ The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) incl
 These packages can be installed as shown in the following example, which uses Poppler as PDF engine (after downloading the corresponding file):
 ```sh
 # Ubuntu 24.04:
-sudo apt install ./beamerpresenter-poppler-0.2.4-qt6-noble-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.5-qt6-noble-x86_64.deb
 # Ubuntu 22.04:
-sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-jammy-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.5-qt5-jammy-x86_64.deb
 # Ubuntu 20.04:
-sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-focal-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.5-qt5-focal-x86_64.deb
 # Arch/Manjaro/Endeavour
-sudo pacman -U beamerpresenter-poppler-qt6-0.2.4-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt6-0.2.5-1-x86_64.pkg.tar.zst
 # Flatpak
 flatpak install org.kde.Platform/x86_64/6.5 # can be skipped if already installed
 flatpak install BeamerPresenter-Qt6.flatpak

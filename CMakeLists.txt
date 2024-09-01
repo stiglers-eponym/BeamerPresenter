@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(beamerpresenter
-    VERSION 0.2.4
+    VERSION 0.2.5
     DESCRIPTION "Multi-screen PDF presentation viewer"
     HOMEPAGE_URL "https://github.com/stiglers-eponym/BeamerPresenter"
     LANGUAGES CXX)

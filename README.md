@@ -53,14 +53,16 @@ More details can be found in the [installation manual](INSTALL.md).
 
 BeamerPresenter can be found in the [Nix repositories](https://search.nixos.org/packages?channel=unstable&type=packages&query=BeamerPresenter) and [in the AUR](https://aur.archlinux.org/packages/beamerpresenter) (for Arch/Manjaro/Endeavour, also as a [mainline version](https://aur.archlinux.org/packages/beamerpresenter-git)).
 The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro/Endeavour, Ubuntu 20.04 / 22.04, and flatpak.
-For example, the commands for installing BeamerPresenter with Poppler as PDF engine and Qt 5 after downloading the corresponding file are:
+For example, the commands for installing BeamerPresenter with Poppler as PDF engine after downloading the corresponding file are:
 ```sh
-# Ubuntu 20.04:
-sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-focal-x86_64.deb
+# Ubuntu 24.04:
+sudo apt install ./beamerpresenter-poppler-0.2.5-qt6-noble-x86_64.deb
 # Ubuntu 22.04:
-sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-jammy-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.5-qt5-jammy-x86_64.deb
+# Ubuntu 20.04:
+sudo apt install ./beamerpresenter-poppler-0.2.5-qt5-focal-x86_64.deb
 # Arch/Manjaro:
-sudo pacman -U beamerpresenter-poppler-qt5-0.2.4-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt5-0.2.5-1-x86_64.pkg.tar.zst
 # Flatpak:
 flatpak install org.kde.Platform/x86_64/5.15-21.08 # can be skipped if already installed
 flatpak install beamerpresenter-qt5.flatpak
