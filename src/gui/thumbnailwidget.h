@@ -30,8 +30,6 @@ class ThumbnailWidget : public QScrollArea
 {
   Q_OBJECT
 
-  int current_page = 0;
-
   /// inverse tolerance for widget size changes for recalculating buttons
   static constexpr int inverse_tolerance = 10;
 
@@ -62,6 +60,8 @@ class ThumbnailWidget : public QScrollArea
   ThumbnailFlags _flags = {};
   /// currently focused page index
   ThumbnailButton *focused_button{nullptr};
+  /// button for current page
+  ThumbnailButton *current_page_button{nullptr};
 
   /// Create widget and layout.
   void initialize();

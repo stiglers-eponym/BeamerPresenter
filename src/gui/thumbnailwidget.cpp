@@ -45,6 +45,8 @@ ThumbnailWidget::~ThumbnailWidget()
 void ThumbnailWidget::initialize()
 {
   debug_msg(DebugWidgets, "initializing ThumbnailWidget");
+  focused_button = nullptr;
+  current_page_button = nullptr;
   delete widget();
   delete layout();
   setWidget(nullptr);
@@ -89,18 +91,13 @@ ThumbnailButton *ThumbnailWidget::buttonAtPage(int page)
 
 void ThumbnailWidget::focusPage(int page)
 {
-  if (current_page == page) return;
+  if (!isVisible()) return;
   ThumbnailButton *button = buttonAtPage(page);
-  if (!button) {
-    current_page = page;
-    return;
-  }
-  ThumbnailButton *old_button = buttonAtPage(current_page);
-  if (old_button) old_button->clearFocus();
-  current_page = page;
-  if (focused_button) focused_button->clearFocus();
-  focused_button = button;
-  focused_button->giveFocus();
+  if (!button) return;
+  button->giveFocus();
+  if (current_page_button)
+    current_page_button->clearFocus();
+  current_page_button = button;
 }
 
 void ThumbnailWidget::keyPressEvent(QKeyEvent *event)

@@ -1,11 +1,11 @@
 <h1>BeamerPresenter Manual</h1>
 
-<p>This program allows you to show a presentation to your audience while having all information you need on your screen.
+<p>This program shows a presentation to your audience while providing additional information on a second screen.
 The presentation must be a PDF file.
-It is assumed that the arrangement of windows and screens is done by the window manager (i.e. the user). BeamerPresenter will never try to take control over you screens by itself.</p>
+It is assumed that the arrangement of windows and screens is done by the window manager (i.e. the user).</p>
 
 <h2>Configuration</h2>
-<p>BeamerPresenter is highly customizable. But only a part of the configuration can be done using a graphical interface.</p>
+<p>BeamerPresenter is highly customizable. But only parts of the configuration can be done using a graphical interface. Details are provided in the man pages.</p>
 <p>
 An overview:
 <ul>
@@ -19,10 +19,10 @@ An overview:
 <p>BeamerPresenter creates windows consisting of widgets. The windows and widgets are defined by a JSON file as documented in <code>man 5 beamerpresenter-ui</code>. You can create a custom file or use multiple configuration files for different presentation formats.
 Examples can be found in @ABS_DOC_PATH@/examples.
 The most important widget is the slide widget. It shows a slide of a presentation. For the audience you usually have a window which consists only of a single slide widget.
-Slide widgets can also be used to show the speaker a preview of the next slides.</p>
+Slide widgets can also be used to show a preview of the next slides to the speaker.</p>
 
 <h3>Keyboard Shortcuts and Buttons</h3>
-<p>Interaction with the user interface is done via keyboard shortcuts, buttons, and tools associated to pointing tools (like the mouse, a touch screen, etc.).
+<p>Interaction with the user interface is done via keyboard shortcuts, buttons, and tools associated with pointing devices (mouse, touch screen, etc.).
 Shortcuts can be configured in the settings widget. Buttons are defined in the user interface configuration file and behave similar to keyboard shortcuts.
 Both shortcuts and buttons can either cause an action (e.g. going to the next page) or select a tool.</p>
 
@@ -38,26 +38,22 @@ Also for keyboard shortcuts which select a tool it is possible to define a devic
 <p>For more details on tools and actions see <code>man 5 beamerpresenter-ui</code>.</p>
 
 <h3>Saving and Loading Drawings</h3>
-<p>Use the "open" (default shortcut: Ctrl+O) and "save" (Ctrl+S) or "save as" (Ctrl+Shift+S) actions to load or save drawings. Note that it is not possible to switch to a different pdf file while BeamerPresenter is running. It is only possible to load drawings for the pdf file which is currently opened.</p>
+<p>Use the "open" (default shortcut: Ctrl+O) and "save" (Ctrl+S) or "save as" (Ctrl+Shift+S) actions to load or save drawings (without changing the PDF file). You can also directly open a file created by BeamerPresenter (or Xournal++) with BeamerPresenter.</p>
 
-<p>BeamerPresenter uses gzipped xml files (.bpr) aiming for compatibility with Xournal++ (.xopp files). These files do not include the pdf file. BeamerPresenter can read drawings and text annotations in a PDF from .xoj or .xopp files (Xournal or Xournal++). But BeamerPresenter will always show the pages of the pdf, independent of pages added or removed in Xournal(++). Xournal++ can read files created by BeamerPresenter and convert them to Xournal's .xoj format if necessary.</p>
+<p>BeamerPresenter uses gzipped xml files (.bpr) aiming for compatibility with Xournal++ (.xopp files). These files do not include the PDF file. BeamerPresenter can read drawings and text annotations in a PDF from .xoj or .xopp files created by Xournal or Xournal++. Xournal++ can read files created by BeamerPresenter and convert them to Xournal's .xoj format if necessary.</p>
 
-<p>BeamerPresenter files mainly include drawings and text added by the user, but they can also store the duration of the presentation, the overlay mode of the drawings, and times defined per slide. These times allow the speaker to easily check the time relative to a predefined schedule through the color of the timer widget. Additionally, it is possible to show rich text notes in BeamerPresenter. These notes are also included when saving or loading a file. Saving only these notes in an uncompressed xml format is also possible.</p>
+<p>BeamerPresenter files mainly include drawings, text annotations and rich text notes created by the user. But they can also store the duration of the presentation, the overlay mode of the drawings, and times defined per slide. These times allow the speaker to easily check the time relative to a predefined schedule through the color of the timer widget.</p>
 
 <h3>Notes for the Speaker</h3>
-<p>Notes and additional information for the speaker can be provided in three ways.</p>
+<p>Notes and additional information for the speaker can be provided in three ways. Every option requires a properly configured user interface (<code>man 5 beamerpresenter-ui</code>).</p>
 
-<p>The first option is to generate two presentation files, of which one contains some extra information. BeamerPresenter can show two slides from two different PDF files. Note that tools (drawings, pointing tools) will not be synchronized between slides which belong to different PDFs. The PDFs should have the same number of pages, but do not need to have the same page size.</p>
+<p>The first option is to generate two presentation files, of which one contains some extra information. BeamerPresenter can show two slides from two different PDF files. Note that tools (drawings, pointing tools) will not be synchronized between slides which belong to different PDFs. The PDFs should have the same number of pages, but do not need to have the same page size. Use the option "file":"presentation" or "file":"notes" of the "slide" widget in the GUI configuration.</p>
 
-<p>The second option results in a similar view in BeamerPresenter, but uses the possibility to put presentation and notes in the same file as done by LaTeX beamer when using the option "show notes on second screen". In this case every page in the PDF should be split into a left and a right half, of which one shows the notes and the other one shows the presentation.
-BeamerPresenter can automatically detect this situation based on the aspect ratio of the PDF pages.
-This option requires a properly configured user interface (<code>man 5 beamerpresenter-ui</code>).</p>
+<p>The second option results in a similar view in BeamerPresenter, but uses the possibility to put presentation and notes in the same file as done by LaTeX beamer when using the option "show notes on second screen". In this case every page in the PDF should be split into a left and a right half, showing the presentation and the notes, respectively.
+BeamerPresenter automatically detects this situation based on the aspect ratio of the PDF pages. Use the "page part":"left" and "page part":"right" option of the "slide" widget in the GUI configuration.</p>
 
-<p>The third option is to provide notes in a simple rich text editor.
-To use rich text notes you need the notes widget (<code>man 5 beamerpresenter-ui</code>).
-It allows you to save and load notes using the keyboard shortcuts Ctrl+S and Ctrl+O, respectively.
-Note that the widget must have focus when using these shortcuts.
-The notes will be saved in a simple xml document.</p>
+<p>The third option is to provide notes in a simple rich text editor, the "notes" widget.
+The notes can be saved in an XML document (keyboard shortcuts Ctrl+S in the notes widget) and will be included in a gzipped XML file when saving drawings, times etc.</p>
 
 <h2>License</h2>
 @HTML_LICENSE_STRING@

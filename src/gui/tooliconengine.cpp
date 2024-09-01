@@ -25,7 +25,7 @@ ToolIconEngine::ToolIconEngine(std::shared_ptr<const Tool> tool)
           drawtool->shape() != DrawTool::Recognize)
         iconname = "pen";
       iconname += "-";
-      iconname += string_to_shape.key(drawtool->shape()).c_str();
+      iconname += shape_codes.value(drawtool->shape()).c_str();
     }
     if (drawtool->brush().style() != Qt::NoBrush &&
         drawtool->shape() != DrawTool::Arrow &&

@@ -54,7 +54,7 @@ std::shared_ptr<Tool> createTool(const QJsonObject &obj,
       const Qt::BrushStyle brush_style = brush_style_codes.key(
           obj.value("brush").toString().toStdString(),
           brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
-      const DrawTool::Shape shape = string_to_shape.value(
+      const DrawTool::Shape shape = shape_codes.key(
           obj.value("shape").toString().toStdString(), DrawTool::Freehand);
       debug_msg(DebugSettings,
                 "creating pen/highlighter" << base_tool << color << width);
@@ -159,7 +159,7 @@ void toolToJson(std::shared_ptr<const Tool> tool, QJsonObject &obj)
     }
     obj.insert("style", pen_style_codes.value(drawtool->pen().style()).c_str());
     obj.insert("shape",
-               string_to_shape.key(drawtool->shape(), "freehand").c_str());
+               shape_codes.value(drawtool->shape(), "freehand").c_str());
     if (drawtool->compositionMode() != QPainter::CompositionMode_SourceOver)
       obj.insert(
           "composition",

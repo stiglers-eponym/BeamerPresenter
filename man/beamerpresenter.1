@@ -1,4 +1,4 @@
-.TH BeamerPresenter 1 "2023-09-08" "0.2.4"
+.TH BeamerPresenter 1 "2024-09-01" "0.2.4"
 .
 .SH NAME
 BeamerPresenter \- modular multi-screen PDF presenter
@@ -29,7 +29,7 @@ BeamerPresenter \- modular multi-screen PDF presenter
 is a Qt-based presentation viewer designed for showing extra information on the speaker's screen.
 The modular user interface is completely customizable and may include, among others, previews of upcoming slides, a different presentation file with additional information, text notes, a timer, and thumbnail slides.
 .PP
-The interpretation of multiple positional arguments depends on the user interface configuration (beamerpresenter-ui (5)). Readable file types are PDF files and gzip compressed xml files in a format mostly compatible with Xournal++ (.xopp).
+The interpretation of multiple positional arguments depends on the user interface configuration (beamerpresenter-ui (5)). Readable file types are PDF files and gzip compressed XML files in a format mostly compatible with Xournal++ (.xopp).
 .
 .
 .SH OPTIONS
@@ -68,7 +68,7 @@ Timer preset in minutes (floating point number).
 .
 .TP
 .BI "\-c \-\-config " file
-Path to config (settings) file. In Windows, using this command line is the only way of making BeamerPresenter use a configuration file instead of the Windows registry.
+Path to configuration (settings) file. In Windows, using this command line is the only way of making BeamerPresenter use a configuration file instead of the Windows registry.
 .
 .TP
 .BI "\-g \-\-gui-config " file
@@ -134,14 +134,14 @@ Load drawings etc. from file.
 .
 .SH CONFIGURATION
 .
-The configuration consists of an ordinary configuration file (beamerpresenter.conf(5)) based on Qt's settings format, which is integrated in the system settings. This defines, e.g., the cache size and keyboard shortcuts. Most settings in this settings file can be configured in the settings widget of the graphical user interface. See command line option -c or --config.
+The configuration consists of a configuration file (beamerpresenter.conf(5)) based on Qt's settings format, which is integrated in the system settings. This defines, e.g., the cache size and keyboard shortcuts. Most settings in this settings file can be configured in the settings widget of the graphical user interface. See command line option -c or --config.
 .PP
 Additionally, the graphical interface is defined in a JSON-formatted file gui.json (beamerpresenter-ui(5)). This file defines the user interface. It can only be edited manually. See command line option -g or --gui-config.
 .
 .
 .SH FILE FORMAT
 .
-BeamerPresenter can save drawings along with text notes (from a notes widget) and other file-specific settings to a gzipped xml file (.bpr). The PDF document is not included in this file.
+BeamerPresenter can save drawings along with text notes (from a notes widget) and other file-specific settings to a gzipped XML file (.bpr). The PDF document is not included in this file.
 The file type aims for compatibility with Xournal++'s .xopp in saving and loading drawings. BeamerPresenter can read .xoj and .xopp files, but will only consider pages with a PDF page as background. Xournal++ can open BeamerPresenter files, but transformations of text boxes will be ignored. BeamerPresenter can only handle a small subset of the features provided by Xournal++ and also adds a few features which Xournal++ will ignore.
 When opening a file, it does not need to be gzipped. However, when saving to a file it will always be gzipped.
 .PP

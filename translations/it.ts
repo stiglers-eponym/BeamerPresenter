@@ -29,19 +29,19 @@
     </message>
     <message>
         <source>go to last page</source>
-        <translation>vai all'ultima pagina</translation>
+        <translation>vai all&apos;ultima pagina</translation>
     </message>
     <message>
         <source>undo last drawing/erasing step in the presentation on the current slide</source>
-        <translation>annulla l'ultimo disegno/cancellazione nella presentazione sulla diapositiva corrente</translation>
+        <translation>annulla l&apos;ultimo disegno/cancellazione nella presentazione sulla diapositiva corrente</translation>
     </message>
     <message>
         <source>undo last drawing/erasing step on the left half of a PDF document which is split into notes and a presentation</source>
-        <translation>annulla l'ultimo passaggio di disegno/cancellazione nella metà sinistra di un documento PDF che è diviso in note e una presentazione</translation>
+        <translation>annulla l&apos;ultimo passaggio di disegno/cancellazione nella metà sinistra di un documento PDF che è diviso in note e una presentazione</translation>
     </message>
     <message>
         <source>undo last drawing/erasing step on the right half of a PDF document which is split into notes and a presentation</source>
-        <translation>annulla l'ultimo passaggio di disegno/cancellazione sulla metà destra di un documento PDF che è diviso in note e una presentazione</translation>
+        <translation>annulla l&apos;ultimo passaggio di disegno/cancellazione sulla metà destra di un documento PDF che è diviso in note e una presentazione</translation>
     </message>
     <message>
         <source>redo undone drawing/erasing step in the presentation on the current slide</source>
@@ -49,11 +49,11 @@
     </message>
     <message>
         <source>redo last drawing/erasing step on the left half of a PDF document which is split into notes and a presentation</source>
-        <translation>ripetere l'ultimo passaggio di disegno/cancellazione sulla metà sinistra di un documento PDF che è diviso in note e una presentazione</translation>
+        <translation>ripetere l&apos;ultimo passaggio di disegno/cancellazione sulla metà sinistra di un documento PDF che è diviso in note e una presentazione</translation>
     </message>
     <message>
         <source>redo last drawing/erasing step on the right half of a PDF document which is split into notes and a presentation</source>
-        <translation>ripetere l'ultimo passaggio di disegno/cancellazione sulla metà destra di un documento PDF che è diviso in note e una presentazione</translation>
+        <translation>ripetere l&apos;ultimo passaggio di disegno/cancellazione sulla metà destra di un documento PDF che è diviso in note e una presentazione</translation>
     </message>
     <message>
         <source>clear all drawings on the current presentation slide</source>
@@ -73,7 +73,7 @@
     </message>
     <message>
         <source>scroll up presentation view</source>
-        <translation>scorrere verso l'alto la visualizzazione della presentazione</translation>
+        <translation>scorrere verso l&apos;alto la visualizzazione della presentazione</translation>
     </message>
     <message>
         <source>reset view after scrolling to show full slide again</source>
@@ -161,7 +161,7 @@
     </message>
     <message>
         <source>unmute all media objects</source>
-        <translation>riattiva l'audio di tutti gli oggetti multimediali</translation>
+        <translation>riattiva l&apos;audio di tutti gli oggetti multimediali</translation>
     </message>
     <message>
         <source>reload PDF file(s)</source>
@@ -184,14 +184,14 @@
     <name>AnalogClockWidget</name>
     <message>
         <source>double-click on clock to start or pause timer</source>
-        <translation>fare doppio clic sull'orologio per avviare o mettere in pausa il timer</translation>
+        <translation>fare doppio clic sull&apos;orologio per avviare o mettere in pausa il timer</translation>
     </message>
 </context>
 <context>
     <name>ClockWidget</name>
     <message>
         <source>double-click on clock to start or pause timer</source>
-        <translation>fare doppio clic sull'orologio per avviare o mettere in pausa il timer</translation>
+        <translation>fare doppio clic sull&apos;orologio per avviare o mettere in pausa il timer</translation>
     </message>
 </context>
 <context>
@@ -231,13 +231,48 @@
         <source>recognize</source>
         <translation type="unfinished"></translation>
     </message>
+</context>
+<context>
+    <name>DrawToolDetails</name>
     <message>
-        <source>solid</source>
-        <translation>solido</translation>
+        <source>shape</source>
+        <translation>forma</translation>
+    </message>
+    <message>
+        <source>stroke width (in pt)</source>
+        <translation>larghezza del tratto (in pt)</translation>
+    </message>
+    <message>
+        <source>pen style</source>
+        <translation>stile della penna</translation>
+    </message>
+    <message>
+        <source>fill</source>
+        <translation>pieno</translation>
+    </message>
+    <message>
+        <source>select color</source>
+        <translation>seleziona colore</translation>
+    </message>
+    <message>
+        <source>fill color</source>
+        <translation>colore di riempimento</translation>
+    </message>
+    <message>
+        <source>brush style</source>
+        <translation>stile del pennello</translation>
+    </message>
+    <message>
+        <source>Fill color</source>
+        <translation>Colore di riempimento</translation>
     </message>
     <message>
         <source>no pen</source>
         <translation>nessuna penna</translation>
+    </message>
+    <message>
+        <source>solid</source>
+        <translation>solido</translation>
     </message>
     <message>
         <source>dashed</source>
@@ -305,50 +340,15 @@
     </message>
     <message>
         <source>hatched towards top right</source>
-        <translation>tratteggiato verso l'alto a destra</translation>
+        <translation>tratteggiato verso l&apos;alto a destra</translation>
     </message>
     <message>
         <source>hatched towards top left</source>
-        <translation>tratteggiato verso l'alto a sinistra</translation>
+        <translation>tratteggiato verso l&apos;alto a sinistra</translation>
     </message>
     <message>
         <source>diagonal cross pattern</source>
         <translation>motivo a croce diagonale</translation>
-    </message>
-</context>
-<context>
-    <name>DrawToolDetails</name>
-    <message>
-        <source>shape</source>
-        <translation>forma</translation>
-    </message>
-    <message>
-        <source>stroke width (in pt)</source>
-        <translation>larghezza del tratto (in pt)</translation>
-    </message>
-    <message>
-        <source>pen style</source>
-        <translation>stile della penna</translation>
-    </message>
-    <message>
-        <source>fill</source>
-        <translation>pieno</translation>
-    </message>
-    <message>
-        <source>select color</source>
-        <translation>seleziona colore</translation>
-    </message>
-    <message>
-        <source>fill color</source>
-        <translation>colore di riempimento</translation>
-    </message>
-    <message>
-        <source>brush style</source>
-        <translation>stile del pennello</translation>
-    </message>
-    <message>
-        <source>Fill color</source>
-        <translation>Colore di riempimento</translation>
     </message>
 </context>
 <context>
@@ -382,7 +382,7 @@
     </message>
     <message>
         <source>GUI config file is empty or parsing failed:</source>
-        <translation>Il file di configurazione GUI è vuoto o l'analisi non è riuscita:</translation>
+        <translation>Il file di configurazione GUI è vuoto o l&apos;analisi non è riuscita:</translation>
     </message>
     <message>
         <source>Ignoring invalid entry in GUI config.</source>
@@ -535,7 +535,7 @@
     <name>PathContainer</name>
     <message>
         <source>Could not find item in _z_order! Searching full array.</source>
-        <translation>Impossibile trovare l'elemento in _z_order! Ricerca nell'array completo.</translation>
+        <translation>Impossibile trovare l&apos;elemento in _z_order! Ricerca nell&apos;array completo.</translation>
     </message>
     <message>
         <source>Should apply micro step, but history is empty.</source>
@@ -543,7 +543,7 @@
     </message>
     <message>
         <source>New item existed before, but could not find it in _z_order! Searching full array.</source>
-        <translation>Esisteva già un nuovo elemento, ma non è stato possibile trovarlo in _z_order! Ricerca nell'array completo.</translation>
+        <translation>Esisteva già un nuovo elemento, ma non è stato possibile trovarlo in _z_order! Ricerca nell&apos;array completo.</translation>
     </message>
     <message>
         <source>Error in drawing history: inHistory &gt; history.size()</source>
@@ -762,7 +762,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>Depending on your installation, different PDF engines may be available. Note that using an external renderer requires a proper configuration of rendering command and rendering arguments as documented in man 5 beamerpresenter.conf.</source>
-        <translation>A seconda dell'installazione, potrebbero essere disponibili diversi motori PDF. Nota che l'utilizzo di un renderer esterno richiede una configurazione appropriata del comando di rendering e degli argomenti di rendering come documentato in man 5 beamerpresenter.conf.</translation>
+        <translation>A seconda dell&apos;installazione, potrebbero essere disponibili diversi motori PDF. Nota che l&apos;utilizzo di un renderer esterno richiede una configurazione appropriata del comando di rendering e degli argomenti di rendering come documentato in man 5 beamerpresenter.conf.</translation>
     </message>
     <message>
         <source>Renderer (requires restart)</source>
@@ -778,7 +778,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>Some programs (like LaTeX beamer) can create PDF pages split into one half for the audience one half for the speaker. This is assumed by BeamerPresenter if the aspect ratio (width/height) of the first slide lies above this threshold. This setting only takes effect after restarting BeamerPresenter.</source>
-        <translation>Alcuni programmi (come LaTeX beamer) possono creare pagine PDF divise in una metà per il pubblico e una metà per l'oratore. Questo viene assunto da BeamerPresenter se il rapporto di aspetto (larghezza/altezza) della prima diapositiva è superiore a questa soglia. Questa impostazione ha effetto solo dopo aver riavviato BeamerPresenter.</translation>
+        <translation>Alcuni programmi (come LaTeX beamer) possono creare pagine PDF divise in una metà per il pubblico e una metà per l&apos;oratore. Questo viene assunto da BeamerPresenter se il rapporto di aspetto (larghezza/altezza) della prima diapositiva è superiore a questa soglia. Questa impostazione ha effetto solo dopo aver riavviato BeamerPresenter.</translation>
     </message>
     <message>
         <source>page part threshold</source>
@@ -786,7 +786,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>Configuration file for the graphical user interface (GUI). This file defines which widgets are shown in the modular GUI. The file is JSON formatted and documented in man 5 beamerpresenter-ui. Examples can be found in </source>
-        <translation>File di configurazione per l'interfaccia utente grafica (GUI). Questo file definisce quali widget vengono mostrati nella GUI modulare. Il file è formattato in JSON e documentato in man 5 beamerpresenter-ui. Esempi possono essere trovati in </translation>
+        <translation>File di configurazione per l&apos;interfaccia utente grafica (GUI). Questo file definisce quali widget vengono mostrati nella GUI modulare. Il file è formattato in JSON e documentato in man 5 beamerpresenter-ui. Esempi possono essere trovati in </translation>
     </message>
     <message>
         <source>This setting only takes effect after restarting BeamerPresenter. Note that with an invalid GUI configuration file BeamerPresenter cannot start. Currently the default GUI configuration file is </source>
@@ -810,7 +810,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>If opened in a terminal, slide changes can be logged to standard output with a time stamp.</source>
-        <translation>Se aperte in un terminale, le modifiche alle diapositive possono essere registrate sull'output standard con un timestamp.</translation>
+        <translation>Se aperte in un terminale, le modifiche alle diapositive possono essere registrate sull&apos;output standard con un timestamp.</translation>
     </message>
     <message>
         <source>log slide changes</source>
@@ -938,7 +938,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>scroll up</source>
-        <translation>scorrere verso l'alto</translation>
+        <translation>scorrere verso l&apos;alto</translation>
     </message>
     <message>
         <source>scroll home</source>
@@ -1105,7 +1105,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>Font for Text input</source>
-        <translation>Font per l'immissione del testo</translation>
+        <translation>Font per l&apos;immissione del testo</translation>
     </message>
 </context>
 <context>
@@ -1126,7 +1126,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     <name>TimerWidget</name>
     <message>
         <source>time since beginning of the presentation</source>
-        <translation>tempo trascorso dall'inizio della presentazione</translation>
+        <translation>tempo trascorso dall&apos;inizio della presentazione</translation>
     </message>
     <message>
         <source>total duration of the presentation</source>
@@ -1142,7 +1142,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>Save current time as target end time for current slide?</source>
-        <translation>Salvare l'ora corrente come ora di fine di destinazione per la diapositiva corrente?</translation>
+        <translation>Salvare l&apos;ora corrente come ora di fine di destinazione per la diapositiva corrente?</translation>
     </message>
 </context>
 <context>
@@ -1173,7 +1173,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>torch: darken the slide leaving only a disk unchanged to focus attention on this area</source>
-        <translation>torcia: scurisce la diapositiva lasciando inalterato solo un disco per focalizzare l'attenzione su questa zona</translation>
+        <translation>torcia: scurisce la diapositiva lasciando inalterato solo un disco per focalizzare l&apos;attenzione su questa zona</translation>
     </message>
     <message>
         <source>enlarge part of the slide</source>
@@ -1193,7 +1193,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>Select objects inside a drawn shape</source>
-        <translation>Selezionare gli oggetti all'interno di una forma disegnata</translation>
+        <translation>Selezionare gli oggetti all&apos;interno di una forma disegnata</translation>
     </message>
     <message>
         <source>none</source>
@@ -1409,7 +1409,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>user interface configuration file</source>
-        <translation>file di configurazione dell'interfaccia utente</translation>
+        <translation>file di configurazione dell&apos;interfaccia utente</translation>
     </message>
     <message>
         <source>timer total time in minutes</source>
@@ -1437,7 +1437,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>only test the installation, don&apos;t start the app</source>
-        <translation>testare solo l'installazione, non avviare l'app</translation>
+        <translation>testare solo l&apos;installazione, non avviare l&apos;app</translation>
     </message>
     <message>
         <source>Parsing the GUI configuration failed with error code</source>

@@ -1,11 +1,12 @@
-.TH beamerpresenter.conf 5 "2023-09-08" "0.2.4"
+.TH beamerpresenter.conf 5 "2024-09-01" "0.2.4"
 .
 .SH NAME
 beamerpresenter.conf \- configuration file for BeamerPresenter
 .
 .SH DESCRIPTION
 .
-Configuration file for BeamerPresenter. You can manually edit this file or make changes in the settings widget of BeamerPresenter, which will also be written to this file. Command line arguments temporarily overwrite the settings of the config file.
+This man page explains the configuration file for BeamerPresenter usually stored in $HOME/.config/beamerpresenter/beamerpresenter.conf (see FILES below). A different path can be specified on the command line using the option \[dq]-c\[dq] of the beamerpresenter command.
+You can manually edit this file or make changes in the settings widget of BeamerPresenter, which will also be written to this file. Command line arguments temporarily overwrite the settings of the configuration file.
 .PP
 The configuration is structured into groups. A group is started by a line of the format
 .BI [ name ]
@@ -17,11 +18,11 @@ The group ends when another group is started. Entries not belonging to any group
 .
 .TP
 .BR "engine " "= mupdf"
-PDF engine, \[dq]mupdf\[dq], \[dq]poppler\[dq], or \[dq]qtpdf\[dq]. This is only relevant when more than one PDF engine was enabled at compile time.
+PDF engine, \[dq]mupdf\[dq], \[dq]poppler\[dq], or \[dq]qtpdf\[dq]. This is only relevant when more than one PDF engine was enabled at compile time (command line option \[dq]--renderer\[dq]).
 .
 .TP
 .BR "gui config " "= /etc/xdg/beamerpresenter/gui.json"
-Path to user interface configuration file. The structure of this file is documented in
+Path to user interface configuration file (command line option \[dq]-g\[dq] or \[dq]--gui-config\[dq]). The structure of this file is documented in
 .BR beamerpresenter-ui (5).
 .
 .TP
@@ -30,11 +31,11 @@ Path to HTML-formatted manual, which is shown in the settings widget.
 .
 .TP
 .BR "icon path " "= /usr/share/beamerpresenter/icons"
-Path to directory containing icons for this specific.
+Path to directory containing BeamerPresenter's own icons. Note that BeamerPresenter uses own icons and an icon theme installed on your system.
 .
 .TP
 .B "icon theme"
-Icon theme used for (generic) action icons. Choose any icon theme installed on your system.
+Icon theme used for (generic) icons. Choose any icon theme installed on your system.
 .
 .TP
 .B "icon theme path"
@@ -46,12 +47,13 @@ Maximum number of pages in cache. A negative number is interpreted as infinity.
 .
 .TP
 .BR "memory " "= 1.0486e+08"
-Maximally allows memory used to cache slides, floating point number in bytes.
-Note that it is not guaranteed that this limit is always strictly obeyed, since the required memory per page is a priory not known.
+Maximally allowed memory used to cache slides, floating point number in bytes.
+Note that this limit is not always strictly obeyed, since the required memory per page is unknown before rendering the page.
 .
 .TP
 .BR "frame time " "= 50"
 Frame time (integer, in ms) when showing slides in rapid succession as an animation.
+The actual frame time can be longer depending on the time needed to show the frame.
 .
 .TP
 .BR gestures " = false"
@@ -59,7 +61,7 @@ Enable or disable gesture navigation (if available). In wayland and Xorg, 3 fing
 .
 .TP
 .BR "log " "= false"
-Log slide changes to standard output.
+Log slide changes to standard output (command line option \[dq]--log\[dq])
 .
 .TP
 .BR "automatic slide changes " "= true"
@@ -75,7 +77,7 @@ Color (#AARRGGBB) used to highlight search results. This should include transpar
 .
 .TP
 .BR "debug " "= flag1,flag2,..."
-Only if debugging was enabled at compile time: Show debugging messages for the given flags. Usually debugging flags are defined on the command line and not in the global configuration.
+Only if debugging was enabled at compile time: Show debugging messages for the given flags. Usually debugging flags are defined on the command line (\[dq]--debug\[dq]) and not in the global configuration.
 .
 .
 .SS [drawing]
@@ -185,7 +187,7 @@ path to external program used to render pages. This only has an effect if
 .TP
 .BR "rendering arguments"
 comma-separated list of arguments for external program used to render pages. This only has an effect if
-.BR renderer " is set to " external .
+.BR renderer " is set to " external " and external rendering was enabled at compile time."
 The following replacements in the arguments are available:
 .RS
 .TP
@@ -235,7 +237,7 @@ comma-separated list of actions.
 .
 .TP
 .I JSON dictionary
-JSON-formatted dictionary using single quotation marks instead of double quotation marks (alternatively, double quotation marks can be escaped using backslash).
+JSON-formatted dictionary defining a tool. Use single quotation marks instead of double quotation marks, or escape double quotation marks using backslash.
 Entries in the dictionary are:
 .RS
 .TP
@@ -278,7 +280,12 @@ only text tool: anything that Qt can interpret as font name.
 .B font size
 only text tool: font size (positive number).
 .PP
-Example: {'tool':'pen', 'color':'green', 'width':2, 'device':['tablet pen', 'touch']}
+Examples:
+.RS
+{'tool':'pen', 'color':'green', 'width':2, 'device':['tablet pen', 'touch']}
+.br
+{'tool':'pointer', 'color':'#ffff0000', 'size':10, 'device':'all'}
+.RE
 .RE
 .
 .TP
@@ -308,6 +315,7 @@ Define tools which are initially associated with a devices. The syntax is as fol
 An example configuration:
 .RS
 right button = {'tool':'eraser', 'size':10, 'linewidth':0.5}
+.br
 tablet eraser = {'tool':'eraser', 'size':15, 'linewidth':0}
 .RE
 .

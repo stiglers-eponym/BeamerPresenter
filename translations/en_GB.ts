@@ -231,12 +231,47 @@
         <source>recognize</source>
         <translation type="unfinished"></translation>
     </message>
+</context>
+<context>
+    <name>DrawToolDetails</name>
     <message>
-        <source>solid</source>
-        <translation>solid</translation>
+        <source>shape</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>stroke width (in pt)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>pen style</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>fill</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>select color</source>
+        <translation>select colour</translation>
+    </message>
+    <message>
+        <source>fill color</source>
+        <translation>fill colour</translation>
+    </message>
+    <message>
+        <source>brush style</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill color</source>
+        <translation>Fill colour</translation>
     </message>
     <message>
         <source>no pen</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>solid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -314,41 +349,6 @@
     <message>
         <source>diagonal cross pattern</source>
         <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>DrawToolDetails</name>
-    <message>
-        <source>shape</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>stroke width (in pt)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>pen style</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>fill</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>select color</source>
-        <translation>select colour</translation>
-    </message>
-    <message>
-        <source>fill color</source>
-        <translation>fill colour</translation>
-    </message>
-    <message>
-        <source>brush style</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Fill color</source>
-        <translation>Fill colour</translation>
     </message>
 </context>
 <context>

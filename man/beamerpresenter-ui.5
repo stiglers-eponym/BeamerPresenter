@@ -1,11 +1,11 @@
-.TH beamerpresenter-ui 5 "2023-09-08" "0.2.4"
+.TH beamerpresenter-ui 5 "2024-08-25" "0.2.4"
 .
 .SH NAME
 beamerpresenter-ui \- user interface of BeamerPresenter
 .
 .SH GENERAL
 .
-The GUI configuration file is JSON-formatted, containing a list of widgets. These widgets function as root widgets forming own windows. Each widget is a JSON dictionary. There are widgets providing their own content and layout widgets which do not provide own contents, but contain a list of child widgets.
+The GUI configuration file is JSON-formatted, containing a list of widgets, each of which defines an own window. Each widget is a JSON dictionary. There are widgets providing their own content and layout widgets which do not provide own contents, but contain a list of child widgets. This allows you to define a layout tree.
 .PP
 Example configuration files can be found in /usr/share/doc/beamerpresenter/examples/.
 .PP
@@ -408,7 +408,7 @@ only draw tools (pen, highlighter, fixed width pen): stroke width (positive numb
 only pointing tools (eraser, pointer, torch, highlighter): radius of tool (positive number).
 .TP
 .B fill
-only draw tools (pen, highlighter, fixed width pen): color to fill the path. Leave empty if paths should not be filled.
+only draw tools: color to fill the path. Leave empty if paths should not be filled.
 .TP
 .BR style " = SolidLine"
 only draw tools: Pen style for stroking the path. Possible values are \[dq]nopen\[dq] , \[dq]solid\[dq], \[dq]dash\[dq], \[dq]dot\[dq], \[dq]dashdot\[dq], and \[dq]dashdotdot\[dq].
@@ -417,13 +417,16 @@ only draw tools: Pen style for stroking the path. Possible values are \[dq]nopen
 only draw tools: Filling style of the path, see https://doc.qt.io/qt-6/qt.html#BrushStyle-enum for valid names. Gradients are not allowed.
 .TP
 .BR shape " = freehand"
-only draw tools (pen, highlighter, fixed width pen): Draw this shape instead of a freehand path. Allowed values are \[dq]freehand\[dq], \[dq]rectangle\[dq], \[dq]ellipse\[dq], \[dq]line\[dq], and \[dq]arrow\[dq].
+only draw tools: Draw this shape instead of a freehand path. Allowed values are \[dq]freehand\[dq], \[dq]rectangle\[dq], \[dq]ellipse\[dq], \[dq]line\[dq], and \[dq]arrow\[dq].
 .TP
 .BR scale " = 2"
 only magnifier: magnification factor (number between 0.1 and 5).
 .TP
 .BR linewidth " = 0"
 only eraser: draw a circle of given line width around the eraser. The circle is only drawn on the currently active widget.
+.TP
+.B composition
+only draw tools: composition mode, valid values are: \[dq]source over\[dq] (default for pen), \[dq]darken\[dq] (default for highlighter), \[dq]lighten\[dq], \[dq]difference\[dq], \[dq]plus\[dq], \[dq]multiply\[dq], \[dq]screen\[dq], \[dq]overlay\[dq]
 .TP
 .B font
 only text tool: anything that Qt can interpret as a font name.

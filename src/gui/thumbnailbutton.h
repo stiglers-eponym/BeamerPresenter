@@ -34,6 +34,8 @@ class ThumbnailButton : public QLabel
     emit sendNavigationSignal(page);
   }
 
+  /// Adjust style after giving focus to this button.
+  /// Notify parent that focus has changed.
   void giveFocusInner()
   {
     if (page == preferences()->page)
@@ -43,18 +45,21 @@ class ThumbnailButton : public QLabel
     emit updateFocus(this);
   }
 
+  /// Set style to default (unfocussed, not current page)
   void setStyleDefault()
   {
     setStyleSheet(
         "ThumbnailButton{background-color:#00000000;color:#00000000;}");
   }
 
+  /// Set style to focussed but not the current page.
   void setStyleFocus()
   {
     setStyleSheet(
         "ThumbnailButton{background-color:#80ff0080;color:#80f00080;}");
   }
 
+  /// Set style to current page.
   void setStyleCurrent()
   {
     setStyleSheet(
@@ -62,17 +67,21 @@ class ThumbnailButton : public QLabel
   }
 
  public:
+  /// Margin line width.
   static constexpr int line_width = 4;
 
-  /// Boring constructor.
+  /// Constructor: prepare style.
   ThumbnailButton(const int page, QWidget *parent = nullptr);
 
+  /// Set focus and explicitly set layout.
+  /// Make sure that giveFocusInner() is called even if focus is not set.
   void giveFocus()
   {
     setFocus();
-    giveFocusInner();
+    if (!hasFocus()) giveFocusInner();
   }
 
+  /// Adjust style for unfocussed button.
   void clearFocus()
   {
     if (page == preferences()->page)

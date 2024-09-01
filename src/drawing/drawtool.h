@@ -141,13 +141,13 @@ class DrawTool : public Tool
   void setWidth(const float width) noexcept { _pen.setWidthF(width); }
 };
 
-static const QMap<std::string, DrawTool::Shape> string_to_shape{
-    {QT_TRANSLATE_NOOP("DrawTool", "freehand"), DrawTool::Freehand},
-    {QT_TRANSLATE_NOOP("DrawTool", "rectangle"), DrawTool::Rect},
-    {QT_TRANSLATE_NOOP("DrawTool", "ellipse"), DrawTool::Ellipse},
-    {QT_TRANSLATE_NOOP("DrawTool", "line"), DrawTool::Line},
-    {QT_TRANSLATE_NOOP("DrawTool", "arrow"), DrawTool::Arrow},
-    {QT_TRANSLATE_NOOP("DrawTool", "recognize"), DrawTool::Recognize},
+static const QMap<DrawTool::Shape, std::string> shape_codes{
+    {DrawTool::Freehand, QT_TRANSLATE_NOOP("DrawTool", "freehand")},
+    {DrawTool::Rect, QT_TRANSLATE_NOOP("DrawTool", "rectangle")},
+    {DrawTool::Ellipse, QT_TRANSLATE_NOOP("DrawTool", "ellipse")},
+    {DrawTool::Line, QT_TRANSLATE_NOOP("DrawTool", "line")},
+    {DrawTool::Arrow, QT_TRANSLATE_NOOP("DrawTool", "arrow")},
+    {DrawTool::Recognize, QT_TRANSLATE_NOOP("DrawTool", "recognize")},
 };
 
 static const QMap<Qt::PenStyle, std::string> pen_style_codes{
@@ -168,15 +168,6 @@ static const QMap<QPainter::CompositionMode, std::string>
         {QPainter::CompositionMode_Overlay, "overlay"},
     };
 
-static const QList<QPair<Qt::PenStyle, std::string>> pen_style_names{
-    {Qt::NoPen, QT_TRANSLATE_NOOP("DrawTool", "no pen")},
-    {Qt::SolidLine, QT_TRANSLATE_NOOP("DrawTool", "solid")},
-    {Qt::DashLine, QT_TRANSLATE_NOOP("DrawTool", "dashed")},
-    {Qt::DotLine, QT_TRANSLATE_NOOP("DrawTool", "dotted")},
-    {Qt::DashDotLine, QT_TRANSLATE_NOOP("DrawTool", "dash-dotted")},
-    {Qt::DashDotDotLine, QT_TRANSLATE_NOOP("DrawTool", "dash-dot-dot")},
-};
-
 static const QMap<Qt::BrushStyle, std::string> brush_style_codes{
     {Qt::NoBrush, "nobrush"},
     {Qt::SolidPattern, "solid-pattern"},
@@ -193,27 +184,6 @@ static const QMap<Qt::BrushStyle, std::string> brush_style_codes{
     {Qt::BDiagPattern, "hatched-top-right"},
     {Qt::FDiagPattern, "hatched-top-left"},
     {Qt::DiagCrossPattern, "hatched-diag-cross"},
-};
-
-static const QList<QPair<Qt::BrushStyle, std::string>> brush_style_names{
-    {Qt::NoBrush, QT_TRANSLATE_NOOP("DrawTool", "no brush")},
-    {Qt::SolidPattern, QT_TRANSLATE_NOOP("DrawTool", "solid pattern")},
-    {Qt::Dense1Pattern, QT_TRANSLATE_NOOP("DrawTool", "dense pattern 1")},
-    {Qt::Dense2Pattern, QT_TRANSLATE_NOOP("DrawTool", "dense pattern 2")},
-    {Qt::Dense3Pattern, QT_TRANSLATE_NOOP("DrawTool", "dense pattern 3")},
-    {Qt::Dense4Pattern, QT_TRANSLATE_NOOP("DrawTool", "dense pattern 4")},
-    {Qt::Dense5Pattern, QT_TRANSLATE_NOOP("DrawTool", "dense pattern 5")},
-    {Qt::Dense6Pattern, QT_TRANSLATE_NOOP("DrawTool", "dense pattern 6")},
-    {Qt::Dense7Pattern, QT_TRANSLATE_NOOP("DrawTool", "dense pattern 7")},
-    {Qt::HorPattern, QT_TRANSLATE_NOOP("DrawTool", "horizontally hatched")},
-    {Qt::VerPattern, QT_TRANSLATE_NOOP("DrawTool", "vertically hatched")},
-    {Qt::CrossPattern, QT_TRANSLATE_NOOP("DrawTool", "cross pattern")},
-    {Qt::BDiagPattern,
-     QT_TRANSLATE_NOOP("DrawTool", "hatched towards top right")},
-    {Qt::FDiagPattern,
-     QT_TRANSLATE_NOOP("DrawTool", "hatched towards top left")},
-    {Qt::DiagCrossPattern,
-     QT_TRANSLATE_NOOP("DrawTool", "diagonal cross pattern")},
 };
 
 #endif  // DRAWTOOL_H

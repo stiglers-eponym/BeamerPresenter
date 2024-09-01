@@ -231,6 +231,41 @@
         <source>recognize</source>
         <translation>automatisch erkennen</translation>
     </message>
+</context>
+<context>
+    <name>DrawToolDetails</name>
+    <message>
+        <source>stroke width (in pt)</source>
+        <translation>Linienbreite (in pt)</translation>
+    </message>
+    <message>
+        <source>fill color</source>
+        <translation>Farbe zum Füllen</translation>
+    </message>
+    <message>
+        <source>fill</source>
+        <translation>füllen</translation>
+    </message>
+    <message>
+        <source>shape</source>
+        <translation>Form</translation>
+    </message>
+    <message>
+        <source>pen style</source>
+        <translation>Stiftstil</translation>
+    </message>
+    <message>
+        <source>select color</source>
+        <translation>wähle Farbe</translation>
+    </message>
+    <message>
+        <source>brush style</source>
+        <translation>Füllung</translation>
+    </message>
+    <message>
+        <source>Fill color</source>
+        <translation>Farbe zum Füllen</translation>
+    </message>
     <message>
         <source>no pen</source>
         <translation>kein Stift</translation>
@@ -314,41 +349,6 @@
     <message>
         <source>diagonal cross pattern</source>
         <translation>diagonal schraffiert (beide Richtungen)</translation>
-    </message>
-</context>
-<context>
-    <name>DrawToolDetails</name>
-    <message>
-        <source>stroke width (in pt)</source>
-        <translation>Linienbreite (in pt)</translation>
-    </message>
-    <message>
-        <source>fill color</source>
-        <translation>Farbe zum Füllen</translation>
-    </message>
-    <message>
-        <source>fill</source>
-        <translation>füllen</translation>
-    </message>
-    <message>
-        <source>shape</source>
-        <translation>Form</translation>
-    </message>
-    <message>
-        <source>pen style</source>
-        <translation>Stiftstil</translation>
-    </message>
-    <message>
-        <source>select color</source>
-        <translation>wähle Farbe</translation>
-    </message>
-    <message>
-        <source>brush style</source>
-        <translation>Füllung</translation>
-    </message>
-    <message>
-        <source>Fill color</source>
-        <translation>Farbe zum Füllen</translation>
     </message>
 </context>
 <context>
