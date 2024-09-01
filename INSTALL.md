@@ -124,10 +124,10 @@ When using MuPDF:
 ### Download
 Download the sources:
 ```sh
-wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.4.tar.gz
-sha256sum -c - <<< "4ccdd747b2c829411de3f33548a125f8e7f16a768e03f56f71bd6b3f27f5bca1 v0.2.4.tar.gz"
-tar -xf v0.2.4.tar.gz
-cd BeamerPresenter-0.2.4
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.5.tar.gz
+sha256sum -c - <<< "87d5ba4b369636862638edf9e67d162d94d43b0335101ff975b188c55316e40e v0.2.5.tar.gz"
+tar -xf v0.2.5.tar.gz
+cd BeamerPresenter-0.2.5
 ```
 Alternatively, you can clone the git repository
 ```sh
