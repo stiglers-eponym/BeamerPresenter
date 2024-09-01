@@ -16,7 +16,7 @@ sudo apt install ./beamerpresenter-poppler-0.2.4-qt5-focal-x86_64.deb
 # Arch/Manjaro/Endeavour
 sudo pacman -U beamerpresenter-poppler-qt6-0.2.4-1-x86_64.pkg.tar.zst
 # Flatpak
-flatpak install org.kde.Platform/x86_64/6.4 # can be skipped if already installed
+flatpak install org.kde.Platform/x86_64/6.5 # can be skipped if already installed
 flatpak install BeamerPresenter-Qt6.flatpak
 ```
 Verify the signature of the checksums in `SHA256SUMS`:
@@ -38,7 +38,7 @@ When installing BeamerPresenter you need to choose a PDF engine from MuPDF, Popp
 
 
 ## Requirements
-Building is currently tested in Arch Linux, Xubuntu 20.04, Kubuntu 24.04 and 22.04, Fedora 38, and MinGW-w64 in MSYS2 (Windows).
+Building is currently tested in Arch Linux, Xubuntu 20.04, Kubuntu 24.04 and 22.04, Fedora 40, and MinGW-w64 in MSYS2 (Windows).
 
 In order to compile BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia and SVG modules installed.
 For translations you also need the linguist tools.
@@ -85,7 +85,7 @@ When compiling with Poppler:
 * `poppler-qt6`
 
 When compiling with MuPDF:
-* `libmupdf` (tested versions: 1.16.1 – 1.24.8)
+* `libmupdf` (tested versions: 1.16.1 – 1.24.9)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`
@@ -97,20 +97,20 @@ Optional, for showing videos:
 ### Dependencies in Fedora
 Fedora is the only RPM-based system tested so far. Please open an issue if these instructions seem wrong or outdated!
 
-General build dependencies in Fedora 38:
+General build dependencies in Fedora 40:
 * `cmake`
 * `git` (only when building mainline version)
 * `zlib-devel`
-* `qt5-qtmultimedia-devel` (`qt6-qtmultimedia-devel` for Qt 6)
-* `qt5-qtsvg-devel` (`qt6-qtsvg-devel` for Qt 6)
-* `qt5-qttools-devel` (`qt6-qttools-devel` for Qt 6)
+* `qt6-qtmultimedia-devel` (`qt5-qtmultimedia-devel` for Qt 5)
+* `qt6-qtsvg-devel` (`qt5-qtsvg-devel` for Qt 5)
+* `qt6-qttools-devel` (`qt5-qttools-devel` for Qt 5)
 * `fedora-packager`
 
 When using poppler:
-* `poppler-qt5-devel` (`poppler-qt6-devel` for Qt 6)
+* `poppler-qt6-devel` (`poppler-qt5-devel` for Qt 5)
 
 When using MuPDF:
-* `mupdf-devel`
+* `mupdf-devel` (use the option `LINK_MUPDF_THIRD=OFF` since Fedora 40)
 * `freetype-devel`
 * `harfbuzz-devel`
 * `libjpeg-turbo-devel`
@@ -182,7 +182,7 @@ Other options are added in the form `-DOPTION=VALUE` as listed below.
 | Option | Value | Explanation |
 | ------ | ----- | ----------- |
 | `INSTALL_LICENSE` | ON | copy the license to /usr/share/licenses/beamerpresenter/LICENSE |
-| `QT_VERSION_MINOR` | 6 | only relevant for packaging (dependency version checking) |
+| `QT_VERSION_MINOR` | 7 | only relevant for packaging (dependency version checking) |
 | `CMAKE_INSTALL_PREFIX` | /usr | install prefix. If not specified, this will be /usr/local in Linux |
 | `CMAKE_INSTALL_SYSCONFDIR` | /etc | system configuration directory |
 | `GENERATE_MANPAGES` | ON | Generate man pages and include them in installation |
@@ -203,7 +203,7 @@ cmake --install build-dir
 In Windows, it is recommended to use MinGW-w64 in MSYS2.
 For more details and other options, see [packaging/Windows.md](packaging/Windows.md).
 
-MinGW-w64 can be obtained in different ways. I have only tested MSYS2 using the native C runtime in Windows.
+MinGW-w64 can be obtained in different ways. I have only tested MSYS2 using the native C runtime in Windows, using the MSYS2 environments UCRT64 and CLANG64.
 
 1. Install [MSYS2](https://www.msys2.org). After the installation, a terminal for the UCRT64 environment should launch. All commands mentioned in the following should be entered in this terminal. Run `pacman -Syu` directly after the installation.
 2. Download the recipe file [packaging/PKGBUILD\_MSYS2](packaging/PKGBUILD_MSYS2). Place this file in the build directory (e.g. an empty directory) and open this directory in the UXRT64 terminal (program "MSYS2 UCRT64" in Windows).

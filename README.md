@@ -1,9 +1,9 @@
 # BeamerPresenter
 BeamerPresenter is a PDF viewer for presentations designed to show additional information to the speaker on a separate screen.
 Multimedia content and tools for drawing/highlighting allow you to make the presentation interactive.
-The modular user interface can show notes (text or separate PDF file), a timer, thumbnails of the slides etc.
+The modular user interface can show notes (text or separate PDF file), a timer, thumbnails of the slides, and other widgets.
 
-This software uses the Qt framework and the PDF engines MuPDF or Poppler.
+This software uses the Qt framework and the PDF engine MuPDF or Poppler.
 
 ## Features (selection)
 * modular user interface: adapt for your presentation style and technical equipment (number of monitors, required extra information for the speaker, input devices, ...)
