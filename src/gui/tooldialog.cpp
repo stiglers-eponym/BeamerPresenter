@@ -70,8 +70,10 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent,
   pen_style_box->addItem(tr("solid"), QVariant::fromValue(Qt::SolidLine));
   pen_style_box->addItem(tr("dashed"), QVariant::fromValue(Qt::DashLine));
   pen_style_box->addItem(tr("dotted"), QVariant::fromValue(Qt::DotLine));
-  pen_style_box->addItem(tr("dash-dotted"), QVariant::fromValue(Qt::DashDotLine));
-  pen_style_box->addItem(tr("dash-dot-dot"), QVariant::fromValue(Qt::DashDotDotLine));
+  pen_style_box->addItem(tr("dash-dotted"),
+                         QVariant::fromValue(Qt::DashDotLine));
+  pen_style_box->addItem(tr("dash-dot-dot"),
+                         QVariant::fromValue(Qt::DashDotDotLine));
   layout->addRow(tr("pen style"), pen_style_box);
   pen_style_box->setCurrentIndex(pen_style_box->findData(QVariant::fromValue(
       oldtool ? oldtool->pen().style() : Qt::PenStyle::SolidLine)));
@@ -103,20 +105,34 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent,
 
   // Brush style selection
   brush_style_box->addItem(tr("no brush"), QVariant::fromValue(Qt::NoBrush));
-  brush_style_box->addItem(tr("solid pattern"), QVariant::fromValue(Qt::SolidPattern));
-  brush_style_box->addItem(tr("dense pattern 1"), QVariant::fromValue(Qt::Dense1Pattern));
-  brush_style_box->addItem(tr("dense pattern 2"), QVariant::fromValue(Qt::Dense2Pattern));
-  brush_style_box->addItem(tr("dense pattern 3"), QVariant::fromValue(Qt::Dense3Pattern));
-  brush_style_box->addItem(tr("dense pattern 4"), QVariant::fromValue(Qt::Dense4Pattern));
-  brush_style_box->addItem(tr("dense pattern 5"), QVariant::fromValue(Qt::Dense5Pattern));
-  brush_style_box->addItem(tr("dense pattern 6"), QVariant::fromValue(Qt::Dense6Pattern));
-  brush_style_box->addItem(tr("dense pattern 7"), QVariant::fromValue(Qt::Dense7Pattern));
-  brush_style_box->addItem(tr("horizontally hatched"), QVariant::fromValue(Qt::HorPattern));
-  brush_style_box->addItem(tr("vertically hatched"), QVariant::fromValue(Qt::VerPattern));
-  brush_style_box->addItem(tr("cross pattern"), QVariant::fromValue(Qt::CrossPattern));
-  brush_style_box->addItem(tr("hatched towards top right"), QVariant::fromValue(Qt::BDiagPattern));
-  brush_style_box->addItem(tr("hatched towards top left"), QVariant::fromValue(Qt::FDiagPattern));
-  brush_style_box->addItem(tr("diagonal cross pattern"), QVariant::fromValue(Qt::DiagCrossPattern));
+  brush_style_box->addItem(tr("solid pattern"),
+                           QVariant::fromValue(Qt::SolidPattern));
+  brush_style_box->addItem(tr("dense pattern 1"),
+                           QVariant::fromValue(Qt::Dense1Pattern));
+  brush_style_box->addItem(tr("dense pattern 2"),
+                           QVariant::fromValue(Qt::Dense2Pattern));
+  brush_style_box->addItem(tr("dense pattern 3"),
+                           QVariant::fromValue(Qt::Dense3Pattern));
+  brush_style_box->addItem(tr("dense pattern 4"),
+                           QVariant::fromValue(Qt::Dense4Pattern));
+  brush_style_box->addItem(tr("dense pattern 5"),
+                           QVariant::fromValue(Qt::Dense5Pattern));
+  brush_style_box->addItem(tr("dense pattern 6"),
+                           QVariant::fromValue(Qt::Dense6Pattern));
+  brush_style_box->addItem(tr("dense pattern 7"),
+                           QVariant::fromValue(Qt::Dense7Pattern));
+  brush_style_box->addItem(tr("horizontally hatched"),
+                           QVariant::fromValue(Qt::HorPattern));
+  brush_style_box->addItem(tr("vertically hatched"),
+                           QVariant::fromValue(Qt::VerPattern));
+  brush_style_box->addItem(tr("cross pattern"),
+                           QVariant::fromValue(Qt::CrossPattern));
+  brush_style_box->addItem(tr("hatched towards top right"),
+                           QVariant::fromValue(Qt::BDiagPattern));
+  brush_style_box->addItem(tr("hatched towards top left"),
+                           QVariant::fromValue(Qt::FDiagPattern));
+  brush_style_box->addItem(tr("diagonal cross pattern"),
+                           QVariant::fromValue(Qt::DiagCrossPattern));
   layout->addRow(tr("brush style"), brush_style_box);
   brush_style_box->setCurrentIndex(
       brush_style_box->findData(QVariant::fromValue(

@@ -21,8 +21,8 @@
 
 PixCache::PixCache(const std::shared_ptr<PdfDocument> &doc,
                    const int thread_number, const PagePart page_part,
-                   QObject *parent) noexcept
-    : QObject(parent), priority({page_part}), pdfDoc(doc)
+                   const CacheMode mode, QObject *parent) noexcept
+    : QObject(parent), priority({page_part}), pdfDoc(doc), cacheMode(mode)
 {
   debug_verbose(DebugFunctionCalls, "CREATING PixCache" << this);
   threads =
@@ -438,11 +438,21 @@ qreal PixCache::getResolution(const int page) const
   QSizeF pageSize = pdfDoc->pageSize(page);
   if (pageSize.isEmpty()) return -1.;
   if (renderer->pagePart() != FullPage) pageSize.rwidth() /= 2;
-  if (pageSize.width() * frame.height() > pageSize.height() * frame.width())
-    // page is too wide, determine resolution by x direction
-    return frame.width() / pageSize.width();
-  // page is too high, determine resolution by y direction
-  return frame.height() / pageSize.height();
+  switch (cacheMode) {
+    case FitPage:
+      if (pageSize.width() * frame.height() > pageSize.height() * frame.width())
+        // page is too wide, determine resolution by x direction
+        return frame.width() / pageSize.width();
+      else
+        // page is too high, determine resolution by y direction
+        return frame.height() / pageSize.height();
+    case FitWidth:
+      return frame.width() / pageSize.width();
+    case FitHeight:
+      return frame.height() / pageSize.height();
+    default:
+      return -1.;
+  }
 }
 
 void PixCache::updateFrame(const QSizeF &size)
@@ -451,8 +461,13 @@ void PixCache::updateFrame(const QSizeF &size)
   if (frame != size && threads.length() > 0) {
     debug_msg(DebugCache, "update frame" << frame << size);
     mutex.lock();
-    frame = size;
-    clear();
+    if ((cacheMode == FitWidth && frame.width() == size.width()) ||
+        (cacheMode == FitHeight && frame.height() == size.height())) {
+      frame = size;
+    } else {
+      frame = size;
+      clear();
+    }
     mutex.unlock();
   }
 }

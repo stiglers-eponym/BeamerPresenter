@@ -18,6 +18,7 @@
 #include "src/enumerates.h"
 #include "src/gui/toolpropertybutton.h"
 #include "src/preferences.h"
+#include "src/rendering/pixcache.h"
 
 class Tool;
 class QColor;
@@ -30,7 +31,6 @@ class QKeyEvent;
 class PdfMaster;
 class SlideScene;
 class SlideView;
-class PixCache;
 class QMainWindow;
 class QXmlStreamReader;
 class QXmlStreamWriter;
@@ -114,7 +114,8 @@ class Master : public QObject
   /// Get pixcache object for given parameters, create one if necessary.
   const PixCache *getPixcache(const std::shared_ptr<PdfDocument> &doc,
                               const PagePart page_part, int cache_hash,
-                              const int threads);
+                              const int threads,
+                              const PixCache::CacheMode cacheMode);
 
  public:
   /// Constructor: initializes times.

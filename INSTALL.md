@@ -21,7 +21,7 @@ flatpak install BeamerPresenter-Qt6.flatpak
 ```
 Verify the signature of the checksums in `SHA256SUMS`:
 ```sh
-gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys DD11316A0D8E585F
+gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys D9087AEC43D57C18
 gpg --verify SHA256SUMS.sig SHA256SUMS
 ```
 

@@ -791,14 +791,20 @@ void SlideScene::prepareNavigationEvent(const int newpage)
   switch (page_part) {
     case LeftHalf:
       pagesize.rwidth() /= 2;
-      setSceneRect(0., 0., pagesize.width(), pagesize.height());
+      setSceneRect(
+          0., 0., pagesize.width(),
+          fixed_page_height > 0 ? fixed_page_height : pagesize.height());
       break;
     case RightHalf:
       pagesize.rwidth() /= 2;
-      setSceneRect(pagesize.width(), 0., pagesize.width(), pagesize.height());
+      setSceneRect(
+          pagesize.width(), 0., pagesize.width(),
+          fixed_page_height > 0 ? fixed_page_height : pagesize.height());
       break;
     default:
-      setSceneRect(0., 0., pagesize.width(), pagesize.height());
+      setSceneRect(
+          0., 0., pagesize.width(),
+          fixed_page_height > 0 ? fixed_page_height : pagesize.height());
       break;
   }
 }
@@ -2016,4 +2022,9 @@ void writeToPixelImage(QByteArray &data, const QList<QGraphicsItem *> &source,
   buffer.open(QIODevice::WriteOnly);
   image.save(&buffer, format);
   buffer.close();
+}
+
+void SlideScene::setFixedAspect(const qreal aspect)
+{
+  setFixedHeight(master->getPageSize(0).width() / aspect);
 }

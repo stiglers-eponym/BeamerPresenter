@@ -38,6 +38,13 @@ class PixCache : public QObject
 {
   Q_OBJECT
 
+ public:
+  enum CacheMode {
+    FitPage,
+    FitWidth,
+    FitHeight,
+  };
+
  private:
   static constexpr qreal max_resolution_deviation = 1e-5;
 
@@ -67,6 +74,9 @@ class PixCache : public QObject
 
   /// Maximum number of slides in cache
   int maxNumber = -1;
+
+  /// Fixed width for cache in scroll mode
+  CacheMode cacheMode = FitPage;
 
   /// Threads used to render pages to cache.
   /// This will be an empty vector if the PDF has flexible page sizes.
@@ -105,6 +115,7 @@ class PixCache : public QObject
   explicit PixCache(const std::shared_ptr<PdfDocument> &doc,
                     const int thread_number,
                     const PagePart page_part = FullPage,
+                    const CacheMode mode = FitPage,
                     QObject *parent = nullptr) noexcept;
 
   /// Destructor: Stop and clean up threads, delete renderer, clear content.
@@ -128,6 +139,17 @@ class PixCache : public QObject
     debug_verbose(DebugFunctionCalls, number << cache.size() << this);
     maxNumber = number;
     if (number < cache.size() && number >= 0) limitCacheSize();
+  }
+
+  /// Set cache mode, clear cache if mode changes.
+  void setCacheMode(const CacheMode mode)
+  {
+    if (mode != cacheMode) {
+      mutex.lock();
+      cacheMode = mode;
+      clear();
+      mutex.unlock();
+    }
   }
 
   /// Total size of all cached pages in bytes

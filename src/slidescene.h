@@ -125,6 +125,9 @@ class SlideScene : public QGraphicsScene
   /// Currently visible page.
   int page = 0;
 
+  /// Fixed height for view in scroll mode
+  qreal fixed_page_height = -1.0;
+
   /// Page part shown in this scene.
   const PagePart page_part;
 
@@ -216,6 +219,15 @@ class SlideScene : public QGraphicsScene
 
   /// return page_part.
   PagePart pagePart() const { return page_part; }
+
+  /// Set fixed height for scroll mode.
+  void setFixedHeight(const qreal height) noexcept
+  {
+    fixed_page_height = height;
+  }
+
+  /// Set fixed height for scroll mode based on aspect ratio of first page.
+  void setFixedAspect(const qreal aspect);
 
   /// Handle tablet move event, mainly for drawing.
   /// Called from SlideView.

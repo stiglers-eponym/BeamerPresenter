@@ -501,10 +501,18 @@ SlideView *Master::createSlide(const QJsonObject &object,
 #endif
   }
 
+  PixCache::CacheMode cacheMode = PixCache::FitPage;
+  const double scroll_mode_aspect =
+      object.value("scroll mode aspect").toDouble(-1.0);
+  if (scroll_mode_aspect > 0) {
+    scene->setFixedAspect(scroll_mode_aspect);
+    cacheMode = PixCache::FitWidth;
+  }
+
   // Get or create cache object.
-  const PixCache *pixcache = getPixcache(pdf->getDocument(), page_part,
-                                         object.value("cache hash").toInt(-1),
-                                         object.value("threads").toInt(1));
+  const PixCache *pixcache = getPixcache(
+      pdf->getDocument(), page_part, object.value("cache hash").toInt(-1),
+      object.value("threads").toInt(1), cacheMode);
 
   // Create slide view.
   SlideView *slide = new SlideView(scene, pixcache, parent);
@@ -532,6 +540,7 @@ SlideView *Master::createSlide(const QJsonObject &object,
           Qt::QueuedConnection);
   connect(scene, &SlideScene::navigationToViews, slide, &SlideView::pageChanged,
           Qt::DirectConnection);
+
   return slide;
 }
 
@@ -659,7 +668,8 @@ std::shared_ptr<PdfMaster> Master::createPdfMaster(QString abs_path)
 
 const PixCache *Master::getPixcache(const std::shared_ptr<PdfDocument> &doc,
                                     const PagePart page_part, int cache_hash,
-                                    const int threads)
+                                    const int threads,
+                                    const PixCache::CacheMode cacheMode)
 {
   if (cache_hash == -1)
     // -1 is the "default hash" and indicates that a new object has to
@@ -676,7 +686,7 @@ const PixCache *Master::getPixcache(const std::shared_ptr<PdfDocument> &doc,
 
   // Create a new PixCache object an store it in caches.
   // Create the PixCache object.
-  PixCache *pixcache = new PixCache(doc, threads, page_part);
+  PixCache *pixcache = new PixCache(doc, threads, page_part, cacheMode);
   // Keep the new pixcache in caches.
   caches[cache_hash] = pixcache;
   // Set maximum number of pages in cache from settings.
