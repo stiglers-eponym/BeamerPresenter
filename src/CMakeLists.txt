@@ -85,6 +85,7 @@ add_executable(beamerpresenter
         enumerates.h
         names.h names.cpp
         log.h
+        masterapp.h
         main.cpp
         ${EXTRA_INCLUDE}
     )

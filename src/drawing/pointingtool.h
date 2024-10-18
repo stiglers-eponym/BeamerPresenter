@@ -12,6 +12,8 @@
 #include "src/config.h"
 #include "src/drawing/tool.h"
 
+class SlideScene;
+
 /**
  * @brief Tool for highlighting or pointing on a slide.
  *
@@ -33,11 +35,14 @@ class PointingTool : public Tool
   QBrush _brush;
   /// Pointer to scene at which this tool is currently active. _scene is used
   /// by slide views to determine whether this tool should be drawn.
-  const void *_scene{nullptr};
+  SlideScene *_scene{nullptr};
   /// Radius of drawing tool (in points)
   float _size;
   /// Scale for magnification, only used by magnifier, or line width for eraser.
   float _scale = 2.;
+
+  /// Schedule redraw of slide views on current positions.
+  void invalidatePos();
 
  public:
   /// Constructor with full initialization.
@@ -72,22 +77,43 @@ class PointingTool : public Tool
   const QList<QPointF> &pos() const noexcept { return _pos; }
 
   /// @return _scene
-  const void *&scene() noexcept { return _scene; }
+  // SlideScene *&scene() noexcept { return _scene; }
 
   /// @return _scene
-  const void *const &scene() const noexcept { return _scene; }
+  const SlideScene *const &scene() const noexcept { return _scene; }
+
+  /// clear position and switch scene.
+  void setScene(SlideScene *scene)
+  {
+    clearPos();
+    _scene = scene;
+  }
 
   /// clear position(s).
-  void clearPos() noexcept { _pos.clear(); }
+  void clearPos()
+  {
+    invalidatePos();
+    _pos.clear();
+  }
 
   /// set single position.
-  void setPos(const QPointF &pos) noexcept { _pos = {pos}; }
+  void setPos(const QPointF &pos)
+  {
+    invalidatePos();
+    _pos = {pos};
+    invalidatePos();
+  }
 
   /// set multiple positions.
-  void setPos(const QList<QPointF> &pos) noexcept { _pos = pos; }
+  void setPos(const QList<QPointF> &pos)
+  {
+    invalidatePos();
+    _pos = pos;
+    invalidatePos();
+  }
 
   /// add another position.
-  void addPos(const QPointF &pos) noexcept { _pos.append(pos); }
+  void addPos(const QPointF &pos);
 
   /// @return _size
   float size() const noexcept { return _size; }

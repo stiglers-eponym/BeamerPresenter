@@ -185,12 +185,13 @@ class Preferences : public QObject
       {Qt::CTRL | Qt::SHIFT | Qt::Key_S, Action::SaveDrawingsAs},
       {Qt::CTRL | Qt::Key_O, Action::LoadDrawings},
   };
-  /// Map key combinations to tools. These tools are not owned by this.
-  /// Only when the program ends and preferences() is the last object to
-  /// be deleted, the remaining key_tools will be deleted in the destructor
-  /// of preferences().
-  /// Objects owning a tool which is listed here should always call
-  /// writable_preferences().removeKeyTool before deleting this tool.
+  /** Map key combinations to tools. These tools are not owned by this.
+   * Only when the program ends and preferences() is the last object to
+   * be deleted, the remaining key_tools will be deleted in the destructor
+   * of preferences().
+   * Objects owning a tool which is listed here should always call
+   * writable_preferences().removeKeyTool before deleting this tool.
+   * */
   QMultiMap<QKeySequence, std::shared_ptr<Tool>> key_tools;
 
   /// Map gestures to actions

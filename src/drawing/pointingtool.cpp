@@ -6,6 +6,8 @@
 #include <QRadialGradient>
 #include <QtConfig>
 
+#include "src/slidescene.h"
+
 void PointingTool::initPointerBrush() noexcept
 {
   QRadialGradient grad(.5, .5, .5);
@@ -29,4 +31,28 @@ void PointingTool::setColor(const QColor &color) noexcept
 {
   _brush.setColor(color);
   if (_tool == Pointer) initPointerBrush();
+}
+
+void PointingTool::invalidatePos()
+{
+  if (_scene && !_pos.empty()) {
+    if (_tool == Torch)
+      _scene->invalidate();
+    else
+      for (const auto &point : std::as_const(_pos))
+        _scene->invalidate(point.x() - _size, point.y() - _size, 2 * _size,
+                           2 * _size, QGraphicsScene::ForegroundLayer);
+  }
+}
+
+void PointingTool::addPos(const QPointF &point)
+{
+  _pos.append(point);
+  if (_scene) {
+    if (_tool == Torch)
+      _scene->invalidate();
+    else
+      _scene->invalidate(point.x() - _size, point.y() - _size, 2 * _size,
+                         2 * _size, QGraphicsScene::ForegroundLayer);
+  }
 }

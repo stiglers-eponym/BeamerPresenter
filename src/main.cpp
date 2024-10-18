@@ -13,32 +13,12 @@
 #include "src/drawing/tool.h"
 #include "src/log.h"
 #include "src/master.h"
+#include "src/masterapp.h"
 #include "src/preferences.h"
 #include "src/rendering/pngpixmap.h"
 
 #ifdef USE_TRANSLATIONS
 #include <QTranslator>
-#endif
-
-#ifdef USE_POPPLER
-#if (QT_VERSION_MAJOR == 6)
-#if __has_include(<poppler/qt6/poppler-version.h>)
-#include <poppler/qt6/poppler-version.h>
-#else
-#define POPPLER_VERSION "OLD"
-#endif
-#elif (QT_VERSION_MAJOR == 5)
-#if __has_include(<poppler/qt5/poppler-version.h>)
-#include <poppler/qt5/poppler-version.h>
-#else
-#define POPPLER_VERSION "OLD"
-#endif
-#endif  // QT_VERSION_MAJOR
-#endif  // USE_POPPLER
-#ifdef USE_MUPDF
-extern "C" {
-#include <mupdf/fitz/version.h>
-}
 #endif
 
 int main(int argc, char *argv[])
@@ -73,8 +53,7 @@ int main(int argc, char *argv[])
   qRegisterMetaType<std::shared_ptr<Tool>>("std::shared_ptr<Tool>");
 
   // Set up the application.
-  QApplication app(argc, argv);
-  app.setApplicationName("BeamerPresenter");
+  MasterApp app(argc, argv);
 
   QString fallback_root = QCoreApplication::applicationDirPath();
   if (fallback_root.contains(UNIX_LIKE)) fallback_root.remove(UNIX_LIKE);
@@ -83,20 +62,6 @@ int main(int argc, char *argv[])
   app.setWindowIcon(QIcon(QFileInfo::exists(ICON_FILEPATH)
                               ? ICON_FILEPATH
                               : fallback_root + ICON_FILEPATH));
-
-  // Set app version. The string APP_VERSION is defined in src/config.h.
-  app.setApplicationVersion(APP_VERSION
-#ifdef USE_POPPLER
-                            " poppler=" POPPLER_VERSION
-#endif
-#ifdef USE_MUPDF
-                            " mupdf=" FZ_VERSION
-#endif
-                            " Qt=" QT_VERSION_STR
-#ifdef QT_DEBUG
-                            " debugging"
-#endif
-  );
 
 #ifdef USE_TRANSLATIONS
   QTranslator translator;

@@ -22,6 +22,7 @@
 #include <QXmlStreamWriter>
 #include <algorithm>
 #include <iterator>
+#include <memory>
 #include <utility>
 
 #include "src/config.h"
@@ -261,7 +262,6 @@ bool SlideScene::event(QEvent *event)
       break;
     case QEvent::Leave:
     case QEvent::DragLeave:
-    case QEvent::TabletLeaveProximity:
 #if (QT_VERSION_MAJOR >= 6)
     case QEvent::GraphicsSceneLeave:
 #endif
@@ -270,14 +270,9 @@ bool SlideScene::event(QEvent *event)
       /* Try to clean up pointers on the slide scene when the device
        * leaves the scene. */
       for (auto tool : std::as_const(preferences()->current_tools)) {
-        if (tool && tool->tool() == Tool::Pointer) {
-          auto ptool = std::static_pointer_cast<PointingTool>(tool);
-          if (ptool->pos().isEmpty()) continue;
-          QRectF rect({0, 0}, ptool->size() * QSizeF(2, 2));
-          rect.moveCenter(ptool->pos().constFirst());
-          ptool->clearPos();
-          invalidate(rect);
-          break;
+        if (tool && tool->tool() & Tool::AnyPointingTool) {
+          auto ptool = std::dynamic_pointer_cast<PointingTool>(tool);
+          if (ptool) ptool->clearPos();
         }
       }
     default:
@@ -435,15 +430,8 @@ void SlideScene::handlePointingEvents(std::shared_ptr<PointingTool> tool,
                                       const QList<QPointF> &pos)
 {
   debug_verbose(DebugFunctionCalls, tool.get() << device << pos << this);
-  tool->scene() = this;
+  tool->setScene(this);
   switch (tool->tool()) {
-    case Tool::Torch:
-      if ((device & Tool::AnyEvent) == Tool::StopEvent)
-        tool->clearPos();
-      else
-        tool->setPos(pos);
-      invalidate();
-      break;
     case Tool::Eraser: {
       PathContainer *container = master->pathContainer(page | page_part);
       if (container) {
@@ -471,21 +459,11 @@ void SlideScene::handlePointingEvents(std::shared_ptr<PointingTool> tool,
       if (tool->scale() <= 0.) break;
     }
     default: {
-      QRectF point_rect({0, 0}, tool->size() * QSize(2, 2));
-      for (auto point : tool->pos()) {
-        point_rect.moveCenter(point);
-        invalidate(point_rect, ForegroundLayer);
-      }
       if ((device & Tool::AnyEvent) == Tool::StopEvent &&
           !(tool->device() & (Tool::TabletHover | Tool::MouseNoButton)))
         tool->clearPos();
-      else {
+      else
         tool->setPos(pos);
-        for (auto point : std::as_const(pos)) {
-          point_rect.moveCenter(point);
-          invalidate(point_rect, QGraphicsScene::ForegroundLayer);
-        }
-      }
       break;
     }
   }
