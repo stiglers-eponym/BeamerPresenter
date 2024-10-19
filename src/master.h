@@ -177,6 +177,15 @@ class Master : public QObject
   /// Initialize page_idx and page_to_slide.
   void initializePageIndex();
 
+  /// List containing page index for each slide.
+  const QList<int> &pageIdx() const noexcept { return page_idx; }
+
+  /// Next empty page, allowed to exist in history.
+  int nextEmptyPage() const noexcept
+  {
+    return page_to_slide.empty() ? -1 : page_to_slide.firstKey() - 1;
+  }
+
   /// Insert a new slide with given page.
   void insertSlideAt(const int slide, const int page)
   {
@@ -228,7 +237,7 @@ class Master : public QObject
   /// Read page tag from XML
   std::shared_ptr<PdfMaster> readXmlPage(QXmlStreamReader &reader,
                                          std::shared_ptr<PdfMaster> pdf,
-                                         const bool clear_drawings);
+                                         int &page, const bool clear_drawings);
 
  protected:
   /// Timeout event: cache videos or change slide

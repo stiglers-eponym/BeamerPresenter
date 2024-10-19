@@ -35,6 +35,8 @@ enum PagePart {
   RightHalf = (INT_MAX >> 1) + 1,
   /// LeftHalf | RightHalf
   NotFullPage = (LeftHalf | RightHalf),
+  /// Unknown page part
+  UnknownPagePart = 1,
 };
 
 /// PDF engine
@@ -160,12 +162,12 @@ enum Action {
   Mute,            ///< mute all media objects
   Unmute,          ///< unmute all media objects
   // Other actions
-  InsertSlide,  ///< insert an empty slide
-  RemoveSlide,  ///< remove the current slide
-  RestoreSlide, ///< restore a previously removed slide
-  ReloadFiles,  ///< reload PDF file(s) if it has changed
-  FullScreen,   ///< toggle full screen mode
-  Quit,         ///< quit program, ask to save if there are unsaved changes
+  InsertSlide,   ///< insert an empty slide
+  RemoveSlide,   ///< remove the current slide
+  RestoreSlide,  ///< restore a previously removed slide
+  ReloadFiles,   ///< reload PDF file(s) if it has changed
+  FullScreen,    ///< toggle full screen mode
+  Quit,          ///< quit program, ask to save if there are unsaved changes
   QuitNoConfirmation,  ///< quit program ignoring about unsaved changes
   // Internal actions
   PdfFilesChanged,  ///< notify widgets that PDF files have changed

@@ -725,18 +725,35 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader,
                                  PathContainer *right, const qreal page_half)
 {
   QGraphicsItem *item;
+  PagePart current_layer = UnknownPagePart;
   while (reader.readNextStartElement()) {
+    if (reader.name().toUtf8() == "layer")
+      current_layer = page_part_names.key(
+          reader.attributes().value("pagePart").toString(), UnknownPagePart);
     item = nullptr;
     if (reader.name().toUtf8() == "stroke")
       item = loadPath(reader);
     else if (reader.name().toUtf8() == "text")
       item = loadTextItem(reader);
     if (item) {
-      if (center) center->appendForeground(item);
-      if (item->sceneBoundingRect().center().x() < page_half) {
-        if (left) left->appendForeground(item);
-      } else if (right)
-        right->appendForeground(item);
+      switch (current_layer) {
+        case FullPage:
+          if (center) center->appendForeground(item);
+          break;
+        case LeftHalf:
+          if (left) left->appendForeground(item);
+          break;
+        case RightHalf:
+          if (right) right->appendForeground(item);
+          break;
+        default:
+          if (center) center->appendForeground(item);
+          if (item->sceneBoundingRect().center().x() < page_half) {
+            if (left) left->appendForeground(item);
+          } else if (right)
+            right->appendForeground(item);
+          break;
+      }
     }
     if (!reader.isEndElement()) reader.skipCurrentElement();
   }

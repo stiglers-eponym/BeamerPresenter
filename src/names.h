@@ -87,6 +87,12 @@ static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode{
     {"cumulative", Cumulative},
 };
 
+static const QMap<PagePart, QString> page_part_names{
+    {FullPage, "full page"},
+    {LeftHalf, "left half"},
+    {RightHalf, "right half"},
+};
+
 #ifdef QT_DEBUG
 DebugFlag string_to_debug_flag(const QString &string) noexcept;
 #endif  // QT_DEBUG

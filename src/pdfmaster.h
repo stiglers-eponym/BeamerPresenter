@@ -164,8 +164,6 @@ class PdfMaster : public QObject
   /// Write page (part) to image, including drawings.
   QPixmap exportImage(const int page, const qreal resolution) const noexcept;
 
-  /// Read a page element from XML stream
-  void readPageFromStream(QXmlStreamReader &reader);
   /// Load drawings from XML reader, must be in element <layer>
   void readDrawingsFromStream(QXmlStreamReader &reader, const int page);
 
@@ -188,12 +186,11 @@ class PdfMaster : public QObject
 
   bool hasPage(const int page) const
   {
-    if (paths.contains(page))
-      return true;
-    return paths.contains(page)
-        || (paths.contains((page & (~NotFullPage)) | FullPage))
-        || (paths.contains((page & (~NotFullPage)) | LeftHalf))
-        || (paths.contains((page & (~NotFullPage)) | RightHalf));
+    if (paths.contains(page)) return true;
+    return paths.contains(page) ||
+           (paths.contains((page & (~NotFullPage)) | FullPage)) ||
+           (paths.contains((page & (~NotFullPage)) | LeftHalf)) ||
+           (paths.contains((page & (~NotFullPage)) | RightHalf));
   }
 
   /// Get file path at which drawings are saved.

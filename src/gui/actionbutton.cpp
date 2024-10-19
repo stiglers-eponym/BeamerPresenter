@@ -342,17 +342,12 @@ const char *action_to_description(const Action action) noexcept
       return QT_TRANSLATE_NOOP("ActionButton",
                                "quit without asking to save drawings");
     case InsertSlide:
-      return QT_TRANSLATE_NOOP(
-          "ActionButton",
-          "insert a new empty slide");
+      return QT_TRANSLATE_NOOP("ActionButton", "insert a new empty slide");
     case RemoveSlide:
-      return QT_TRANSLATE_NOOP(
-          "ActionButton",
-          "remove the current slide");
+      return QT_TRANSLATE_NOOP("ActionButton", "remove the current slide");
     case RestoreSlide:
-      return QT_TRANSLATE_NOOP(
-          "ActionButton",
-          "restore a previously removed slide");
+      return QT_TRANSLATE_NOOP("ActionButton",
+                               "restore a previously removed slide");
     default:
       return "";
   };

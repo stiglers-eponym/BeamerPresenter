@@ -22,6 +22,8 @@
 #include "src/config.h"
 #include "src/drawing/pathcontainer.h"
 #include "src/log.h"
+#include "src/master.h"
+#include "src/names.h"
 #include "src/preferences.h"
 #include "src/rendering/abstractrenderer.h"
 #include "src/rendering/pdfdocument.h"
@@ -294,46 +296,58 @@ void PdfMaster::distributeNavigationEvents(const int slide,
 void PdfMaster::writePages(QXmlStreamWriter &writer,
                            const bool save_bp_specific)
 {
-  PathContainer *container;
-  for (int i = 0; i < numberOfPages(); i++) {
-    QSizeF size = document->pageSize(i);
-    QRectF drawing_rect;
-    for (const PagePart page_part : {FullPage, LeftHalf, RightHalf}) {
-      if (preferences()->overlay_mode == PerLabel)
-        container = paths.value(
-            document->overlaysShifted(i | page_part, FirstOverlay), nullptr);
-      else
-        container = paths.value(i | page_part, nullptr);
-      if (container)
-        drawing_rect = drawing_rect.united(container->boundingBox());
+  QMap<PagePart, const PathContainer *> container_lst;
+  QSizeF size;
+  for (auto page : master()->pageIdx()) {
+    container_lst.clear();
+    size = document->pageSize(std::max(page, 0));
+    const int ppage = page & ~NotFullPage;
+    if (page >= 0)
+      for (const PagePart page_part : {FullPage, LeftHalf, RightHalf}) {
+        int path_page = ppage | page_part;
+        if (preferences()->overlay_mode == PerLabel)
+          path_page = document->overlaysShifted(path_page, FirstOverlay);
+        const PathContainer *container = paths.value(path_page, nullptr);
+        if (container) container_lst[page_part] = container;
+      }
+    else {
+      const PathContainer *container = paths.value(ppage, nullptr);
+      if (container) container_lst[FullPage] = container;
     }
-    size.setWidth(std::max(size.width(), drawing_rect.right()));
-    size.setHeight(std::max(size.height(), drawing_rect.bottom()));
+    if (!container_lst.empty()) {
+      QRectF drawing_rect = QRectF({0, 0}, size);
+      for (auto container : container_lst)
+        drawing_rect = drawing_rect.united(container->boundingBox());
+      size = drawing_rect.size();
+    }
     writer.writeStartElement("page");
     writer.writeAttribute("width", QString::number(size.width()));
     writer.writeAttribute("height", QString::number(size.height()));
     writer.writeEmptyElement("background");
-    writer.writeAttribute("type", "pdf");
-    writer.writeAttribute("pageno", QString::number(i + 1));
-    if (i == 0) {
-      writer.writeAttribute("domain", "absolute");
-      writer.writeAttribute("filename", document->getPath());
+    if (page >= 0) {
+      writer.writeAttribute("type", "pdf");
+      writer.writeAttribute("pageno", QString::number(page + 1));
+      if (page == 0) {
+        writer.writeAttribute("domain", "absolute");
+        writer.writeAttribute("filename", document->getPath());
+      }
+    } else {
+      writer.writeAttribute("type", "solid");
+      writer.writeAttribute("style", "plain");
+      writer.writeAttribute("color", "#ffffff00");
     }
-    if (save_bp_specific && target_times.contains(i))
-      writer.writeAttribute(
-          "endtime",
-          QTime::fromMSecsSinceStartOfDay(target_times[i]).toString("h:mm:ss"));
+    if (save_bp_specific && target_times.contains(page))
+      writer.writeAttribute("endtime",
+                            QTime::fromMSecsSinceStartOfDay(target_times[page])
+                                .toString("h:mm:ss"));
 
-    writer.writeStartElement("layer");
-    for (const auto page_part : {FullPage, LeftHalf, RightHalf}) {
-      if (preferences()->overlay_mode == PerLabel)
-        container = paths.value(
-            document->overlaysShifted(i | page_part, FirstOverlay), nullptr);
-      else
-        container = paths.value(i | page_part, nullptr);
-      if (container) container->writeXml(writer);
+    for (auto it = container_lst.cbegin(); it != container_lst.cend(); ++it) {
+      writer.writeStartElement("layer");
+      writer.writeAttribute("pagePart",
+                            page_part_names.value(it.key(), "unknown"));
+      (*it)->writeXml(writer);
+      writer.writeEndElement();  // "layer" element
     }
-    writer.writeEndElement();  // "layer" element
     writer.writeEndElement();  // "page" element
   }
   _flags &= ~UnsavedDrawings;
@@ -367,74 +381,34 @@ QBuffer *loadZipToBuffer(const QString &filename)
   return buffer;
 }
 
-void PdfMaster::readPageFromStream(QXmlStreamReader &reader)
-{
-  debug_msg(DebugDrawing, "read page from stream" << reader.name());
-  int page = -1;
-  static const QRegularExpression regexpr_2nondigits("[^0-9]{2,2}$");
-  while (reader.readNextStartElement()) {
-    debug_msg(DebugDrawing, "Searching background" << reader.name());
-    if (reader.name().toUtf8() == "background") {
-      QString string = reader.attributes().value("pageno").toString();
-      // For some reason Xournal++ adds "ll" as a sufix to the page number.
-      if (string.contains(regexpr_2nondigits)) string.chop(2);
-      bool ok;
-      page = string.toInt(&ok) - 1;
-      if (!ok) return;
-      string = reader.attributes().value("endtime").toString();
-      if (!string.isEmpty()) {
-        const QTime time = QTime::fromString(string, "h:mm:ss");
-        if (time.isValid()) target_times[page] = time.msecsSinceStartOfDay();
-      }
-#if (QT_VERSION_MAJOR >= 6)
-      const QStringView filename = reader.attributes().value("filename");
-#else
-      const QStringRef filename = reader.attributes().value("filename");
-#endif
-      if (!filename.isEmpty() && filename != document->getPath() &&
-          QFileInfo(filename.toString()).absoluteFilePath() !=
-              document->getPath())
-        return;
-      if (!reader.isEndElement()) reader.skipCurrentElement();
-      break;
-    }
-    if (!reader.isEndElement()) reader.skipCurrentElement();
-  }
-  if (page < 0) return;
-  while (reader.readNextStartElement()) {
-    if (reader.name().toUtf8() == "layer") readDrawingsFromStream(reader, page);
-    if (!reader.isEndElement()) reader.skipCurrentElement();
-  }
-  reader.skipCurrentElement();
-}
-
 void PdfMaster::readDrawingsFromStream(QXmlStreamReader &reader, const int page)
 {
-  if (page < 0 || page >= document->numberOfPages()) return;
+  if (page >= document->numberOfPages()) return;
+  const int ppage = page & ~NotFullPage;
   if ((_flags & HalfPageUsed) == 0) {
-    PathContainer *container = paths.value(page, nullptr);
+    PathContainer *container = paths.value(ppage, nullptr);
     if (!container) {
       container = new PathContainer(this);
-      paths[page] = container;
+      paths[ppage] = container;
     }
     container->loadDrawings(reader);
     return;
   }
-  PathContainer *left = paths.value(page | LeftHalf, nullptr),
-                *right = paths.value(page | RightHalf, nullptr),
-                *center = paths.value(page, nullptr);
+  PathContainer *left = paths.value(ppage | LeftHalf, nullptr),
+                *right = paths.value(ppage | RightHalf, nullptr),
+                *center = paths.value(ppage, nullptr);
   const qreal page_half = document->pageSize(page).width() / 2;
   if (_flags & LeftHalfUsed && !left) {
     left = new PathContainer(this);
-    paths[page | LeftHalf] = left;
+    paths[ppage | LeftHalf] = left;
   }
   if (_flags & RightHalfUsed && !right) {
     right = new PathContainer(this);
-    paths[page | RightHalf] = right;
+    paths[ppage | RightHalf] = right;
   }
   if (_flags & FullPageUsed && !center) {
     center = new PathContainer(this);
-    paths[page] = center;
+    paths[ppage] = center;
   }
   PathContainer::loadDrawings(reader, center, left, right, page_half);
 }

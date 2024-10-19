@@ -938,8 +938,7 @@ void Master::handleAction(const Action action)
 
 bool Master::pageExists(const int page) const
 {
-  if (page_to_slide.contains(page))
-    return true;
+  if (page_to_slide.contains(page)) return true;
   for (const auto &doc : documents)
     if (page >= 0 && doc->numberOfPages() > page || doc->hasPage(page))
       return true;
@@ -1208,7 +1207,6 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
     writer.writeEndElement();  // "beamerpresenter" element
   }
 
-  // TODO: adjust to flexible page to slide mapping.
   for (const auto pdf : documents) pdf->writePages(writer, save_bp_specific);
 
   writer.writeEndElement();  // "xournal" element
@@ -1296,12 +1294,17 @@ bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
   }
 
   std::shared_ptr<PdfMaster> pdf(nullptr);
+  int page = 0;
+  page_idx.clear();
+  page_to_slide.clear();
   while (reader.readNextStartElement()) {
     if (reader.name().toUtf8() == "beamerpresenter")
       readXmlHeader(reader, true);
-    else if (reader.name().toUtf8() == "page")
-      pdf = readXmlPage(reader, pdf, clear_drawings);
-    else if (!reader.isEndElement())
+    else if (reader.name().toUtf8() == "page") {
+      pdf = readXmlPage(reader, pdf, page, clear_drawings);
+      page_to_slide[page] = page_idx.size();
+      page_idx.append(page);
+    } else if (!reader.isEndElement())
       reader.skipCurrentElement();
   }
   if (reader.hasError())
@@ -1319,13 +1322,14 @@ std::shared_ptr<PdfMaster> Master::readXmlPageBg(QXmlStreamReader &reader,
   if (reader.name().toUtf8() != "page") return pdf;
   while (reader.readNextStartElement()) {
     if (reader.name().toUtf8() == "background") {
-      const QString filename = reader.attributes().value("filename").toString();
+      const auto filename = reader.attributes().value("filename");
       if (!filename.isEmpty()) {
-        const QString abs_filename = QFileInfo(filename).absoluteFilePath();
+        const QString abs_filename =
+            QFileInfo(filename.toString()).absoluteFilePath();
         if (!pdf || (abs_filename != pdf->getFilename() &&
                      filename != pdf->getFilename())) {
           pdf = nullptr;
-          for (const auto doc : documents) {
+          for (const auto doc : std::as_const(documents)) {
             if (doc && (doc->getFilename() == filename ||
                         doc->getFilename() == abs_filename)) {
               debug_msg(DebugDrawing,
@@ -1351,56 +1355,67 @@ std::shared_ptr<PdfMaster> Master::readXmlPageBg(QXmlStreamReader &reader,
 
 std::shared_ptr<PdfMaster> Master::readXmlPage(QXmlStreamReader &reader,
                                                std::shared_ptr<PdfMaster> pdf,
+                                               int &page,
                                                const bool clear_drawings)
 {
+  page = INT_MIN;
   if (reader.name().toUtf8() != "page") return pdf;
-  int page = -1;
-  bool ok;
   while (reader.readNextStartElement()) {
     if (reader.name().toUtf8() == "background") {
-      // Read page number
       const auto attr = reader.attributes();
-      QString string = attr.value("pageno").toString();
-      // For some reason Xournal++ adds "ll" as a sufix to the page number.
-      if (string.contains(regexpr_2nondigits)) string.chop(2);
-      page = string.toInt(&ok) - 1;
-      if (!ok) page = -1;
-
-      // Read file name
-      const QString filename = attr.value("filename").toString();
-      if (!filename.isEmpty()) {
-        const QString abs_filename = QFileInfo(filename).absoluteFilePath();
-        if (!pdf || (abs_filename != pdf->getFilename() &&
-                     filename != pdf->getFilename())) {
-          pdf = nullptr;
-          for (const auto doc : documents) {
-            if (doc && (doc->getFilename() == filename ||
-                        doc->getFilename() == abs_filename)) {
-              debug_msg(DebugDrawing,
-                        "Found existing document" << doc->getFilename());
-              pdf = doc;
-              break;
+      const auto type = attr.value("type");
+      if (type == "pdf") {
+        // Read page number
+#if QT_VERSION_MAJOR >= 6
+        auto pageno = attr.value("pageno");
+#else
+        auto pageno = attr.value("pageno").toString();
+#endif
+        // Some files created by Xournal++ have a suffix "ll" after the page
+        // number.
+        if (pageno.contains(regexpr_2nondigits)) pageno.chop(2);
+        page = pageno.toInt() - 1;
+      }
+      if (page < 0)
+        page = nextEmptyPage();
+      else {
+        // Read file name
+        const auto filename = attr.value("filename");
+        if (!filename.isEmpty()) {
+          const QString abs_filename =
+              QFileInfo(filename.toString()).absoluteFilePath();
+          if (!pdf || (abs_filename != pdf->getFilename() &&
+                       filename != pdf->getFilename())) {
+            pdf = nullptr;
+            for (const auto &doc : std::as_const(documents)) {
+              if (doc && (doc->getFilename() == filename ||
+                          doc->getFilename() == abs_filename)) {
+                debug_msg(DebugDrawing,
+                          "Found existing document" << doc->getFilename());
+                pdf = doc;
+                break;
+              }
             }
-          }
-          if (pdf && clear_drawings) {
-            pdf->clearAllDrawings();
-            pdf->flags() &= ~PdfMaster::UnsavedDrawings;
+            if (pdf && clear_drawings) {
+              pdf->clearAllDrawings();
+              pdf->flags() &= ~PdfMaster::UnsavedDrawings;
+            }
           }
         }
       }
 
       // Read per-slide time
       if (pdf && page >= 0) {
-        string = attr.value("endtime").toString();
-        if (!string.isEmpty()) {
-          const QTime time = QTime::fromString(string, "h:mm:ss");
+        const auto endtime = attr.value("endtime");
+        if (!endtime.isEmpty()) {
+          const QTime time = QTime::fromString(endtime.toString(), "h:mm:ss");
           if (time.isValid())
             pdf->targetTimes()[page] = time.msecsSinceStartOfDay();
         }
       }
 
       if (!reader.isEndElement()) reader.skipCurrentElement();
-    } else if (reader.name().toUtf8() == "layer" && pdf && page >= 0) {
+    } else if (reader.name().toUtf8() == "layer" && pdf) {
       pdf->readDrawingsFromStream(reader, page);
     }
     if (!reader.isEndElement()) reader.skipCurrentElement();
