@@ -162,6 +162,7 @@ enum Action {
   // Other actions
   InsertSlide,  ///< insert an empty slide
   RemoveSlide,  ///< remove the current slide
+  RestoreSlide, ///< restore a previously removed slide
   ReloadFiles,  ///< reload PDF file(s) if it has changed
   FullScreen,   ///< toggle full screen mode
   Quit,         ///< quit program, ask to save if there are unsaved changes

@@ -906,22 +906,44 @@ void Master::handleAction(const Action action)
       writable_preferences()->global_flags &= ~Preferences::MuteApplication;
       emit sendAction(action);
       break;
-    case InsertSlide:
-      // If the "next" slide exists but has been removed, restore that.
-      if (preferences()->page + 1 < preferences()->number_of_pages &&
-          !page_to_slide.contains(preferences()->page + 1))
-        insertSlideAt(preferences()->slide + 1, preferences()->page + 1);
-      else
-        insertEmptySlide(preferences()->slide + 1);
+    case InsertSlide: {
+      int page = page_to_slide.firstKey() - 1;
+      while (pageExists(page)) --page;
+      insertSlideAt(preferences()->slide + 1, page);
       navigateToSlide(preferences()->slide + 1);
       break;
+    }
     case RemoveSlide:
       removeSlide(preferences()->slide);
       navigateToSlide(preferences()->slide);
       break;
+    case RestoreSlide: {
+      int page;
+      // If the next page exists but its slide has been removed, restore that.
+      if (preferences()->page + 1 < preferences()->number_of_pages &&
+          !page_to_slide.contains(preferences()->page + 1))
+        page = preferences()->page + 1;
+      else if (pageExists(page_to_slide.firstKey() - 1))
+        page = page_to_slide.firstKey() - 1;
+      else
+        break;
+      insertSlideAt(preferences()->slide + 1, page);
+      navigateToSlide(preferences()->slide + 1);
+      break;
+    }
     default:
       emit sendAction(action);
   }
+}
+
+bool Master::pageExists(const int page) const
+{
+  if (page_to_slide.contains(page))
+    return true;
+  for (const auto &doc : documents)
+    if (page >= 0 && doc->numberOfPages() > page || doc->hasPage(page))
+      return true;
+  return false;
 }
 
 bool Master::askCloseConfirmation() noexcept

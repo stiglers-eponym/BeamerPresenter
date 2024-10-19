@@ -186,6 +186,16 @@ class PdfMaster : public QObject
       return paths.value(page, nullptr);
   }
 
+  bool hasPage(const int page) const
+  {
+    if (paths.contains(page))
+      return true;
+    return paths.contains(page)
+        || (paths.contains((page & (~NotFullPage)) | FullPage))
+        || (paths.contains((page & (~NotFullPage)) | LeftHalf))
+        || (paths.contains((page & (~NotFullPage)) | RightHalf));
+  }
+
   /// Get file path at which drawings are saved.
   const QString &drawingsPath() const noexcept { return drawings_path; }
 

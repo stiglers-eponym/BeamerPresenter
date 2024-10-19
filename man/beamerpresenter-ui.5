@@ -297,10 +297,13 @@ navigate to next page which has a different page label than current page
 navigate to previous page which has a different page label than current page
 .TP
 .B insert slide
-experimental: insert an empty slide that can be used for drawing. If a PDF page is shown and the next PDF page has been removed, restore that instead of creating a new slide. Previously created empty slides are restored before new empty slides are created.
+experimental: insert a new empty slide that can be used for drawing.
 .TP
 .B remove slide
 experimental: remove current slide. Restore slides by navigating to the previous slide and inserting a slide.
+.TP
+.B restore slide
+experimental: restore a previously removed slide. If the current slide is a PDF page, try to restore PDF pages before trying to restore non-PDF pages.
 .TP
 .B reload
 reload the presentation PDF (if it has been modified).

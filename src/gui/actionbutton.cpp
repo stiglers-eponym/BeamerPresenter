@@ -10,7 +10,6 @@
 #include <QSize>
 #include <algorithm>
 #include <cstring>
-#include <map>
 
 #include "src/gui/toolselectorwidget.h"
 #include "src/master.h"
@@ -55,8 +54,6 @@ const char *action_to_theme_icon(const Action action) noexcept
       return "edit-cut";
     case PasteClipboard:
       return "edit-paste";
-    // case SelectionToForeground: return "?";
-    // case SelectionToBackground: return "?";
     case RemoveSelectedItems:
       return "edit-delete";
     case SelectAll:
@@ -104,6 +101,16 @@ const QStringList action_to_custom_icons(const Action action) noexcept
       return {"scroll-down.svg"};
     case ScrollNormal:
       return {"scroll-reset.svg"};
+    case InsertSlide:
+      return {"insert-slide"};
+    case RemoveSlide:
+      return {"remove-slide"};
+    case RestoreSlide:
+      return {"restore-slide"};
+    case SelectionToForeground:
+      return {"selection-to-foreground"};
+    case SelectionToBackground:
+      return {"selection-to-background"};
     default:
       return QStringList();
   };
@@ -334,6 +341,18 @@ const char *action_to_description(const Action action) noexcept
     case QuitNoConfirmation:
       return QT_TRANSLATE_NOOP("ActionButton",
                                "quit without asking to save drawings");
+    case InsertSlide:
+      return QT_TRANSLATE_NOOP(
+          "ActionButton",
+          "insert a new empty slide");
+    case RemoveSlide:
+      return QT_TRANSLATE_NOOP(
+          "ActionButton",
+          "remove the current slide");
+    case RestoreSlide:
+      return QT_TRANSLATE_NOOP(
+          "ActionButton",
+          "restore a previously removed slide");
     default:
       return "";
   };

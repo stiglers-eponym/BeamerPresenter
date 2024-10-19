@@ -179,6 +179,18 @@
         <source>quit without asking to save drawings</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>insert a new empty slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>remove the current slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>restore a previously removed slide</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>AnalogClockWidget</name>
@@ -1056,6 +1068,10 @@ Configure cache. Slides are rendered to compressed cache. These settings defined
     </message>
     <message>
         <source>remove slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>restore slide</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

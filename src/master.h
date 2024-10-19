@@ -96,6 +96,9 @@ class Master : public QObject
   /// Return true when the program should quit.
   bool askCloseConfirmation() noexcept;
 
+  /// Check if a page exists in documents or drawing cache.
+  bool pageExists(const int page) const;
+
   /// Create widgets recursively.
   QWidget *createWidget(const QJsonObject &object, QWidget *parent,
                         QMap<QString, std::shared_ptr<PdfMaster>> &known_files);
@@ -182,12 +185,6 @@ class Master : public QObject
     int i = page_idx.size();
     while (--i >= slide && it != page_idx.crend()) page_to_slide[*it++] = i;
     debug_msg(DebugPageChange, page_idx);
-  }
-
-  /// Insert a new empty slide at given index.
-  void insertEmptySlide(const int slide)
-  {
-    insertSlideAt(slide, page_to_slide.firstKey() - 1);
   }
 
   /// Remove slide at given index.

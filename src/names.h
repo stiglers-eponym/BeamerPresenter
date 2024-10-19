@@ -69,6 +69,7 @@ static const QMap<QString, Action> string_to_action_map{
     // Other actions
     {QT_TRANSLATE_NOOP("SettingsWidget", "insert slide"), InsertSlide},
     {QT_TRANSLATE_NOOP("SettingsWidget", "remove slide"), RemoveSlide},
+    {QT_TRANSLATE_NOOP("SettingsWidget", "restore slide"), RestoreSlide},
     {QT_TRANSLATE_NOOP("SettingsWidget", "reload"), ReloadFiles},
     {QT_TRANSLATE_NOOP("SettingsWidget", "fullscreen"), FullScreen},
     {QT_TRANSLATE_NOOP("SettingsWidget", "quit"), Quit},

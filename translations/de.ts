@@ -179,6 +179,18 @@
         <source>bring selected items to the background</source>
         <translation>bringe die ausgewählten Objekte in den Hintergrund</translation>
     </message>
+    <message>
+        <source>insert a new empty slide</source>
+        <translation>neue, leere Folie einfügen</translation>
+    </message>
+    <message>
+        <source>remove the current slide</source>
+        <translation>aktuelle Folie entfernen</translation>
+    </message>
+    <message>
+        <source>restore a previously removed slide</source>
+        <translation>zuvor entfernte Folie wiederherstellen</translation>
+    </message>
 </context>
 <context>
     <name>AnalogClockWidget</name>
@@ -1059,6 +1071,10 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <source>remove slide</source>
         <translation>Folie entfernen</translation>
+    </message>
+    <message>
+        <source>restore slide</source>
+        <translation>Folie wiederherstellen</translation>
     </message>
 </context>
 <context>
