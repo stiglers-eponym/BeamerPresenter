@@ -208,7 +208,7 @@ void NotesWidget::keyPressEvent(QKeyEvent *event)
   }
 }
 
-void NotesWidget::pageChanged(const int page)
+void NotesWidget::pageChanged(const int slide, const int page)
 {
   if (document()->isEmpty()) {
     const QMap<QString, QString>::iterator it = text_per_slide.find(page_label);
@@ -227,7 +227,7 @@ void NotesWidget::pageChanged(const int page)
   // Update page_label.
   if (per_page)
     page_label = QString::number(page);
-  else {
+  else if (page >= 0) {
     const auto doc = preferences()->document;
     page_label = doc ? doc->pageLabel(page) : "0";
   }

@@ -1052,6 +1052,14 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
         <source>quit unsafe</source>
         <translation>uscire non sicuro</translation>
     </message>
+    <message>
+        <source>insert slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>remove slide</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ShapeSelectionButton</name>

@@ -203,7 +203,7 @@ class PixCache : public QObject
   /// This does not fully recalculate the region, but assumes that the
   /// currently saved region is indeed simply connected.
   /// May only be called in this object's thread.
-  void pageNumberChanged(const int page);
+  void pageNumberChanged(const int slide, const int page);
 
  signals:
   /// Send out new page.

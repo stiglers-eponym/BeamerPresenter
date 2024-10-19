@@ -102,7 +102,7 @@ class NotesWidget : public QTextEdit
 
   /// Switch page, show notes for new page.
   /// @param page page index of target page
-  void pageChanged(const int page);
+  void pageChanged(const int slide, const int page);
 
   /// Write notes to stream. This is used for saving as own notes file and
   /// for saving notes as part of a BeamerPresenter file including also

@@ -158,7 +158,7 @@ void PixCache::requestRenderPage(const int n)
   if (thread() == QThread::currentThread()) startTimer(0);
 }
 
-void PixCache::pageNumberChanged(const int page)
+void PixCache::pageNumberChanged(const int slide, const int page)
 {
   debug_verbose(DebugFunctionCalls, page << this);
   mutex.lock();

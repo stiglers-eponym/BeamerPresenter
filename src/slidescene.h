@@ -255,11 +255,12 @@ class SlideScene : public QGraphicsScene
 
   /// Update geometry in preparation of navigation event.
   /// newpage does not include the shift.
-  void prepareNavigationEvent(const int newpage);
+  void prepareNavigationEvent(const int newslide, const int newpage);
 
   /// Receive navigation event from PdfMaster.
   /// The given page already includes the shift.
-  void navigationEvent(const int newpage, SlideScene *newscene = nullptr);
+  void navigationEvent(const int newslide, const int newpage,
+                       SlideScene *newscene = nullptr);
 
   /// Start handling draw and erase events.
   void startInputEvent(std::shared_ptr<const DrawTool> tool, const QPointF &pos,
@@ -388,7 +389,7 @@ class SlideScene : public QGraphicsScene
   void navigationToViews(const int page, SlideScene *scene) const;
 
   /// Send a navigation signal (to master).
-  void navigationSignal(const int page);
+  void navigationSignal(const int slide, const int page);
 
   /// Send action (to master).
   void sendAction(const Action action) const;

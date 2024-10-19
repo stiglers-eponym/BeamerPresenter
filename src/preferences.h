@@ -222,6 +222,8 @@ class Preferences : public QObject
   int page = 0;
   /// Previous page, required during slide changes.
   int previous_page = 0;
+  /// Current slide number in reference presentation view.
+  int slide = 0;
 
   /// Target time of presentation. Set to zero if timer is not running.
   QDateTime target_time;
@@ -309,6 +311,9 @@ class Preferences : public QObject
                          const bool no_mouse_hover = false) noexcept;
   /// Append tool to currently used tools. This takes ownership of tool.
   void setCurrentTool(std::shared_ptr<Tool> tool) noexcept;
+
+  int slideForPage(const int page) const;
+  int pageForSlide(const int slide) const;
 
  public slots:
   /// Set maximum memory for cache. This function uses double instead of

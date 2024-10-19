@@ -17,6 +17,7 @@
 #include "src/config.h"
 #include "src/enumerates.h"
 #include "src/gui/toolpropertybutton.h"
+#include "src/log.h"
 #include "src/preferences.h"
 #include "src/rendering/pixcache.h"
 
@@ -66,6 +67,11 @@ class Master : public QObject
   /// Master file is the first entry in this list.
   /// This list may never be empty.
   QList<std::shared_ptr<PdfMaster>> documents;
+
+  /// Map PDF page index to slide index.
+  QMap<int, int> page_to_slide;
+  /// List of page indices, list position is the slide index
+  QList<int> page_idx;
 
   /// File name of file containing drawings etc.
   QString master_file;
@@ -152,7 +158,49 @@ class Master : public QObject
    * Currently this also notifies the layout system of changes if
    * PDFs with flexible page sizes are used.
    */
-  void leavePage(const int page) const;
+  void leaveSlide(const int slide) const;
+
+  /// Map page index to slide index. Return -1 for missing or invalid pages.
+  int slideForPage(const int page) const
+  {
+    return page_to_slide.value(page, INT_MIN);
+  }
+  /// Map slide index to page index.
+  int pageForSlide(const int slide) const
+  {
+    return page_idx.value(slide, INT_MIN);
+  }
+
+  /// Initialize page_idx and page_to_slide.
+  void initializePageIndex();
+
+  /// Insert a new slide with given page.
+  void insertSlideAt(const int slide, const int page)
+  {
+    page_idx.insert(slide, page);
+    auto it = page_idx.crbegin();
+    int i = page_idx.size();
+    while (--i >= slide && it != page_idx.crend()) page_to_slide[*it++] = i;
+    debug_msg(DebugPageChange, page_idx);
+  }
+
+  /// Insert a new empty slide at given index.
+  void insertEmptySlide(const int slide)
+  {
+    insertSlideAt(slide, page_to_slide.firstKey() - 1);
+  }
+
+  /// Remove slide at given index.
+  void removeSlide(const int slide)
+  {
+    const int page = page_idx[slide];
+    if (page_to_slide[page] == slide) page_to_slide.remove(page_idx[slide]);
+    page_idx.removeAt(slide);
+    auto it = page_idx.crbegin();
+    int i = page_idx.size();
+    while (--i >= slide && it != page_idx.crend()) page_to_slide[*it++] = i;
+    debug_msg(DebugPageChange, page_idx);
+  }
 
   /// Get save file name from QFileDialog
   static QString getSaveFileName();
@@ -200,17 +248,19 @@ class Master : public QObject
   /**
    * @brief Distribute navigation events
    *
-   * 1. check whether page is valid.
-   * 2. truncate drawing history on current page (if necessary)
-   * 3. update scene geometries based on page size
+   * 1. check whether slide is valid.
+   * 2. truncate drawing history on current slide (if necessary)
+   * 3. update scene geometries based on slide size
    * 4. recalculate geometry
-   * 5. update page in preferences
+   * 5. update slide and page in preferences
    * 6. send out navigation signal
    */
-  void navigateToPage(const int page);
+  void navigateToSlide(const int slide);
+  /// navigate to PDF page index
+  void navigateToPage(const int page) { navigateToSlide(slideForPage(page)); }
 
   /// Navigate to next slide.
-  void nextSlide() noexcept { navigateToPage(preferences()->page + 1); }
+  void nextSlide() noexcept { navigateToSlide(preferences()->slide + 1); }
 
   /// Handle an action, distribute it if necessary.
   void handleAction(const Action action);
@@ -247,11 +297,11 @@ class Master : public QObject
 
   /// Prepare navigation: Scenes update geometry, such that the layout can
   /// be recalculated.
-  void prepareNavigationSignal(const int page) const;
+  void prepareNavigationSignal(const int slide, const int page) const;
 
   /// Send out navigation signal (after updating preferences()->page).
   /// This should only be used in queued connection.
-  void navigationSignal(const int page) const;
+  void navigationSignal(const int slide, const int page) const;
 
   /// Set end time (in ms) for page.
   void setTimeForPage(const int page, const quint32 time);

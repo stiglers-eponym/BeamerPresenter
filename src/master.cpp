@@ -130,6 +130,7 @@ Master::Status Master::readGuiConfig(const QString &filename)
   if (documents.isEmpty()) return NoPDFLoaded;
   if (windows.isEmpty()) return NoWindowsCreated;
 
+  initializePageIndex();
   writable_preferences()->document = documents.first()->getDocument();
   const auto &scenes = documents.first()->getScenes();
   if (scenes.empty()) return NoScenesCreated;
@@ -145,13 +146,32 @@ Master::Status Master::readGuiConfig(const QString &filename)
   // TODO: avoid loading drawings multiple times
   QSet<QString> loaded_paths;
   if (!master_file.isEmpty()) loaded_paths.insert(master_file);
-  for (const auto doc : documents)
+  for (const auto &doc : std::as_const(documents))
     if (!doc->drawingsPath().isEmpty())
       loaded_paths.insert(doc->drawingsPath());
   for (const auto &path : loaded_paths) loadBprDrawings(path, true);
   debug_msg(DebugDrawing, "Loaded drawings:" << known_files.size()
                                              << preferences()->file_alias);
   return Success;
+}
+
+void Master::initializePageIndex()
+{
+  int max_pages = 0;
+  for (const auto &doc : std::as_const(documents))
+    max_pages = std::max(doc->numberOfPages(), max_pages);
+  if (page_idx.empty()) {
+    for (int i = 0; i < max_pages; ++i) {
+      page_idx.append(i);
+      page_to_slide[i] = i;
+    }
+  } else if (page_to_slide.lastKey() < max_pages - 1) {
+    for (int i = page_idx.size(), j = page_to_slide.lastKey() + 1;
+         j < max_pages; ++i, ++j) {
+      page_idx.append(j);
+      page_to_slide[j] = i;
+    }
+  }
 }
 
 QWidget *Master::createWidget(
@@ -799,13 +819,13 @@ void Master::handleAction(const Action action)
     case NoAction:
       break;
     case Update:
-      navigateToPage(preferences()->page);
+      navigateToSlide(preferences()->slide);
       break;
     case NextPage:
-      navigateToPage(preferences()->page + 1);
+      navigateToSlide(preferences()->slide + 1);
       break;
     case PreviousPage:
-      navigateToPage(preferences()->page - 1);
+      navigateToSlide(preferences()->slide - 1);
       break;
     case NextSkippingOverlays:
       navigateToPage(documents.first()->overlaysShifted(preferences()->page,
@@ -816,10 +836,10 @@ void Master::handleAction(const Action action)
                                                         -1 & ~FirstOverlay));
       break;
     case FirstPage:
-      navigateToPage(0);
+      navigateToSlide(0);
       break;
     case LastPage:
-      navigateToPage(preferences()->number_of_pages - 1);
+      navigateToSlide(page_idx.size() - 1);
       break;
     case FullScreen:
       for (const auto win : std::as_const(windows)) {
@@ -848,7 +868,7 @@ void Master::handleAction(const Action action)
       const QString filename = getOpenFileName();
       if (!filename.isEmpty())
         loadBprDrawings(filename, action == LoadDrawings);
-      navigateToPage(preferences()->page);
+      navigateToSlide(preferences()->slide);
       break;
     }
     case ReloadFiles: {
@@ -858,12 +878,13 @@ void Master::handleAction(const Action action)
       for (const auto doc : std::as_const(documents))
         changed |= doc->loadDocument();
       if (changed) {
+        initializePageIndex();
         writable_preferences()->number_of_pages =
             documents.first()->numberOfPages();
         distributeMemory();
         emit clearCache();
         emit sendAction(PdfFilesChanged);
-        navigateToPage(preferences()->page);
+        navigateToSlide(preferences()->slide);
       }
       break;
     }
@@ -884,6 +905,19 @@ void Master::handleAction(const Action action)
       debug_msg(DebugMedia, "unmuting application");
       writable_preferences()->global_flags &= ~Preferences::MuteApplication;
       emit sendAction(action);
+      break;
+    case InsertSlide:
+      // If the "next" slide exists but has been removed, restore that.
+      if (preferences()->page + 1 < preferences()->number_of_pages &&
+          !page_to_slide.contains(preferences()->page + 1))
+        insertSlideAt(preferences()->slide + 1, preferences()->page + 1);
+      else
+        insertEmptySlide(preferences()->slide + 1);
+      navigateToSlide(preferences()->slide + 1);
+      break;
+    case RemoveSlide:
+      removeSlide(preferences()->slide);
+      navigateToSlide(preferences()->slide);
       break;
     default:
       emit sendAction(action);
@@ -917,15 +951,15 @@ bool Master::askCloseConfirmation() noexcept
   return true;
 }
 
-void Master::leavePage(const int page) const
+void Master::leaveSlide(const int slide) const
 {
-  writable_preferences()->previous_page = page;
+  writable_preferences()->previous_page = preferences()->page;
   bool flexible_page_numbers = false;
   for (const auto doc : std::as_const(documents)) {
-    doc->clearHistory(page, preferences()->history_length_hidden_slides);
-    doc->clearHistory(page | PagePart::LeftHalf,
+    doc->clearHistory(slide, preferences()->history_length_hidden_slides);
+    doc->clearHistory(slide | PagePart::LeftHalf,
                       preferences()->history_length_hidden_slides);
-    doc->clearHistory(page | PagePart::RightHalf,
+    doc->clearHistory(slide | PagePart::RightHalf,
                       preferences()->history_length_hidden_slides);
     if (doc->flexiblePageSizes()) flexible_page_numbers = true;
   }
@@ -959,9 +993,10 @@ qint64 Master::getTotalCache() const
   return cache;
 }
 
-void Master::navigateToPage(const int page)
+void Master::navigateToSlide(const int slide)
 {
-  if (page < 0 || page >= preferences()->number_of_pages) return;
+  debug_msg(DebugPageChange, "Change slide to" << slide);
+  if (slide < 0 || slide >= page_idx.size()) return;
   if (cacheVideoTimer_id != -1) {
     killTimer(cacheVideoTimer_id);
     cacheVideoTimer_id = -1;
@@ -970,13 +1005,15 @@ void Master::navigateToPage(const int page)
     killTimer(slideDurationTimer_id);
     slideDurationTimer_id = -1;
   }
-  leavePage(preferences()->page);
-  emit prepareNavigationSignal(page);
+  leaveSlide(preferences()->slide);
+  const int page = pageForSlide(slide);
+  emit prepareNavigationSignal(slide, page);
   for (const auto window : std::as_const(windows)) window->updateGeometry();
   // Get duration of the slide: But only take a nontrivial value if
   // the new page is (old page + 1).
+  writable_preferences()->slide = slide;
   writable_preferences()->page = page;
-  emit navigationSignal(page);
+  emit navigationSignal(slide, page);
 }
 
 void Master::postNavigation() noexcept
@@ -1149,6 +1186,7 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
     writer.writeEndElement();  // "beamerpresenter" element
   }
 
+  // TODO: adjust to flexible page to slide mapping.
   for (const auto pdf : documents) pdf->writePages(writer, save_bp_specific);
 
   writer.writeEndElement();  // "xournal" element

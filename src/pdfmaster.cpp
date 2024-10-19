@@ -42,19 +42,22 @@ PdfMaster::~PdfMaster()
   paths.clear();
 }
 
-void PdfMaster::loadDocument(const QString &filename)
+bool PdfMaster::loadDocument(const QString &filename)
 {
   if (document) {
+    // Reload a document
     if (filename != document->getPath())
       preferences()->showErrorMessage(tr("Error while loading file"),
                                       tr("Tried to load a PDF file, but a "
                                          "different file is already loaded!"));
-    else if (document->loadDocument())
+    else if (document->loadDocument()) {
       document->loadLabels();
-    return;
+      return true;
+    }
+    return false;
   }
 
-  // Load the document
+  // Load a new document
   switch (preferences()->pdf_engine) {
 #ifdef USE_POPPLER
     case PopplerEngine:
@@ -73,11 +76,14 @@ void PdfMaster::loadDocument(const QString &filename)
 #endif
   }
 
-  if (document == nullptr || !document->isValid())
+  if (document == nullptr || !document->isValid()) {
     preferences()->showErrorMessage(tr("Error while loading file"),
                                     tr("Loading PDF document failed!"));
-  else
+    return false;
+  } else {
     document->loadLabels();
+    return true;
+  }
 }
 
 bool PdfMaster::loadDocument()
@@ -96,9 +102,9 @@ void PdfMaster::receiveAction(const Action action)
     case UndoDrawingLeft:
     case UndoDrawingRight: {
       int page = preferences()->page;
-      if (preferences()->overlay_mode == PerLabel)
+      if (page >= 0 && preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted(page, FirstOverlay);
-      page |= action ^ UndoDrawing;
+      page = (page & ~NotFullPage) | (action ^ UndoDrawing);
       PathContainer *const path = paths.value(page, nullptr);
       if (path) {
         debug_msg(DebugDrawing, "undo:" << path);
@@ -125,9 +131,9 @@ void PdfMaster::receiveAction(const Action action)
     case RedoDrawingLeft:
     case RedoDrawingRight: {
       int page = preferences()->page;
-      if (preferences()->overlay_mode == PerLabel)
+      if (page >= 0 && preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted(page, FirstOverlay);
-      page |= action ^ RedoDrawing;
+      page = (page & ~NotFullPage) | (action ^ RedoDrawing);
       PathContainer *const path = paths.value(page, nullptr);
       if (path) {
         debug_msg(DebugDrawing, "redo:" << path);
@@ -154,9 +160,9 @@ void PdfMaster::receiveAction(const Action action)
     case ClearDrawingLeft:
     case ClearDrawingRight: {
       int page = preferences()->page;
-      if (preferences()->overlay_mode == PerLabel)
+      if (page >= 0 && preferences()->overlay_mode == PerLabel)
         page = document->overlaysShifted(page, FirstOverlay);
-      page |= (action ^ ClearDrawing);
+      page = (page & ~NotFullPage) | (action ^ ClearDrawing);
       PathContainer *const path = paths.value(page, nullptr);
       if (path) {
         debug_msg(DebugDrawing, "clear:" << path);
@@ -173,7 +179,7 @@ void PdfMaster::replacePath(int page, QGraphicsItem *olditem,
                             QGraphicsItem *newitem)
 {
   if (!olditem && !newitem) return;
-  if (preferences()->overlay_mode == PerLabel)
+  if (page >= 0 && preferences()->overlay_mode == PerLabel)
     page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
            (page & NotFullPage);
   assertPageExists(page);
@@ -185,7 +191,7 @@ void PdfMaster::addItemsForeground(int page,
                                    const QList<QGraphicsItem *> &items)
 {
   if (items.empty()) return;
-  if (preferences()->overlay_mode == PerLabel)
+  if (page >= 0 && preferences()->overlay_mode == PerLabel)
     page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
            (page & NotFullPage);
   assertPageExists(page);
@@ -196,7 +202,7 @@ void PdfMaster::addItemsForeground(int page,
 void PdfMaster::removeItems(int page, const QList<QGraphicsItem *> &items)
 {
   if (items.empty()) return;
-  if (preferences()->overlay_mode == PerLabel)
+  if (page >= 0 && preferences()->overlay_mode == PerLabel)
     page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
            (page & NotFullPage);
   assertPageExists(page);
@@ -209,7 +215,7 @@ void PdfMaster::addHistoryStep(
     std::map<AbstractGraphicsPath *, drawHistory::DrawToolDifference> *tools,
     std::map<TextGraphicsItem *, drawHistory::TextPropertiesDifference> *texts)
 {
-  if (preferences()->overlay_mode == PerLabel)
+  if (page >= 0 && preferences()->overlay_mode == PerLabel)
     page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
            (page & NotFullPage);
   assertPageExists(page);
@@ -221,7 +227,7 @@ void PdfMaster::bringToForeground(int page,
                                   const QList<QGraphicsItem *> &to_foreground)
 {
   if (to_foreground.empty()) return;
-  if (preferences()->overlay_mode == PerLabel)
+  if (page >= 0 && preferences()->overlay_mode == PerLabel)
     page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
            (page & NotFullPage);
   assertPageExists(page);
@@ -232,14 +238,15 @@ void PdfMaster::bringToBackground(int page,
                                   const QList<QGraphicsItem *> &to_background)
 {
   if (to_background.empty()) return;
-  if (preferences()->overlay_mode == PerLabel)
+  if (page >= 0 && preferences()->overlay_mode == PerLabel)
     page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
            (page & NotFullPage);
   assertPageExists(page);
   if (paths[page]->bringToBackground(to_background)) _flags |= UnsavedDrawings;
 }
 
-void PdfMaster::distributeNavigationEvents(const int page) const
+void PdfMaster::distributeNavigationEvents(const int slide,
+                                           const int page) const
 {
   // Map (shifted) page numbers with page parts to slide scenes.
   // Like this it can be detected if multiple scenes want to show the same
@@ -247,33 +254,39 @@ void PdfMaster::distributeNavigationEvents(const int page) const
   // connected to the same scene.
   QMap<int, SlideScene *> scenemap;
   if (preferences()->overlay_mode == PerLabel) {
-    int scenepage, indexpage;
+    int scenepage, indexpage, sceneslide;
     for (const auto scene : std::as_const(scenes)) {
       /// scenepage: the page index that will be shown by the scene.
       scenepage = overlaysShifted(page, scene->getShift());
+      sceneslide =
+          scenepage == page ? slide : preferences()->slideForPage(scenepage);
       /// index page: the overlay root page, to which all drawings are attached.
       indexpage = overlaysShifted(scenepage, FirstOverlay) | scene->pagePart();
       if (scenemap.contains(indexpage))
-        scene->navigationEvent(scenepage, scenemap[indexpage]);
+        scene->navigationEvent(sceneslide, scenepage, scenemap[indexpage]);
       else {
         scenemap[indexpage] = scene;
-        scene->navigationEvent(scenepage);
+        scene->navigationEvent(sceneslide, scenepage);
       }
       scenepage |= scene->pagePart();
     }
   } else {
     // Redistribute views to scenes.
-    int scenepage;
+    int scenepage, sceneslide;
     for (const auto scene : std::as_const(scenes)) {
       scenepage = overlaysShifted(page, scene->getShift()) | scene->pagePart();
+      sceneslide = scenepage == (page & ~NotFullPage)
+                       ? slide
+                       : preferences()->slideForPage(scenepage);
       if (scenemap.contains(scenepage))
-        scene->navigationEvent(scenepage & ~NotFullPage, scenemap[scenepage]);
+        scene->navigationEvent(sceneslide, scenepage & ~NotFullPage,
+                               scenemap[scenepage]);
       else
         scenemap[scenepage] = scene;
     }
     // Navigation events to active scenes.
     for (auto it = scenemap.cbegin(); it != scenemap.cend(); ++it)
-      (*it)->navigationEvent(it.key() & ~NotFullPage);
+      (*it)->navigationEvent(sceneslide, it.key() & ~NotFullPage);
   }
   for (const auto scene : std::as_const(scenes)) scene->createSliders();
 }
@@ -501,7 +514,8 @@ void PdfMaster::search(const QString &text, const int &page, const bool forward)
   if (search_results.first == preferences()->page)
     emit updateSearch();
   else if (search_results.first >= 0)
-    emit navigationSignal(search_results.first);
+    emit navigationSignal(preferences()->slideForPage(search_results.first),
+                          search_results.first);
 }
 
 QPixmap PdfMaster::exportImage(const int page,

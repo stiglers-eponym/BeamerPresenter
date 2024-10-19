@@ -160,6 +160,8 @@ enum Action {
   Mute,            ///< mute all media objects
   Unmute,          ///< unmute all media objects
   // Other actions
+  InsertSlide,  ///< insert an empty slide
+  RemoveSlide,  ///< remove the current slide
   ReloadFiles,  ///< reload PDF file(s) if it has changed
   FullScreen,   ///< toggle full screen mode
   Quit,         ///< quit program, ask to save if there are unsaved changes

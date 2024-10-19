@@ -1050,6 +1050,14 @@ Configure cache. Slides are rendered to compressed cache. These settings defined
         <source>quit unsafe</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>insert slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>remove slide</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ShapeSelectionButton</name>

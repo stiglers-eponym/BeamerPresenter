@@ -65,7 +65,7 @@ class SlideLabelWidget : public QWidget
 
  signals:
   /// Slide changed, send new page.
-  void navigationSignal(const int page);
+  void navigationSignal(const int slide, const int page);
 };
 
 #endif  // SLIDELABELWIDGET_H

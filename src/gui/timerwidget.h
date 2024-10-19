@@ -134,7 +134,7 @@ class TimerWidget : public QWidget
   /// pause the timer.
   void stopTimer() noexcept;
   /// update per-page time: adjust to given page.
-  void updatePage(const int page) noexcept;
+  void updatePage(const int slide, const int page);
   /// Set total time: show in widget and write to preferences().
   void setTotalTime(const QTime time) noexcept;
 

@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QRectF>
 #include <QString>
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <utility>
@@ -107,7 +108,7 @@ class PdfMaster : public QObject
   PdfMasterFlags &flags() noexcept { return _flags; }
 
   /// Load PDF file.
-  void loadDocument(const QString &filename);
+  bool loadDocument(const QString &filename);
 
   /// Load or reload the file. Return true if the file was updated and false
   /// otherwise.
@@ -122,7 +123,7 @@ class PdfMaster : public QObject
   /// Get size of page in points (floating point precision).
   const QSizeF getPageSize(const int page_number) const
   {
-    return document->pageSize(page_number);
+    return document->pageSize(std::max(page_number, 0));
   }
 
   /// Get PdfDocument.
@@ -234,7 +235,7 @@ class PdfMaster : public QObject
   /// This is done centrally via PdfMaster because it may be necessary
   /// to reconnect SlideViews and SlideScenes if multiple scenes would
   /// show the same page.
-  void distributeNavigationEvents(const int page) const;
+  void distributeNavigationEvents(const int slide, const int page) const;
 
   /// Get path container at given page. If overlay_mode==Cumulative, this may
   /// create and return a copy of a previous path container.
@@ -286,7 +287,7 @@ class PdfMaster : public QObject
   /// Set total time of presentation (preferences().total_time).
   void setTotalTime(const QTime time) const;
   /// Send navigation signal to master.
-  void navigationSignal(const int page);
+  void navigationSignal(const int slide, const int page);
   /// Tell slides to update search results.
   void updateSearch();
 };

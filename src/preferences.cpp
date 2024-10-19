@@ -18,8 +18,19 @@
 #include "src/drawing/selectiontool.h"
 #include "src/drawing/texttool.h"
 #include "src/log.h"
+#include "src/master.h"
 #include "src/names.h"
 #include "src/rendering/pdfdocument.h"
+
+int Preferences::slideForPage(const int page) const
+{
+  return master->slideForPage(page);
+}
+
+int Preferences::pageForSlide(const int slide) const
+{
+  return master->pageForSlide(slide);
+}
 
 std::shared_ptr<Tool> createTool(const QJsonObject &obj,
                                  const int default_device)

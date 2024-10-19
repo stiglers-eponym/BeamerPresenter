@@ -1052,6 +1052,14 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <source>quit unsafe</source>
         <translation>verlassen ohne Warnungen</translation>
     </message>
+    <message>
+        <source>insert slide</source>
+        <translation>Folie einfügen</translation>
+    </message>
+    <message>
+        <source>remove slide</source>
+        <translation>Folie entfernen</translation>
+    </message>
 </context>
 <context>
     <name>ShapeSelectionButton</name>

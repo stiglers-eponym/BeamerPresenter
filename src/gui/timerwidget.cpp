@@ -262,7 +262,7 @@ QColor TimerWidget::time2color(const qint32 time) const noexcept
           total);
 }
 
-void TimerWidget::updatePage(const int page) noexcept
+void TimerWidget::updatePage(const int slide, const int page)
 {
   page_target_time = UINT32_MAX;
   emit getTimeForPage(page, page_target_time);
