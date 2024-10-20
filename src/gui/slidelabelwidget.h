@@ -56,16 +56,22 @@ class SlideLabelWidget : public QWidget
   /// Resize: adjust font size.
   void resizeEvent(QResizeEvent *event) noexcept override;
 
- public slots:
   /// Update current slide and total number of slides.
   void updateText(const int page) noexcept;
+
+ public slots:
+  /// Wrapper for updateText, ignores first argument
+  void receivePage(const int slide, const int page) noexcept
+  {
+    updateText(page);
+  }
 
   /// Read from edit and send navigation event.
   void readText() noexcept;
 
  signals:
   /// Slide changed, send new page.
-  void navigationSignal(const int slide, const int page);
+  void sendPage(const int page);
 };
 
 #endif  // SLIDELABELWIDGET_H

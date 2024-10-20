@@ -174,6 +174,30 @@ void Master::initializePageIndex()
   }
 }
 
+void Master::removeSlide(const int slide)
+{
+  if (slide < 0 || slide >= page_idx.size() || page_idx.size() == 1) return;
+  const int page = page_idx[slide];
+  if (page_to_slide[page] == slide) page_to_slide.remove(page_idx[slide]);
+  page_idx.removeAt(slide);
+  auto it = page_idx.crbegin();
+  int i = page_idx.size();
+  while (--i >= slide && it != page_idx.crend()) page_to_slide[*it++] = i;
+  debug_msg(DebugPageChange, "removed slide" << slide << ", page" << page);
+  debug_msg(DebugPageChange, "new page index:" << page_idx);
+}
+
+void Master::insertSlideAt(const int slide, const int page)
+{
+  if (slide < 0 || slide > page_idx.size()) return;
+  page_idx.insert(slide, page);
+  auto it = page_idx.crbegin();
+  int i = page_idx.size();
+  while (--i >= slide && it != page_idx.crend()) page_to_slide[*it++] = i;
+  debug_msg(DebugPageChange, "inserted slide" << slide << ", page" << page);
+  debug_msg(DebugPageChange, "new page index:" << page_idx);
+}
+
 QWidget *Master::createWidget(
     const QJsonObject &object, QWidget *parent,
     QMap<QString, std::shared_ptr<PdfMaster>> &known_files)
@@ -235,7 +259,7 @@ QWidget *Master::createWidget(
       connect(this, &Master::sendAction, twidget,
               &ThumbnailWidget::handleAction, Qt::QueuedConnection);
       connect(this, &Master::navigationSignal, twidget,
-              &ThumbnailWidget::focusPage, Qt::QueuedConnection);
+              &ThumbnailWidget::receivePage, Qt::QueuedConnection);
       break;
     }
     case TOCType: {
@@ -381,20 +405,18 @@ QWidget *Master::createWidget(
     case SlideNumberType:
       widget = new SlideNumberWidget(parent);
       connect(static_cast<SlideNumberWidget *>(widget),
-              &SlideNumberWidget::navigationSignal, this,
-              &Master::navigateToPage);
+              &SlideNumberWidget::sendPage, this, &Master::navigateToPage);
       connect(this, &Master::navigationSignal,
               static_cast<SlideNumberWidget *>(widget),
-              &SlideNumberWidget::updateText, Qt::QueuedConnection);
+              &SlideNumberWidget::receivePage, Qt::QueuedConnection);
       break;
     case SlideLabelType:
       widget = new SlideLabelWidget(parent);
       connect(static_cast<SlideLabelWidget *>(widget),
-              &SlideLabelWidget::navigationSignal, this,
-              &Master::navigateToPage);
+              &SlideLabelWidget::sendPage, this, &Master::navigateToPage);
       connect(this, &Master::navigationSignal,
               static_cast<SlideLabelWidget *>(widget),
-              &SlideLabelWidget::updateText, Qt::QueuedConnection);
+              &SlideLabelWidget::receivePage, Qt::QueuedConnection);
       break;
     case GuiWidget::InvalidType:
       showErrorMessage(tr("Error while reading GUI config"),
@@ -658,8 +680,8 @@ std::shared_ptr<PdfMaster> Master::createPdfMaster(QString abs_path)
   connect(pdf.get(), &PdfMaster::readNotes, this, &Master::readNotes,
           Qt::DirectConnection);
   connect(pdf.get(), &PdfMaster::setTotalTime, this, &Master::setTotalTime);
-  connect(pdf.get(), &PdfMaster::navigationSignal, this,
-          &Master::navigateToPage, Qt::DirectConnection);
+  connect(pdf.get(), &PdfMaster::sendPage, this, &Master::navigateToPage,
+          Qt::DirectConnection);
 
   // Initialize document, try to laod PDF
   // TODO: should this be done at this point?
@@ -911,11 +933,15 @@ void Master::handleAction(const Action action)
       while (pageExists(page)) --page;
       insertSlideAt(preferences()->slide + 1, page);
       navigateToSlide(preferences()->slide + 1);
+      for (const auto &doc : std::as_const(documents))
+        doc->flags() |= PdfMaster::UnsavedDrawings;
       break;
     }
     case RemoveSlide:
       removeSlide(preferences()->slide);
       navigateToSlide(preferences()->slide);
+      for (const auto &doc : std::as_const(documents))
+        doc->flags() |= PdfMaster::UnsavedDrawings;
       break;
     case RestoreSlide: {
       int page;
@@ -929,6 +955,8 @@ void Master::handleAction(const Action action)
         break;
       insertSlideAt(preferences()->slide + 1, page);
       navigateToSlide(preferences()->slide + 1);
+      for (const auto &doc : std::as_const(documents))
+        doc->flags() |= PdfMaster::UnsavedDrawings;
       break;
     }
     default:
@@ -1364,7 +1392,7 @@ std::shared_ptr<PdfMaster> Master::readXmlPage(QXmlStreamReader &reader,
   while (reader.readNextStartElement()) {
     if (reader.name().toUtf8() == "background") {
       const auto attr = reader.attributes();
-      const auto type = attr.value("type");
+      const auto type = attr.value("type").toString();
       if (type == "pdf") {
         // Read page number
 #if QT_VERSION_MAJOR >= 6

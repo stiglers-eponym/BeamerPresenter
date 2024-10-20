@@ -113,7 +113,9 @@ class ThumbnailWidget : public QScrollArea
 
  public slots:
   /// Set focus to given page.
-  void focusPage(int page);
+  void focusPage(const int page);
+  /// Receive slide and page from master
+  void receivePage(const int slide, const int page) { focusPage(page); }
 
   /// generate thumbnails if necessary and select currenlty visible page.
   void showEvent(QShowEvent *event) override;
@@ -122,7 +124,7 @@ class ThumbnailWidget : public QScrollArea
   void keyPressEvent(QKeyEvent *event) override;
 
   /// Receive thumbnail from render_thread and show it on button.
-  void receiveThumbnail(int button_index, const QPixmap pixmap);
+  void receiveThumbnail(const int button_index, const QPixmap pixmap);
 
   /// Handle actions: clear if files are reloaded.
   void handleAction(const Action action);

@@ -89,12 +89,11 @@ ThumbnailButton *ThumbnailWidget::buttonAtPage(int page)
   return dynamic_cast<ThumbnailButton *>(item->widget());
 }
 
-void ThumbnailWidget::focusPage(int page)
+void ThumbnailWidget::focusPage(const int page)
 {
   if (!isVisible()) return;
   ThumbnailButton *button = buttonAtPage(page);
-  if (!button) return;
-  button->giveFocus();
+  if (button) button->giveFocus();
   if (current_page_button) current_page_button->clearFocus();
   current_page_button = button;
 }
@@ -219,7 +218,8 @@ void ThumbnailWidget::createButton(const int display_page, const int link_page,
       display_page);
 }
 
-void ThumbnailWidget::receiveThumbnail(int button_index, const QPixmap pixmap)
+void ThumbnailWidget::receiveThumbnail(const int button_index,
+                                       const QPixmap pixmap)
 {
   if (pixmap.isNull() || button_index < 0) return;
   QLayout *layout = widget() ? widget()->layout() : nullptr;

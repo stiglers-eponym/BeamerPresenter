@@ -312,8 +312,9 @@ class Preferences : public QObject
   /// Append tool to currently used tools. This takes ownership of tool.
   void setCurrentTool(std::shared_ptr<Tool> tool) noexcept;
 
-  int slideForPage(const int page) const;
-  int pageForSlide(const int slide) const;
+  int slideForPage(const int page) const noexcept;
+  int pageForSlide(const int slide) const noexcept;
+  bool pageExists(const int page) const noexcept;
 
  public slots:
   /// Set maximum memory for cache. This function uses double instead of

@@ -73,7 +73,7 @@ void SlideNumberWidget::readText() noexcept
   bool ok;
   const int page = edit->text().toInt(&ok);
   if (ok && page > 0 && page <= preferences()->number_of_pages)
-    emit navigationSignal(preferences()->slideForPage(page - 1), page - 1);
+    emit sendPage(page - 1);
   else
     edit->setText("?");
 }

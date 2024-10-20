@@ -76,7 +76,7 @@ void SlideLabelWidget::readText() noexcept
 {
   const int page = preferences()->document->pageIndex(edit->text());
   if (page >= 0 && page < preferences()->number_of_pages)
-    emit navigationSignal(preferences()->slideForPage(page), page);
+    emit sendPage(page);
   else
     edit->setText("?");
   updateText(page);

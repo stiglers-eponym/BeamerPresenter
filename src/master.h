@@ -187,29 +187,14 @@ class Master : public QObject
   }
 
   /// Insert a new slide with given page.
-  void insertSlideAt(const int slide, const int page)
-  {
-    if (slide < 0 || slide > page_idx.size()) return;
-    page_idx.insert(slide, page);
-    auto it = page_idx.crbegin();
-    int i = page_idx.size();
-    while (--i >= slide && it != page_idx.crend()) page_to_slide[*it++] = i;
-    debug_msg(DebugPageChange, "inserted slide" << slide << ", page" << page);
-    debug_msg(DebugPageChange, "new page index:" << page_idx);
-  }
+  void insertSlideAt(const int slide, const int page);
 
   /// Remove slide at given index.
-  void removeSlide(const int slide)
+  void removeSlide(const int slide);
+
+  bool pageExits(const int page) const noexcept
   {
-    if (slide < 0 || slide >= page_idx.size() || page_idx.size() == 1) return;
-    const int page = page_idx[slide];
-    if (page_to_slide[page] == slide) page_to_slide.remove(page_idx[slide]);
-    page_idx.removeAt(slide);
-    auto it = page_idx.crbegin();
-    int i = page_idx.size();
-    while (--i >= slide && it != page_idx.crend()) page_to_slide[*it++] = i;
-    debug_msg(DebugPageChange, "removed slide" << slide << ", page" << page);
-    debug_msg(DebugPageChange, "new page index:" << page_idx);
+    return page_to_slide.contains(page);
   }
 
   /// Get save file name from QFileDialog
@@ -266,6 +251,7 @@ class Master : public QObject
    * 6. send out navigation signal
    */
   void navigateToSlide(const int slide);
+
   /// navigate to PDF page index
   void navigateToPage(const int page) { navigateToSlide(slideForPage(page)); }
 

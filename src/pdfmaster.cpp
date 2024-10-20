@@ -443,8 +443,7 @@ void PdfMaster::search(const QString &text, const int &page, const bool forward)
   if (search_results.first == preferences()->page)
     emit updateSearch();
   else if (search_results.first >= 0)
-    emit navigationSignal(preferences()->slideForPage(search_results.first),
-                          search_results.first);
+    emit sendPage(search_results.first);
 }
 
 QPixmap PdfMaster::exportImage(const PPage ppage,

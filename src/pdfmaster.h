@@ -302,7 +302,7 @@ class PdfMaster : public QObject
   /// Set total time of presentation (preferences().total_time).
   void setTotalTime(const QTime time) const;
   /// Send navigation signal to master.
-  void navigationSignal(const int slide, const int page);
+  void sendPage(const int page);
   /// Tell slides to update search results.
   void updateSearch();
 };

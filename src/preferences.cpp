@@ -22,14 +22,19 @@
 #include "src/names.h"
 #include "src/rendering/pdfdocument.h"
 
-int Preferences::slideForPage(const int page) const
+int Preferences::slideForPage(const int page) const noexcept
 {
   return master->slideForPage(page);
 }
 
-int Preferences::pageForSlide(const int slide) const
+int Preferences::pageForSlide(const int slide) const noexcept
 {
   return master->pageForSlide(slide);
+}
+
+bool Preferences::pageExists(const int page) const noexcept
+{
+  return master->pageExits(page);
 }
 
 std::shared_ptr<Tool> createTool(const QJsonObject &obj,

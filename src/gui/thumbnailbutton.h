@@ -29,9 +29,11 @@ class ThumbnailButton : public QLabel
   /// Sent current page to master, adjust style
   void sendPage()
   {
-    setFocus();
-    setStyleCurrent();
-    emit sendNavigationSignal(page);
+    if (preferences()->pageExists(page)) {
+      setFocus();
+      setStyleCurrent();
+      emit sendNavigationSignal(page);
+    }
   }
 
   /// Adjust style after giving focus to this button.
@@ -102,7 +104,7 @@ class ThumbnailButton : public QLabel
 
  signals:
   /// Send out navigation event for this page.
-  void sendNavigationSignal(int page);
+  void sendNavigationSignal(const int page);
   /// Tell thumbnail widget to set focus to this button.
   void updateFocus(ThumbnailButton *self);
   /// Tell thumbnail widget to move focus to the row above/below (updown=-1/+1).
