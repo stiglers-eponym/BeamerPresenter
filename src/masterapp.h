@@ -5,6 +5,8 @@
 #define MASTERAPP_H
 
 #include <QApplication>
+#include <QFileInfo>
+#include <QIcon>
 #include <QTabletEvent>
 #include <memory>
 
@@ -12,6 +14,10 @@
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/tool.h"
 #include "src/preferences.h"
+
+#ifdef USE_TRANSLATIONS
+#include <QTranslator>
+#endif
 
 #ifdef USE_POPPLER
 #if (QT_VERSION_MAJOR == 6)
@@ -42,8 +48,16 @@ extern "C" {
  */
 class MasterApp : public QApplication
 {
+#ifdef USE_TRANSLATIONS
+  QTranslator translator;
+#endif
+
  public:
-  MasterApp(int argc, char *argv[]) : QApplication(argc, argv)
+  MasterApp(int &argc, char **argv) : QApplication(argc, argv) {}
+
+  ~MasterApp() {}
+
+  void initialize(const QString &fallback_root)
   {
     setApplicationName("BeamerPresenter");
     // Set app version. The string APP_VERSION is defined in src/config.h.
@@ -59,9 +73,27 @@ class MasterApp : public QApplication
                           " debugging"
 #endif
     );
-  }
+    // Load the icon
+    setWindowIcon(QIcon(QFileInfo::exists(ICON_FILEPATH)
+                            ? ICON_FILEPATH
+                            : fallback_root + ICON_FILEPATH));
 
-  ~MasterApp() {}
+#ifdef USE_TRANSLATIONS
+    QString translation_path = TRANSLATION_PATH;
+    if (!QFileInfo::exists(translation_path)) {
+      translation_path = fallback_root + translation_path;
+      if (!QFileInfo::exists(translation_path))
+        translation_path = fallback_root + "/locale";
+    }
+    for (auto &lang : QLocale().uiLanguages())
+      if (translator.load(
+              "beamerpresenter.qm",
+              translation_path + lang.replace('-', '_') + "/LC_MESSAGES")) {
+        installTranslator(&translator);
+        break;
+      }
+#endif
+  }
 
  protected:
   /// Handle table proximity leave events: clear pointing tools
@@ -72,7 +104,7 @@ class MasterApp : public QApplication
         const auto tevent = dynamic_cast<const QTabletEvent *>(event);
         if (tevent == nullptr) return false;
         const int device = tablet_event_to_input_device(tevent);
-        for (auto tool : std::as_const(preferences()->current_tools)) {
+        for (const auto &tool : std::as_const(preferences()->current_tools)) {
           if (tool && (tool->device() & device) &&
               (tool->tool() & Tool::AnyPointingTool)) {
             auto ptool = std::dynamic_pointer_cast<PointingTool>(tool);

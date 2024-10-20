@@ -4,22 +4,16 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QFileInfo>
-#include <QIcon>
 #include <QSettings>
 #include <QtDebug>
 #include <memory>
 
 #include "src/config.h"
 #include "src/drawing/tool.h"
-#include "src/log.h"
 #include "src/master.h"
 #include "src/masterapp.h"
 #include "src/preferences.h"
 #include "src/rendering/pngpixmap.h"
-
-#ifdef USE_TRANSLATIONS
-#include <QTranslator>
-#endif
 
 int main(int argc, char *argv[])
 {
@@ -54,33 +48,9 @@ int main(int argc, char *argv[])
 
   // Set up the application.
   MasterApp app(argc, argv);
-
   QString fallback_root = QCoreApplication::applicationDirPath();
   if (fallback_root.contains(UNIX_LIKE)) fallback_root.remove(UNIX_LIKE);
-
-  // Load the icon
-  app.setWindowIcon(QIcon(QFileInfo::exists(ICON_FILEPATH)
-                              ? ICON_FILEPATH
-                              : fallback_root + ICON_FILEPATH));
-
-#ifdef USE_TRANSLATIONS
-  QTranslator translator;
-  {
-    QString translation_path = TRANSLATION_PATH;
-    if (!QFileInfo::exists(translation_path)) {
-      translation_path = fallback_root + translation_path;
-      if (!QFileInfo::exists(translation_path))
-        translation_path = fallback_root + "/locale";
-    }
-    for (auto &lang : QLocale().uiLanguages())
-      if (translator.load(
-              "beamerpresenter.qm",
-              translation_path + lang.replace('-', '_') + "/LC_MESSAGES")) {
-        app.installTranslator(&translator);
-        break;
-      }
-  }
-#endif
+  app.initialize(fallback_root);
 
   // Set up command line argument parser.
   QCommandLineParser parser;
