@@ -33,11 +33,29 @@ enum PagePart {
   LeftHalf = (INT_MAX >> 2) + 1,
   /// Right half of page
   RightHalf = (INT_MAX >> 1) + 1,
-  /// LeftHalf | RightHalf
-  NotFullPage = (LeftHalf | RightHalf),
   /// Unknown page part
   UnknownPagePart = 1,
 };
+
+struct PPage {
+  int page;
+  PagePart part;
+};
+
+inline bool operator<(PPage a, PPage b) noexcept
+{
+  return a.page < b.page || (a.page == b.page && a.part < b.part);
+}
+inline bool operator>(PPage a, PPage b) noexcept
+{
+  return a.page > b.page || (a.page == b.page && a.part > b.part);
+}
+inline bool operator==(PPage a, PPage b) noexcept
+{
+  return a.page == b.page && a.part == b.part;
+}
+
+Q_DECLARE_METATYPE(PPage);
 
 /// PDF engine
 enum PdfEngine {

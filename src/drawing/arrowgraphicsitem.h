@@ -53,7 +53,8 @@ class ArrowGraphicsItem : public QGraphicsPathItem
 
   /// Convert to two BasicGraphicsPaths for simpler erasing.
   /// Two paths are needed because an arrow consists of two separate paths.
-  QList<BasicGraphicsPath *> toPath() const;
+  template <class T>
+  QList<T *> toPath() const;
 
   /// Paint line to painter.
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,

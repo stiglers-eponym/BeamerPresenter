@@ -314,12 +314,12 @@ class PathContainer : public QObject
   /// Undo latest change.
   /// @return true on success and false on failure.
   /// @see redo()
-  bool undo(QGraphicsScene *scene = nullptr);
+  bool undo(const QList<QGraphicsScene *> &scenes = {});
 
   /// Redo latest change.
   /// @return true on success and false on failure.
   /// @see undo()
-  bool redo(QGraphicsScene *scene = nullptr);
+  bool redo(const QList<QGraphicsScene *> &scenes = {});
 
   /// Clear history such that only n undo steps are possible.
   void clearHistory(int n = 0);

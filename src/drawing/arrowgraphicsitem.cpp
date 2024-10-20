@@ -53,7 +53,8 @@ void ArrowGraphicsItem::setSecondPoint(const QPointF &pos)
   setPath(newpath);
 }
 
-QList<BasicGraphicsPath *> ArrowGraphicsItem::toPath() const
+template <class T>
+QList<T *> ArrowGraphicsItem::toPath() const
 {
   const QPointF reference = boundingRect().center(),
                 rbegin = origin - reference,
@@ -90,6 +91,8 @@ QList<BasicGraphicsPath *> ArrowGraphicsItem::toPath() const
   path2->setZValue(zValue());
   return {path1, path2};
 }
+
+template QList<QGraphicsItem *> ArrowGraphicsItem::toPath() const;
 
 void ArrowGraphicsItem::paint(QPainter *painter,
                               const QStyleOptionGraphicsItem *option,

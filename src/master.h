@@ -164,12 +164,12 @@ class Master : public QObject
   void leaveSlide(const int slide) const;
 
   /// Map page index to slide index. Return -1 for missing or invalid pages.
-  int slideForPage(const int page) const
+  int slideForPage(const int page) const noexcept
   {
     return page_to_slide.value(page, INT_MIN);
   }
   /// Map slide index to page index.
-  int pageForSlide(const int slide) const
+  int pageForSlide(const int slide) const noexcept
   {
     return page_idx.value(slide, INT_MIN);
   }
@@ -189,23 +189,27 @@ class Master : public QObject
   /// Insert a new slide with given page.
   void insertSlideAt(const int slide, const int page)
   {
+    if (slide < 0 || slide > page_idx.size()) return;
     page_idx.insert(slide, page);
     auto it = page_idx.crbegin();
     int i = page_idx.size();
     while (--i >= slide && it != page_idx.crend()) page_to_slide[*it++] = i;
-    debug_msg(DebugPageChange, page_idx);
+    debug_msg(DebugPageChange, "inserted slide" << slide << ", page" << page);
+    debug_msg(DebugPageChange, "new page index:" << page_idx);
   }
 
   /// Remove slide at given index.
   void removeSlide(const int slide)
   {
+    if (slide < 0 || slide >= page_idx.size() || page_idx.size() == 1) return;
     const int page = page_idx[slide];
     if (page_to_slide[page] == slide) page_to_slide.remove(page_idx[slide]);
     page_idx.removeAt(slide);
     auto it = page_idx.crbegin();
     int i = page_idx.size();
     while (--i >= slide && it != page_idx.crend()) page_to_slide[*it++] = i;
-    debug_msg(DebugPageChange, page_idx);
+    debug_msg(DebugPageChange, "removed slide" << slide << ", page" << page);
+    debug_msg(DebugPageChange, "new page index:" << page_idx);
   }
 
   /// Get save file name from QFileDialog

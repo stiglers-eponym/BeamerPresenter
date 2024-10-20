@@ -977,10 +977,11 @@ void Master::leaveSlide(const int slide) const
   writable_preferences()->previous_page = preferences()->page;
   bool flexible_page_numbers = false;
   for (const auto doc : std::as_const(documents)) {
-    doc->clearHistory(slide, preferences()->history_length_hidden_slides);
-    doc->clearHistory(slide | PagePart::LeftHalf,
+    doc->clearHistory({slide, FullPage},
                       preferences()->history_length_hidden_slides);
-    doc->clearHistory(slide | PagePart::RightHalf,
+    doc->clearHistory({slide, LeftHalf},
+                      preferences()->history_length_hidden_slides);
+    doc->clearHistory({slide, RightHalf},
                       preferences()->history_length_hidden_slides);
     if (doc->flexiblePageSizes()) flexible_page_numbers = true;
   }
@@ -1173,7 +1174,7 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
     const QSizeF &pageSize = pdf->getPageSize(0);
     const qreal resolution =
         128 / std::max(pageSize.width(), pageSize.height());
-    const QPixmap pixmap = pdf->exportImage(0, resolution);
+    const QPixmap pixmap = pdf->exportImage({0, FullPage}, resolution);
     QByteArray data;
     QBuffer preview_buffer(&data);
     if (preview_buffer.open(QBuffer::WriteOnly) &&

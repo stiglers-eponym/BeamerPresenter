@@ -53,7 +53,7 @@ class PdfMaster : public QObject
     FullPageUsed = LeftHalf >> 1,
     LeftHalfUsed = LeftHalf,
     RightHalfUsed = RightHalf,
-    HalfPageUsed = NotFullPage,
+    HalfPageUsed = LeftHalf | RightHalf,
   };
   Q_DECLARE_FLAGS(PdfMasterFlags, PdfMasterFlag);
   Q_FLAG(PdfMasterFlags);
@@ -70,11 +70,10 @@ class PdfMaster : public QObject
   /// Path to file in which drawings are saved.
   QString drawings_path;
 
-  /// Map page (part) numbers to containers of paths.
-  /// page (part) numbers are given as (page | page_part)
+  /// Map page numbers and parts to containers of paths.
   /// Paths can be drawn per slide label by creating references to the main
   /// path list from other slide numbers.
-  QMap<int, PathContainer *> paths;
+  QMap<PPage, PathContainer *> paths;
 
   /// Time at which a slide should be finished.
   QMap<int, quint32> target_times;
@@ -86,9 +85,20 @@ class PdfMaster : public QObject
   std::pair<int, QList<QRectF>> search_results;
 
   /// make sure paths[page] is a PathContainer*
-  void assertPageExists(const int page) noexcept
+  void assertPageExists(const PPage ppage) noexcept
   {
-    if (!paths.value(page, nullptr)) paths[page] = new PathContainer(this);
+    if (!paths.value(ppage, nullptr)) paths[ppage] = new PathContainer(this);
+  }
+
+  /// List of scenes active on current page and given page part.
+  template <class T>
+  QList<T *> getActiveScenes(const PPage ppage) const;
+
+  /// Shift page to first overlay if drawings are per label.
+  void shiftToDrawings(PPage &ppage) const
+  {
+    if (ppage.page >= 0 && preferences()->overlay_mode == PerLabel)
+      ppage.page = document->overlaysShifted(ppage.page, FirstOverlay);
   }
 
  public:
@@ -136,9 +146,9 @@ class PdfMaster : public QObject
   }
 
   /// Clear history of given page.
-  void clearHistory(const int page, const int remaining_entries) const
+  void clearHistory(const PPage ppage, const int remaining_entries) const
   {
-    PathContainer *container = paths.value(page, nullptr);
+    PathContainer *container = paths.value(ppage, nullptr);
     if (container) container->clearHistory(remaining_entries);
   }
 
@@ -162,7 +172,7 @@ class PdfMaster : public QObject
   }
 
   /// Write page (part) to image, including drawings.
-  QPixmap exportImage(const int page, const qreal resolution) const noexcept;
+  QPixmap exportImage(const PPage ppage, const qreal resolution) const noexcept;
 
   /// Load drawings from XML reader, must be in element <layer>
   void readDrawingsFromStream(QXmlStreamReader &reader, const int page);
@@ -170,27 +180,22 @@ class PdfMaster : public QObject
   /// Get path container at given page. If overlay_mode==Cumulative, this may
   /// create and return a copy of a previous path container.
   /// page (part) number is given as (page | page_part).
-  PathContainer *pathContainerCreate(int page);
+  PathContainer *pathContainerCreate(PPage ppage);
 
   /// Get path container at given page.
   /// page (part) number is given as (page | page_part).
-  PathContainer *pathContainer(int page) const
+  PathContainer *pathContainer(PPage ppage) const
   {
     if (preferences()->overlay_mode == PerLabel)
-      return paths.value(overlaysShifted(page & ~NotFullPage, FirstOverlay) |
-                             (page & NotFullPage),
-                         nullptr);
-    else
-      return paths.value(page, nullptr);
+      ppage.page = overlaysShifted(ppage.page, FirstOverlay);
+    return paths.value(ppage, nullptr);
   }
 
   bool hasPage(const int page) const
   {
-    if (paths.contains(page)) return true;
-    return paths.contains(page) ||
-           (paths.contains((page & (~NotFullPage)) | FullPage)) ||
-           (paths.contains((page & (~NotFullPage)) | LeftHalf)) ||
-           (paths.contains((page & (~NotFullPage)) | RightHalf));
+    return paths.contains({page, FullPage}) ||
+           paths.contains({page, LeftHalf}) ||
+           paths.contains({page, RightHalf});
   }
 
   /// Get file path at which drawings are saved.
@@ -212,9 +217,9 @@ class PdfMaster : public QObject
   /// Add a new path (or QGraphicsItem) to paths[page].
   /// Page (part) number is given as (page | page_part).
   /// If item is nullptr: create the container if it does not exist yet.
-  void receiveNewPath(int page, QGraphicsItem *item)
+  void receiveNewPath(const PPage ppage, QGraphicsItem *item)
   {
-    replacePath(page, nullptr, item);
+    replacePath(ppage, nullptr, item);
   }
 
   /// Replace an existing path (or QGraphicsItem) in paths[page] by the gievn
@@ -222,21 +227,22 @@ class PdfMaster : public QObject
   /// created or an existing one will be removed, respectively. Page (part)
   /// number is given as (page | page_part). If both items are nullptr, only the
   /// container is created (if it doesn't exist yet).
-  void replacePath(int page, QGraphicsItem *olditem, QGraphicsItem *newitem);
+  void replacePath(PPage ppage, QGraphicsItem *olditem, QGraphicsItem *newitem);
 
   /// Add history step with transformations, tool changes, and text
   /// property changes (not text content changes!).
   /// Page (part) number is given as (page | page_part).
   void addHistoryStep(
-      int page, std::map<QGraphicsItem *, QTransform> *transforms,
+      PPage ppage, std::map<QGraphicsItem *, QTransform> *transforms,
       std::map<AbstractGraphicsPath *, drawHistory::DrawToolDifference> *tools,
       std::map<TextGraphicsItem *, drawHistory::TextPropertiesDifference>
           *texts);
 
   /// Add new paths.
-  void addItemsForeground(int page, const QList<QGraphicsItem *> &items);
+  void addItemsForeground(const PPage ppage,
+                          const QList<QGraphicsItem *> &items);
   /// Remove paths.
-  void removeItems(int page, const QList<QGraphicsItem *> &items);
+  void removeItems(const PPage ppage, const QList<QGraphicsItem *> &items);
 
   /// Send navigation events to all SlideScenes reading from this document.
   /// This is done centrally via PdfMaster because it may be necessary
@@ -247,14 +253,14 @@ class PdfMaster : public QObject
   /// Get path container at given page. If overlay_mode==Cumulative, this may
   /// create and return a copy of a previous path container.
   /// page (part) number is given as (page | page_part).
-  void requestNewPathContainer(PathContainer **container, int page)
+  void requestNewPathContainer(PathContainer **container, const PPage ppage)
   {
-    *container = pathContainerCreate(page);
+    *container = pathContainerCreate(ppage);
   }
 
   /// Get path container at given page. Always create a new container if it
   /// does not exist yet.
-  void createPathContainer(PathContainer **container, int page);
+  void createPathContainer(PathContainer **container, const PPage ppage);
 
   /// Get target_times map reference
   QMap<int, quint32> &targetTimes() noexcept { return target_times; }
@@ -273,9 +279,11 @@ class PdfMaster : public QObject
   void newUnsavedDrawings() noexcept { _flags |= UnsavedDrawings; }
 
   /// Bring given items to foreground and add history step.
-  void bringToForeground(int page, const QList<QGraphicsItem *> &to_foreground);
+  void bringToForeground(PPage ppage,
+                         const QList<QGraphicsItem *> &to_foreground);
   /// Bring given items to background and add history step.
-  void bringToBackground(int page, const QList<QGraphicsItem *> &to_background);
+  void bringToBackground(PPage ppage,
+                         const QList<QGraphicsItem *> &to_background);
 
   /// Handle the given action.
   void search(const QString &text, const int &page, const bool forward);

@@ -97,34 +97,39 @@ bool PdfMaster::loadDocument()
   return false;
 }
 
+template <class T>
+QList<T *> PdfMaster::getActiveScenes(const PPage ppage) const
+{
+  QList<T *> list;
+  for (auto scene : scenes) {
+    if ((ppage.part == scene->pagePart()) &&
+        (preferences()->overlay_mode == PerLabel
+             ? overlaysShifted(scene->getPage(), FirstOverlay)
+             : scene->getPage() == ppage.page))
+      list.append(scene);
+  }
+  return list;
+}
+
 void PdfMaster::receiveAction(const Action action)
 {
   switch (action) {
     case UndoDrawing:
     case UndoDrawingLeft:
     case UndoDrawingRight: {
-      int page = preferences()->page;
-      if (page >= 0 && preferences()->overlay_mode == PerLabel)
-        page = document->overlaysShifted(page, FirstOverlay);
-      page = (page & ~NotFullPage) | (action ^ UndoDrawing);
-      PathContainer *const path = paths.value(page, nullptr);
+      PPage ppage = {preferences()->page,
+                     static_cast<PagePart>(action ^ UndoDrawing)};
+      shiftToDrawings(ppage);
+      PathContainer *const path = paths.value(ppage, nullptr);
       if (path) {
         debug_msg(DebugDrawing, "undo:" << path);
-        auto scene_it = scenes.cbegin();
-        if (preferences()->overlay_mode == PerLabel)
-          while (scene_it != scenes.cend() &&
-                 (overlaysShifted((*scene_it)->getPage(), FirstOverlay) |
-                  (*scene_it)->pagePart()) != page)
-            ++scene_it;
-        else
-          while (scene_it != scenes.cend() &&
-                 ((*scene_it)->getPage() | (*scene_it)->pagePart()) != page)
-            ++scene_it;
-        SlideScene *const scene =
-            scene_it == scenes.cend() ? nullptr : *scene_it;
-        if (path->undo(scene)) {
+        const auto active_scenes = getActiveScenes<QGraphicsScene>(ppage);
+        if (path->undo(active_scenes)) {
           _flags |= UnsavedDrawings;
-          if (scene) scene->updateSelectionRect();
+          for (auto scene : active_scenes)
+            // All entries of active_scenes have been casted from SlideScene* to
+            // QGraphicsScene* before, so it is save to use static_cast here:
+            static_cast<SlideScene *>(scene)->updateSelectionRect();
         }
       }
       break;
@@ -132,28 +137,19 @@ void PdfMaster::receiveAction(const Action action)
     case RedoDrawing:
     case RedoDrawingLeft:
     case RedoDrawingRight: {
-      int page = preferences()->page;
-      if (page >= 0 && preferences()->overlay_mode == PerLabel)
-        page = document->overlaysShifted(page, FirstOverlay);
-      page = (page & ~NotFullPage) | (action ^ RedoDrawing);
-      PathContainer *const path = paths.value(page, nullptr);
+      PPage ppage = {preferences()->page,
+                     static_cast<PagePart>(action ^ RedoDrawing)};
+      shiftToDrawings(ppage);
+      PathContainer *const path = paths.value(ppage, nullptr);
       if (path) {
         debug_msg(DebugDrawing, "redo:" << path);
-        auto scene_it = scenes.cbegin();
-        if (preferences()->overlay_mode == PerLabel)
-          while (scene_it != scenes.cend() &&
-                 (overlaysShifted((*scene_it)->getPage(), FirstOverlay) |
-                  (*scene_it)->pagePart()) != page)
-            ++scene_it;
-        else
-          while (scene_it != scenes.cend() &&
-                 ((*scene_it)->getPage() | (*scene_it)->pagePart()) != page)
-            ++scene_it;
-        SlideScene *const scene =
-            scene_it == scenes.cend() ? nullptr : *scene_it;
-        if (path->redo(scene)) {
+        const auto active_scenes = getActiveScenes<QGraphicsScene>(ppage);
+        if (path->redo(active_scenes)) {
           _flags |= UnsavedDrawings;
-          if (scene) scene->updateSelectionRect();
+          for (auto scene : active_scenes)
+            // All entries of active_scenes have been casted from SlideScene* to
+            // QGraphicsScene* before, so it is save to use static_cast here:
+            static_cast<SlideScene *>(scene)->updateSelectionRect();
         }
       }
       break;
@@ -161,11 +157,11 @@ void PdfMaster::receiveAction(const Action action)
     case ClearDrawing:
     case ClearDrawingLeft:
     case ClearDrawingRight: {
-      int page = preferences()->page;
-      if (page >= 0 && preferences()->overlay_mode == PerLabel)
-        page = document->overlaysShifted(page, FirstOverlay);
-      page = (page & ~NotFullPage) | (action ^ ClearDrawing);
-      PathContainer *const path = paths.value(page, nullptr);
+      PPage ppage = {preferences()->page,
+                     static_cast<PagePart>(action ^ RedoDrawing)};
+      if (ppage.page >= 0 && preferences()->overlay_mode == PerLabel)
+        ppage.page = document->overlaysShifted(ppage.page, FirstOverlay);
+      PathContainer *const path = paths.value(ppage, nullptr);
       if (path) {
         debug_msg(DebugDrawing, "clear:" << path);
         if (path->clearPaths()) _flags |= UnsavedDrawings;
@@ -177,118 +173,88 @@ void PdfMaster::receiveAction(const Action action)
   }
 }
 
-void PdfMaster::replacePath(int page, QGraphicsItem *olditem,
+void PdfMaster::replacePath(PPage ppage, QGraphicsItem *olditem,
                             QGraphicsItem *newitem)
 {
   if (!olditem && !newitem) return;
-  if (page >= 0 && preferences()->overlay_mode == PerLabel)
-    page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
-           (page & NotFullPage);
-  assertPageExists(page);
-  paths[page]->replaceItem(olditem, newitem);
+  shiftToDrawings(ppage);
+  assertPageExists(ppage);
+  paths[ppage]->replaceItem(olditem, newitem);
   _flags |= UnsavedDrawings;
 }
 
-void PdfMaster::addItemsForeground(int page,
+void PdfMaster::addItemsForeground(PPage ppage,
                                    const QList<QGraphicsItem *> &items)
 {
   if (items.empty()) return;
-  if (page >= 0 && preferences()->overlay_mode == PerLabel)
-    page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
-           (page & NotFullPage);
-  assertPageExists(page);
-  paths[page]->addItemsForeground(items);
+  shiftToDrawings(ppage);
+  assertPageExists(ppage);
+  paths[ppage]->addItemsForeground(items);
   _flags |= UnsavedDrawings;
 }
 
-void PdfMaster::removeItems(int page, const QList<QGraphicsItem *> &items)
+void PdfMaster::removeItems(PPage ppage, const QList<QGraphicsItem *> &items)
 {
   if (items.empty()) return;
-  if (page >= 0 && preferences()->overlay_mode == PerLabel)
-    page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
-           (page & NotFullPage);
-  assertPageExists(page);
-  paths[page]->removeItems(items);
+  shiftToDrawings(ppage);
+  assertPageExists(ppage);
+  paths[ppage]->removeItems(items);
   _flags |= UnsavedDrawings;
 }
 
 void PdfMaster::addHistoryStep(
-    int page, std::map<QGraphicsItem *, QTransform> *transforms,
+    PPage ppage, std::map<QGraphicsItem *, QTransform> *transforms,
     std::map<AbstractGraphicsPath *, drawHistory::DrawToolDifference> *tools,
     std::map<TextGraphicsItem *, drawHistory::TextPropertiesDifference> *texts)
 {
-  if (page >= 0 && preferences()->overlay_mode == PerLabel)
-    page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
-           (page & NotFullPage);
-  assertPageExists(page);
-  if (paths[page]->addChanges(transforms, tools, texts))
+  shiftToDrawings(ppage);
+  assertPageExists(ppage);
+  if (paths[ppage]->addChanges(transforms, tools, texts))
     _flags |= UnsavedDrawings;
 }
 
-void PdfMaster::bringToForeground(int page,
+void PdfMaster::bringToForeground(PPage ppage,
                                   const QList<QGraphicsItem *> &to_foreground)
 {
   if (to_foreground.empty()) return;
-  if (page >= 0 && preferences()->overlay_mode == PerLabel)
-    page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
-           (page & NotFullPage);
-  assertPageExists(page);
-  if (paths[page]->bringToForeground(to_foreground)) _flags |= UnsavedDrawings;
+  shiftToDrawings(ppage);
+  assertPageExists(ppage);
+  if (paths[ppage]->bringToForeground(to_foreground)) _flags |= UnsavedDrawings;
 }
 
-void PdfMaster::bringToBackground(int page,
+void PdfMaster::bringToBackground(PPage ppage,
                                   const QList<QGraphicsItem *> &to_background)
 {
   if (to_background.empty()) return;
-  if (page >= 0 && preferences()->overlay_mode == PerLabel)
-    page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
-           (page & NotFullPage);
-  assertPageExists(page);
-  if (paths[page]->bringToBackground(to_background)) _flags |= UnsavedDrawings;
+  shiftToDrawings(ppage);
+  assertPageExists(ppage);
+  if (paths[ppage]->bringToBackground(to_background)) _flags |= UnsavedDrawings;
 }
 
 void PdfMaster::distributeNavigationEvents(const int slide,
                                            const int page) const
 {
-  // Map (shifted) page numbers with page parts to slide scenes.
+  // Map (shifted) page numbers plus page parts to slide scenes.
   // Like this it can be detected if multiple scenes want to show the same
   // page. In this case the SlideViews showing the same page will all be
   // connected to the same scene.
-  QMap<int, SlideScene *> scenemap;
-  if (preferences()->overlay_mode == PerLabel) {
-    int scenepage, indexpage, sceneslide;
-    for (const auto scene : std::as_const(scenes)) {
-      /// scenepage: the page index that will be shown by the scene.
-      scenepage = overlaysShifted(page, scene->getShift());
-      sceneslide =
-          scenepage == page ? slide : preferences()->slideForPage(scenepage);
-      /// index page: the overlay root page, to which all drawings are attached.
-      indexpage = overlaysShifted(scenepage, FirstOverlay) | scene->pagePart();
-      if (scenemap.contains(indexpage))
-        scene->navigationEvent(sceneslide, scenepage, scenemap[indexpage]);
-      else {
-        scenemap[indexpage] = scene;
-        scene->navigationEvent(sceneslide, scenepage);
-      }
-      scenepage |= scene->pagePart();
+  QMap<PPage, SlideScene *> scenemap;
+  for (const auto scene : std::as_const(scenes)) {
+    /// scenepage: the page index that will be shown by the scene.
+    const int scenepage = overlaysShifted(page, scene->getShift());
+    /// sceneslide: slide index of scene page
+    const int sceneslide =
+        scenepage == page ? slide : preferences()->slideForPage(scenepage);
+    /// index page: the overlay root page, to which all drawings are attached.
+    PPage indexpage = {scenepage, scene->pagePart()};
+    if (preferences()->overlay_mode == PerLabel)
+      indexpage.page = overlaysShifted(scenepage, FirstOverlay);
+    if (scenemap.contains(indexpage))
+      scene->navigationEvent(sceneslide, scenepage, scenemap[indexpage]);
+    else {
+      scenemap[indexpage] = scene;
+      scene->navigationEvent(sceneslide, scenepage);
     }
-  } else {
-    // Redistribute views to scenes.
-    int scenepage, sceneslide;
-    for (const auto scene : std::as_const(scenes)) {
-      scenepage = overlaysShifted(page, scene->getShift()) | scene->pagePart();
-      sceneslide = scenepage == (page & ~NotFullPage)
-                       ? slide
-                       : preferences()->slideForPage(scenepage);
-      if (scenemap.contains(scenepage))
-        scene->navigationEvent(sceneslide, scenepage & ~NotFullPage,
-                               scenemap[scenepage]);
-      else
-        scenemap[scenepage] = scene;
-    }
-    // Navigation events to active scenes.
-    for (auto it = scenemap.cbegin(); it != scenemap.cend(); ++it)
-      (*it)->navigationEvent(sceneslide, it.key() & ~NotFullPage);
   }
   for (const auto scene : std::as_const(scenes)) scene->createSliders();
 }
@@ -301,18 +267,11 @@ void PdfMaster::writePages(QXmlStreamWriter &writer,
   for (auto page : master()->pageIdx()) {
     container_lst.clear();
     size = document->pageSize(std::max(page, 0));
-    const int ppage = page & ~NotFullPage;
-    if (page >= 0)
-      for (const PagePart page_part : {FullPage, LeftHalf, RightHalf}) {
-        int path_page = ppage | page_part;
-        if (preferences()->overlay_mode == PerLabel)
-          path_page = document->overlaysShifted(path_page, FirstOverlay);
-        const PathContainer *container = paths.value(path_page, nullptr);
-        if (container) container_lst[page_part] = container;
-      }
-    else {
+    for (const PagePart page_part : {FullPage, LeftHalf, RightHalf}) {
+      PPage ppage = {page, page_part};
+      shiftToDrawings(ppage);
       const PathContainer *container = paths.value(ppage, nullptr);
-      if (container) container_lst[FullPage] = container;
+      if (container) container_lst[page_part] = container;
     }
     if (!container_lst.empty()) {
       QRectF drawing_rect = QRectF({0, 0}, size);
@@ -384,59 +343,57 @@ QBuffer *loadZipToBuffer(const QString &filename)
 void PdfMaster::readDrawingsFromStream(QXmlStreamReader &reader, const int page)
 {
   if (page >= document->numberOfPages()) return;
-  const int ppage = page & ~NotFullPage;
+  // TODO: check how to handle per-label drawings here!
   if ((_flags & HalfPageUsed) == 0) {
-    PathContainer *container = paths.value(ppage, nullptr);
+    PathContainer *container = paths.value({page, FullPage}, nullptr);
     if (!container) {
       container = new PathContainer(this);
-      paths[ppage] = container;
+      paths[{page, FullPage}] = container;
     }
     container->loadDrawings(reader);
     return;
   }
-  PathContainer *left = paths.value(ppage | LeftHalf, nullptr),
-                *right = paths.value(ppage | RightHalf, nullptr),
-                *center = paths.value(ppage, nullptr);
-  const qreal page_half = document->pageSize(page).width() / 2;
+  PathContainer *left = paths.value({page, LeftHalf}, nullptr),
+                *right = paths.value({page, RightHalf}, nullptr),
+                *center = paths.value({page, FullPage}, nullptr);
+  const qreal page_half = document->pageSize(std::max(page, 0)).width() / 2;
   if (_flags & LeftHalfUsed && !left) {
     left = new PathContainer(this);
-    paths[ppage | LeftHalf] = left;
+    paths[{page, LeftHalf}] = left;
   }
   if (_flags & RightHalfUsed && !right) {
     right = new PathContainer(this);
-    paths[ppage | RightHalf] = right;
+    paths[{page, RightHalf}] = right;
   }
   if (_flags & FullPageUsed && !center) {
     center = new PathContainer(this);
-    paths[ppage] = center;
+    paths[{page, FullPage}] = center;
   }
   PathContainer::loadDrawings(reader, center, left, right, page_half);
 }
 
-PathContainer *PdfMaster::pathContainerCreate(int page)
+PathContainer *PdfMaster::pathContainerCreate(PPage ppage)
 {
   switch (preferences()->overlay_mode) {
     case PerPage:
-      return paths.value(page, nullptr);
+      return paths.value(ppage, nullptr);
     case PerLabel:
-      page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
-             (page & NotFullPage);
-      return paths.value(page, nullptr);
+      shiftToDrawings(ppage);
+      return paths.value(ppage, nullptr);
     case Cumulative: {
-      PathContainer *container = paths.value(page);
+      PathContainer *container = paths.value(ppage);
       if (container && !container->empty() && !container->isPlainCopy())
         return container;
-      const int page_part = page & NotFullPage;
-      int basic_page = page ^ page_part;
       const int start_overlay =
-          document->overlaysShifted(basic_page, FirstOverlay);
+          document->overlaysShifted(ppage.page, FirstOverlay);
       PathContainer *copy_container;
-      while (basic_page-- > start_overlay) {
-        copy_container = paths.value(basic_page | page_part, nullptr);
+      int source_page = ppage.page;
+      while (source_page-- > start_overlay) {
+        copy_container = paths.value({source_page, ppage.part}, nullptr);
         if (copy_container) {
           delete container;
           container = copy_container->copy();
-          paths[page] = container;
+          paths[ppage] = container;
           return container;
         }
       }
@@ -447,12 +404,10 @@ PathContainer *PdfMaster::pathContainerCreate(int page)
   }
 }
 
-void PdfMaster::createPathContainer(PathContainer **container, int page)
+void PdfMaster::createPathContainer(PathContainer **container, PPage ppage)
 {
-  if (preferences()->overlay_mode == PerLabel)
-    page = document->overlaysShifted((page & ~NotFullPage), FirstOverlay) |
-           (page & NotFullPage);
-  auto &target = paths[page];
+  shiftToDrawings(ppage);
+  auto &target = paths[ppage];
   if (!target) target = new PathContainer(this);
   *container = target;
 }
@@ -492,19 +447,22 @@ void PdfMaster::search(const QString &text, const int &page, const bool forward)
                           search_results.first);
 }
 
-QPixmap PdfMaster::exportImage(const int page,
+QPixmap PdfMaster::exportImage(const PPage ppage,
                                const qreal resolution) const noexcept
 {
-  if (!document || resolution <= 0 || page < 0 ||
-      page >= document->numberOfPages())
+  if (!document || resolution <= 0 || ppage.page >= document->numberOfPages())
     return QPixmap();
-  debug_msg(DebugDrawing, "Export image" << page << resolution);
-  const auto *renderer = createRenderer(
-      document, static_cast<PagePart>(page & PagePart::NotFullPage));
-  if (!renderer || !renderer->isValid()) return QPixmap();
-  QPixmap pixmap =
-      renderer->renderPixmap(page & ~PagePart::NotFullPage, resolution);
-  const auto *container = paths.value(page, nullptr);
+  debug_msg(DebugDrawing,
+            "Export image" << ppage.page << ppage.part << resolution);
+  QPixmap pixmap;
+  if (ppage.page >= 0) {
+    const auto *renderer = createRenderer(document, ppage.part);
+    if (!renderer || !renderer->isValid()) return QPixmap();
+    QPixmap pixmap = renderer->renderPixmap(ppage.page, resolution);
+  } else {
+    pixmap = QPixmap(document->pageSize(0).toSize());
+  }
+  const auto *container = paths.value(ppage, nullptr);
   if (container) {
     debug_msg(DebugDrawing, "Exporting items");
     QStyleOptionGraphicsItem style;

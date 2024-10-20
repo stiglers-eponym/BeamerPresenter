@@ -109,14 +109,13 @@ void SlideScene::stopDrawing()
         AbstractGraphicsPath *path =
             static_cast<AbstractGraphicsPath *>(currentlyDrawnItem);
         path->finalize();
-        emit sendNewPath((page & ~NotFullPage) | page_part, currentlyDrawnItem);
+        emit sendNewPath({page, page_part}, currentlyDrawnItem);
         if (path->getTool().shape() == DrawTool::Recognize) {
           ShapeRecognizer recognizer(path);
           newpath = recognizer.recognize();
           if (newpath) {
             addItem(newpath);
-            emit replacePath((page & ~NotFullPage) | page_part,
-                             currentlyDrawnItem, newpath);
+            emit replacePath({page, page_part}, currentlyDrawnItem, newpath);
             currentlyDrawnItem = newpath;
           }
         }
@@ -138,7 +137,8 @@ void SlideScene::stopDrawing()
         break;
       case ArrowGraphicsItem::Type: {
         const auto newpaths =
-            static_cast<ArrowGraphicsItem *>(currentlyDrawnItem)->toPath();
+            static_cast<ArrowGraphicsItem *>(currentlyDrawnItem)
+                ->toPath<QGraphicsItem>();
         removeItem(currentlyDrawnItem);
         delete currentlyDrawnItem;
         currentlyDrawnItem = nullptr;
@@ -147,9 +147,7 @@ void SlideScene::stopDrawing()
             addItem(item);
             item->show();
           }
-          emit sendAddPaths(
-              (page & ~NotFullPage) | page_part,
-              reinterpret_cast<const QList<QGraphicsItem *> &>(newpaths));
+          emit sendAddPaths({page, page_part}, newpaths);
         }
         break;
       }
@@ -163,7 +161,7 @@ void SlideScene::stopDrawing()
       if (newpath) {
         addItem(newpath);
         newpath->show();
-        emit sendNewPath((page & ~NotFullPage) | page_part, newpath);
+        emit sendNewPath({page, page_part}, newpath);
       }
       currentlyDrawnItem = nullptr;
     }
@@ -419,9 +417,8 @@ void SlideScene::handleDrawEvents(std::shared_ptr<const DrawTool> tool,
       break;
     case Tool::CancelEvent:
       if (stopInputEvent(tool)) {
-        PathContainer *container =
-            master->pathContainer((page & ~NotFullPage) | page_part);
-        if (container) container->undo(this);
+        PathContainer *container = master->pathContainer({page, page_part});
+        if (container) container->undo({this});
         break;
       }
   }
@@ -435,8 +432,7 @@ void SlideScene::handlePointingEvents(std::shared_ptr<PointingTool> tool,
   tool->setScene(this);
   switch (tool->tool()) {
     case Tool::Eraser: {
-      PathContainer *container =
-          master->pathContainer((page & ~NotFullPage) | page_part);
+      PathContainer *container = master->pathContainer({page, page_part});
       if (container) {
         switch (device & Tool::AnyEvent) {
           case Tool::UpdateEvent:
@@ -453,7 +449,7 @@ void SlideScene::handlePointingEvents(std::shared_ptr<PointingTool> tool,
             break;
           case Tool::CancelEvent:
             if (container->applyMicroStep()) {
-              container->undo(this);
+              container->undo({this});
               emit newUnsavedDrawings();
             }
             break;
@@ -518,7 +514,7 @@ bool SlideScene::handleTextEvents(std::shared_ptr<const TextTool> tool,
   item->show();
   item->setPos(pos.constFirst());
   PathContainer *container{nullptr};
-  emit createPathContainer(&container, (page & ~NotFullPage) | page_part);
+  emit createPathContainer(&container, {page, page_part});
   if (container) {
     item->setZValue(container->topZValue() + 10);
     connect(item, &TextGraphicsItem::removeMe, container,
@@ -529,7 +525,7 @@ bool SlideScene::handleTextEvents(std::shared_ptr<const TextTool> tool,
     qWarning() << "Failed to get graph container";
     item->setZValue(10);
   }
-  emit sendNewPath((page & ~NotFullPage) | page_part, item);
+  emit sendNewPath({page, page_part}, item);
   setFocusItem(item);
   return true;
 }
@@ -636,8 +632,7 @@ void SlideScene::handleSelectionStopEvents(std::shared_ptr<SelectionTool> tool,
                          it.key()->type() == FullGraphicsPath::Type))
           static_cast<AbstractGraphicsPath *>(it.key())->finalize();
       }
-      emit sendHistoryStep((page & ~NotFullPage) | page_part, &transforms,
-                           nullptr, nullptr);
+      emit sendHistoryStep({page, page_part}, &transforms, nullptr, nullptr);
       updateSelectionRect();
       break;
     }
@@ -725,14 +720,14 @@ void SlideScene::receiveAction(const Action action)
       if (slide_flags & ShowDrawings && hasFocus()) {
         const QList<QGraphicsItem *> selection = selectedItems();
         if (!selection.empty())
-          emit bringToForeground((page & ~NotFullPage) | page_part, selection);
+          emit bringToForeground({page, page_part}, selection);
       }
       break;
     case SelectionToBackground:
       if (slide_flags & ShowDrawings && hasFocus()) {
         const QList<QGraphicsItem *> selection = selectedItems();
         if (!selection.empty())
-          emit bringToBackground((page & ~NotFullPage) | page_part, selection);
+          emit bringToBackground({page, page_part}, selection);
       }
       break;
     case SelectAll:
@@ -839,7 +834,7 @@ void SlideScene::navigationEvent(const int newslide, const int newpage,
     loadMedia(page);
     if (slide_flags & ShowDrawings) {
       PathContainer *paths{nullptr};
-      emit requestNewPathContainer(&paths, (page & ~NotFullPage) | page_part);
+      emit requestNewPathContainer(&paths, {page, page_part});
       if (paths)
         for (auto path : *paths) addItem(path);
     }
@@ -969,7 +964,7 @@ void SlideScene::startTransition(const int newpage,
   loadMedia(page);
   if (slide_flags & ShowDrawings) {
     PathContainer *paths{nullptr};
-    emit requestNewPathContainer(&paths, (page & ~NotFullPage) | page_part);
+    emit requestNewPathContainer(&paths, {page, page_part});
     if (paths)
       for (const auto path : *paths) addItem(path);
   }
@@ -1365,8 +1360,7 @@ void SlideScene::startInputEvent(std::shared_ptr<const DrawTool> tool,
   stopDrawing();
   if (currentItemCollection || currentlyDrawnItem) return;
   clearSelection();
-  const PathContainer *container =
-      master->pathContainer((page & ~NotFullPage) | page_part);
+  const PathContainer *container = master->pathContainer({page, page_part});
   const qreal z = container ? container->topZValue() + 10 : 10;
   setFocusItem(nullptr);
   currentItemCollection = new QGraphicsItemGroup();
@@ -1506,10 +1500,9 @@ bool SlideScene::noToolClicked(const QPointF &pos, const QPointF &startpos)
   for (auto &item : mediaItems)
 #if __cplusplus >= 202002L
     // std::set<T>.contains is only available since C++ 20
-    if (item->pages().contains(page & ~NotFullPage) &&
-        item->rect().contains(pos))
+    if (item->pages().contains(page) && item->rect().contains(pos))
 #else
-    if (item->pages().find(page & ~NotFullPage) != item->pages().end() &&
+    if (item->pages().find(page) != item->pages().end() &&
         item->rect().contains(pos))
 #endif
     {
@@ -1565,9 +1558,9 @@ void SlideScene::createSliders() const
   for (auto &item : mediaItems)
     if (
 #if __cplusplus >= 202002L
-        item->pages().contains(page & ~NotFullPage)
+        item->pages().contains(page)
 #else
-        item->pages().find(page & ~NotFullPage) != item->pages().end()
+        item->pages().find(page) != item->pages().end()
 #endif
         && (item->flags() & MediaAnnotation::ShowSlider)) {
       for (const auto view : static_cast<const QList<QGraphicsView *>>(views()))
@@ -1581,9 +1574,9 @@ void SlideScene::playMedia() const
   for (auto &item : mediaItems)
     if (
 #if __cplusplus >= 202002L
-        item->pages().contains(page & ~NotFullPage)
+        item->pages().contains(page)
 #else
-        item->pages().find(page & ~NotFullPage) != item->pages().end()
+        item->pages().find(page) != item->pages().end()
 #endif
     )
       item->play();
@@ -1595,9 +1588,9 @@ void SlideScene::pauseMedia() const
   for (auto &item : mediaItems)
     if (
 #if __cplusplus >= 202002L
-        item->pages().contains(page & ~NotFullPage)
+        item->pages().contains(page)
 #else
-        item->pages().find(page & ~NotFullPage) != item->pages().end()
+        item->pages().find(page) != item->pages().end()
 #endif
     )
       item->pause();
@@ -1609,9 +1602,9 @@ void SlideScene::playPauseMedia() const
   for (auto &item : mediaItems)
     if (
 #if __cplusplus >= 202002L
-        item->pages().contains(page & ~NotFullPage)
+        item->pages().contains(page)
 #else
-        item->pages().find(page & ~NotFullPage) != item->pages().end()
+        item->pages().find(page) != item->pages().end()
 #endif
         && (item->flags() & MediaAnnotation::Interactive) &&
         item->isPlaying()) {
@@ -1647,7 +1640,7 @@ void SlideScene::removeSelection() const
 {
   const QList<QGraphicsItem *> selection = selectedItems();
   debug_verbose(DebugFunctionCalls, selection << this);
-  emit sendRemovePaths((page & ~NotFullPage) | page_part, selection);
+  emit sendRemovePaths({page, page_part}, selection);
 }
 
 void SlideScene::copyToClipboard() const
@@ -1722,8 +1715,7 @@ void SlideScene::pasteFromClipboard()
   clearSelection();
   setFocusItem(nullptr);
   QRectF pasted_rect = items.constFirst()->sceneBoundingRect();
-  PathContainer *container =
-      master->pathContainer((page & ~NotFullPage) | page_part);
+  PathContainer *container = master->pathContainer({page, page_part});
   qreal z = 0;
   if (container) z = container->topZValue();
   for (const auto item : std::as_const(items)) {
@@ -1747,7 +1739,7 @@ void SlideScene::pasteFromClipboard()
     dy = scene_rect.top() - pasted_rect.top();
   if (dx != 0 || dy != 0)
     for (const auto item : items) item->moveBy(dx, dy);
-  emit sendAddPaths((page & ~NotFullPage) | page_part, items);
+  emit sendAddPaths({page, page_part}, items);
   updateSelectionRect();
 }
 
@@ -1774,8 +1766,7 @@ void SlideScene::toolChanged(std::shared_ptr<const Tool> tool) noexcept
         path->update();
       }
     if (!tool_changes.empty())
-      emit sendHistoryStep((page & ~NotFullPage) | page_part, nullptr,
-                           &tool_changes, nullptr);
+      emit sendHistoryStep({page, page_part}, nullptr, &tool_changes, nullptr);
   } else if (tool->tool() == Tool::TextInputTool) {
     QList<QGraphicsItem *> selection = selectedItems();
     if (focusItem() && focusItem()->type() == TextGraphicsItem::Type)
@@ -1798,8 +1789,7 @@ void SlideScene::toolChanged(std::shared_ptr<const Tool> tool) noexcept
         text->setDefaultTextColor(new_color);
       }
     if (!text_changes.empty())
-      emit sendHistoryStep((page & ~NotFullPage) | page_part, nullptr, nullptr,
-                           &text_changes);
+      emit sendHistoryStep({page, page_part}, nullptr, nullptr, &text_changes);
   }
 }
 
@@ -1823,8 +1813,7 @@ void SlideScene::toolPropertiesChanged(const tool_variant &properties) noexcept
         text->setFont(font);
       }
     if (!text_changes.empty())
-      emit sendHistoryStep((page & ~NotFullPage) | page_part, nullptr, nullptr,
-                           &text_changes);
+      emit sendHistoryStep({page, page_part}, nullptr, nullptr, &text_changes);
     return;
   }
   if (std::holds_alternative<QColor>(properties)) {
@@ -1862,8 +1851,8 @@ void SlideScene::toolPropertiesChanged(const tool_variant &properties) noexcept
       }
     }
     if (!tool_changes.empty() || !text_changes.empty())
-      emit sendHistoryStep((page & ~NotFullPage) | page_part, nullptr,
-                           &tool_changes, &text_changes);
+      emit sendHistoryStep({page, page_part}, nullptr, &tool_changes,
+                           &text_changes);
     return;
   }
 
@@ -1914,8 +1903,7 @@ void SlideScene::toolPropertiesChanged(const tool_variant &properties) noexcept
     }
   }
   if (!tool_changes.empty())
-    emit sendHistoryStep((page & ~NotFullPage) | page_part, nullptr,
-                         &tool_changes, nullptr);
+    emit sendHistoryStep({page, page_part}, nullptr, &tool_changes, nullptr);
 }
 
 void SlideScene::updateSearchResults()

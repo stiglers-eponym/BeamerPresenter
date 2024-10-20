@@ -57,6 +57,7 @@ class MasterApp : public QApplication
 
   ~MasterApp() {}
 
+  /// Initialize application name, icon, and translator
   void initialize(const QString &fallback_root)
   {
     setApplicationName("BeamerPresenter");

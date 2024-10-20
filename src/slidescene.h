@@ -206,19 +206,22 @@ class SlideScene : public QGraphicsScene
   PixmapGraphicsItem *pageBackground() const noexcept { return pageItem; }
 
   /// Set shift in the form ((shift & ~AnyOverlay) | overlay).
-  void setPageShift(const int relative_shift) { shift = relative_shift; }
+  void setPageShift(const int relative_shift) noexcept
+  {
+    shift = relative_shift;
+  }
 
   /// Get PdfMaster master.
-  std::shared_ptr<const PdfMaster> getPdfMaster() { return master; }
+  std::shared_ptr<const PdfMaster> getPdfMaster() noexcept { return master; }
 
   /// Currently visible page.
-  int getPage() const { return page; }
+  int getPage() const noexcept { return page; }
 
   /// Shift in the form ((shift & ~AnyOverlay) | overlay).
-  int getShift() const { return shift; }
+  int getShift() const noexcept { return shift; }
 
   /// return page_part.
-  PagePart pagePart() const { return page_part; }
+  PagePart pagePart() const noexcept { return page_part; }
 
   /// Set fixed height for scroll mode.
   void setFixedHeight(const qreal height) noexcept
@@ -398,43 +401,43 @@ class SlideScene : public QGraphicsScene
   void clearViews() const;
 
   /// Send new path to PdfMaster.
-  void sendNewPath(int page, QGraphicsItem *item) const;
+  void sendNewPath(PPage ppage, QGraphicsItem *item) const;
 
   /// Send transformations for QGraphicsItems to PdfMaster.
   void sendHistoryStep(
-      int page, std::map<QGraphicsItem *, QTransform> *transforms,
+      PPage ppage, std::map<QGraphicsItem *, QTransform> *transforms,
       std::map<AbstractGraphicsPath *, drawHistory::DrawToolDifference> *tools,
       std::map<TextGraphicsItem *, drawHistory::TextPropertiesDifference>
           *texts) const;
 
   /// Replace old path by new path in a single drawing history step.
-  void replacePath(int page, QGraphicsItem *olditem,
+  void replacePath(PPage ppage, QGraphicsItem *olditem,
                    QGraphicsItem *newitem) const;
 
   /// Add new paths in single history step.
-  void sendAddPaths(int page, const QList<QGraphicsItem *> &paths) const;
+  void sendAddPaths(PPage ppage, const QList<QGraphicsItem *> &paths) const;
 
   /// Remove paths in single history step.
-  void sendRemovePaths(int page, const QList<QGraphicsItem *> &paths) const;
+  void sendRemovePaths(PPage ppage, const QList<QGraphicsItem *> &paths) const;
 
   /// Tell master that transition has ended.
   void finishTransition();
 
   /// Get path container for given page, create one if cummulative
   /// drawing requires that.
-  void requestNewPathContainer(PathContainer **container, int page);
+  void requestNewPathContainer(PathContainer **container, PPage ppage);
 
   /// Get path container for given page, create one if it does not exist.
-  void createPathContainer(PathContainer **container, int page);
+  void createPathContainer(PathContainer **container, PPage ppage);
 
   /// Notify master that there are unsaved changes.
   void newUnsavedDrawings();
 
   /// Bring given items to foreground and add history step.
-  void bringToForeground(int page,
+  void bringToForeground(PPage ppage,
                          const QList<QGraphicsItem *> &to_foreground) const;
   /// Bring given items to background and add history step.
-  void bringToBackground(int page,
+  void bringToBackground(PPage ppage,
                          const QList<QGraphicsItem *> &to_background) const;
 };
 

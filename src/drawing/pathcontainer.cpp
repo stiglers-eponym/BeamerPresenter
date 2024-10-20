@@ -101,7 +101,7 @@ void PathContainer::deleteStep(const drawHistory::Step &step) noexcept
   for (const auto item : step.deletedItems) releaseItem(item);
 }
 
-bool PathContainer::undo(QGraphicsScene *scene)
+bool PathContainer::undo(const QList<QGraphicsScene *> &scenes)
 {
   // Check whether a further entry in history exists.
   if (inHistory < 0 || history.length() - inHistory < 1) return false;
@@ -155,7 +155,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
 
   // 6. Restore old items.
   for (const auto item : step.deletedItems)
-    if (scene) {
+    for (auto scene : scenes) {
       scene->addItem(item);
       item->show();
       _ref_count[item].visible = true;
@@ -164,7 +164,7 @@ bool PathContainer::undo(QGraphicsScene *scene)
   return true;
 }
 
-bool PathContainer::redo(QGraphicsScene *scene)
+bool PathContainer::redo(const QList<QGraphicsScene *> &scenes)
 {
   // First check whether there is something to redo in history.
   if (inHistory < 1) return false;
@@ -185,7 +185,7 @@ bool PathContainer::redo(QGraphicsScene *scene)
 
   // 2. Restore newly created items.
   for (const auto item : step.createdItems)
-    if (scene) {
+    for (auto scene : scenes) {
       scene->addItem(item);
       item->show();
       _ref_count[item].visible = true;
@@ -725,11 +725,14 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader,
                                  PathContainer *right, const qreal page_half)
 {
   QGraphicsItem *item;
-  PagePart current_layer = UnknownPagePart;
+  if (reader.name().toUtf8() != "layer") {
+    qWarning() << "loadDrawings got unexpected XML tag" << reader.name()
+               << ", expected 'layer'";
+    return;
+  }
+  const PagePart current_layer = page_part_names.key(
+      reader.attributes().value("pagePart").toString(), UnknownPagePart);
   while (reader.readNextStartElement()) {
-    if (reader.name().toUtf8() == "layer")
-      current_layer = page_part_names.key(
-          reader.attributes().value("pagePart").toString(), UnknownPagePart);
     item = nullptr;
     if (reader.name().toUtf8() == "stroke")
       item = loadPath(reader);
