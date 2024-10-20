@@ -30,7 +30,7 @@ provides=("beamerpresenter=${pkgver}")
 conflicts=('beamerpresenter')
 backup=("etc/xdg/beamerpresenter/beamerpresenter.conf" "etc/xdg/beamerpresenter/gui.json")
 source=("git+${url}.git")
-sha256sums=('87d5ba4b369636862638edf9e67d162d94d43b0335101ff975b188c55316e40e')
+sha256sums=('SKIP')
 
 if [ "${_use_mupdf}" == 'ON' ]
 then

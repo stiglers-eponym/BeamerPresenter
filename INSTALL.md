@@ -85,7 +85,7 @@ When compiling with Poppler:
 * `poppler-qt6`
 
 When compiling with MuPDF:
-* `libmupdf` (tested versions: 1.16.1 – 1.24.9)
+* `libmupdf` (tested versions: 1.16.1 – 1.24.10)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`
@@ -165,7 +165,7 @@ Other options are added in the form `-DOPTION=VALUE` as listed below.
 | `USE_QTPDF` | OFF | include Qt PDF engine, which offers limited features. |
 | `USE_EXTERNAL_RENDERER` | OFF | include option to use an external program for rendering PDF pages to images. |
 | `USE_WEBCAMS` | ON | allow using webcams as video source. |
-| `USE_TRANSLATIONS` | ON | include translations (currently only German) |
+| `USE_TRANSLATIONS` | ON | include translations |
 | `GIT_VERSION` | ON | include git commit count in version string |
 | `SUPPRESS_MUPDF_WARNINGS` | OFF | suppress warnings of MuPDF while loading a document (only Unix-like systems) |
 

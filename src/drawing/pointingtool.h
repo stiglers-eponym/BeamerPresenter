@@ -80,7 +80,7 @@ class PointingTool : public Tool
   // SlideScene *&scene() noexcept { return _scene; }
 
   /// @return _scene
-  const SlideScene *const &scene() const noexcept { return _scene; }
+  const SlideScene *scene() const noexcept { return _scene; }
 
   /// clear position and switch scene.
   void setScene(SlideScene *scene)

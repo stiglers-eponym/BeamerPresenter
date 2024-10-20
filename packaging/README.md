@@ -14,7 +14,7 @@ You can install the newly created package using (for version 0.2.5):
 ```sh
 sudo pacman -U beamerpresenter-poppler-qt6-0.2.5-1-x86_64.pkg.tar.zst
 ```
-The "mupdf-small" packages are compiled with a custom build of MuPDF with disabled javascript that excludes some fonts (MuPDF compiled with `XCFLAGS+=' -DTOFU -DTOFU_CJK -DTOFU_SIL -DFZ_ENABLE_JS=0'`).
+The file `PKGBUILD_git` can be used to test new and experimental features by selecting a git branch.
 
 
 ## Ubuntu

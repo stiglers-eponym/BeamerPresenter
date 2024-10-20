@@ -1,0 +1,119 @@
+# Maintainer: Valentin Bruch <software@vbruch.eu>
+# This PKGBUILD file shall simplify testing new features in Arch Linux.
+# This does not intended to provide a stable version of BeamerPresenter!
+
+### Customize by changing the following parameters. ###
+
+# Select the git branch
+: ${_git_branch:=main}            # main or dev
+# Enable/disable debugging
+: ${_build_type:=Release}         # Release or Debug
+# Select the Qt version
+: ${_qt_version_major:=6}         # 5 or 6
+# Select the PDF engine
+: ${_use_mupdf:=ON}               # ON or OFF
+: ${_use_poppler:=OFF}            # ON or OFF
+: ${_use_qtpdf:=OFF}              # ON or OFF
+: ${_use_external_renderer:=OFF}  # ON or OFF
+# Other features
+: ${_use_webcams:=ON}             # ON or OFF
+
+
+## Remarks on Debugging
+# Setting _build_type=Debug enables the --debug command line option
+# (see man 1 beamerpresenter). When enabling debugging, the binary
+# will contain references to the source code in a temporary directory
+# ($srcdir). At the end of the build process, this leads to the output
+# "WARNING: Package contains reference to $srcdir".
+
+
+### Do not change anything below unless you know what you are doing. ###
+
+
+if pacman -Qq "qt${_qt_version_major}-base"
+then
+  _qt_version_minor="$(pacman -Q "qt${_qt_version_major}-base" | sed -E 's/^qt[56]-base\s*[56]\.([0-9]+)\..*$/\1/')"
+  _qt_min_version="${_qt_version_major}.${_qt_version_minor}.0"
+  _qt_max_version="${_qt_version_major}.$(( _qt_version_minor + 1 )).0"
+else
+  _qt_version_minor="x"
+  _qt_min_version="${_qt_version_major}"
+  _qt_max_version="$(( _qt_version_major + 1 ))"
+fi
+
+pkgname=beamerpresenter-git
+pkgver=0.2.5_983.c30fca1
+pkgrel=1
+pkgdesc="Modular multi-screen pdf presenter (git)"
+arch=('x86_64')
+url="https://github.com/stiglers-eponym/BeamerPresenter"
+license=('AGPL3' 'GPL3')
+# depends and makedepends will be filled based on the PDF engine.
+depends=("qt${_qt_version_major}-multimedia>=${_qt_min_version}" "qt${_qt_version_major}-multimedia<${_qt_max_version}" "qt${_qt_version_major}-svg>=${_qt_min_version}" "qt${_qt_version_major}-svg<${_qt_max_version}")
+makedepends=('cmake' 'ninja' 'git' "qt${_qt_version_major}-tools")
+backup=('etc/xdg/beamerpresenter/beamerpresenter.conf' 'etc/xdg/beamerpresenter/gui.json')
+source=("${pkgname}-${_git_branch}::git+${url}.git#branch=${_git_branch}")
+sha256sums=('SKIP')
+
+if [ "${_use_mupdf}" == 'ON' ]
+then
+    depends+=('jbig2dec' 'openjpeg2' 'gumbo-parser' 'libmupdf')
+elif [ "${_use_mupdf}" == 'OFF' ]
+then
+    license=('GPL3')
+fi
+
+if [ "${_use_poppler}" == 'ON' ]
+then
+    depends+=("poppler-qt${_qt_version_major}")
+fi
+
+if [ "${_use_mupdf}" == 'ON' ]
+then
+    depends+=("qt${_qt_version_major}-webengine>=${_qt_min_version}" "qt${_qt_version_major}-webengine<${_qt_max_version}")
+fi
+
+if [ "${_qt_version_major}" == "5" ]
+then
+    optdepends=('gst-libav: show videos' 'gst-plugins-good: show videos')
+fi
+
+
+pkgver() {
+    printf "0.2.5_%s.%s" \
+        "$(git -C "${srcdir}/${pkgname}-${_git_branch}" rev-list --count HEAD)" \
+        "$(git -C "${srcdir}/${pkgname}-${_git_branch}" rev-parse --short HEAD)"
+}
+
+conflicts=('beamerpresenter')
+provides=("beamerpresenter=${pkgver}")
+
+build() {
+    mkdir -p "${pkgname}-${_git_branch}/build"
+    cmake \
+        -B "${pkgname}-${_git_branch}/build" \
+        -S "${srcdir}/${pkgname}-${_git_branch}" \
+        -G Ninja \
+        -DCMAKE_BUILD_TYPE="${_build_type}" \
+        -DGIT_VERSION=ON \
+        -DUSE_POPPLER="${_use_poppler}" \
+        -DUSE_MUPDF="${_use_mupdf}" \
+        -DUSE_QTPDF="${_use_qtpdf}" \
+        -DUSE_EXTERNAL_RENDERER="${_use_external_renderer}" \
+        -DUSE_WEBCAMS="${_use_webcams}" \
+        -DLINK_MUPDF_THIRD=OFF \
+        -DLINK_GUMBO=ON \
+        -DUSE_TRANSLATIONS=ON \
+        -DINSTALL_LICENSE=OFF \
+        -DQT_VERSION_MAJOR="${_qt_version_major}" \
+        -DQT_VERSION_MINOR="${_qt_version_minor}" \
+        -DMUPDF_USE_SYSTEM_LIBS=ON \
+        -DCMAKE_INSTALL_PREFIX='/usr' \
+        -DCMAKE_INSTALL_SYSCONFDIR='/etc'
+    cmake --build "${pkgname}-${_git_branch}/build"
+}
+
+package() {
+    DESTDIR="${pkgdir}" cmake --install "${pkgname}-${_git_branch}/build"
+    install -Dm644 "${srcdir}/${pkgname}-${_git_branch}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
