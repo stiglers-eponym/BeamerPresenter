@@ -76,10 +76,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>reset view after scrolling to show full slide again</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>save drawings, times and notes to file</source>
         <translation type="unfinished"></translation>
     </message>
@@ -189,6 +185,22 @@
     </message>
     <message>
         <source>restore a previously removed slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>reset view after scrolling or zooming, show full slide again</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>zoom in (enlargen slide)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>zoom out (shrink slide)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>reset zoom to fit size of slide</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1347,6 +1359,10 @@ Configure cache. Slides are rendered to compressed cache. These settings defined
     </message>
     <message>
         <source>drag view</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>drag/move the view</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

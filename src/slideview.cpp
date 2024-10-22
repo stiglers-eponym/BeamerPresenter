@@ -55,7 +55,7 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
 {
   sliders.clear();
   setScene(scene);
-  const QSizeF &pageSize = scene->sceneRect().size();
+  const QSizeF &pageSize = scene->pageSize();
   if (pageSize.width() * height() > pageSize.height() * width())
     // page is too wide, determine resolution by x direction
     resolution = width() / pageSize.width();
@@ -68,8 +68,7 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
   waitingForPage = page;
   debug_msg(DebugPageChange, "Request page" << page << "by" << this << "from"
                                             << scene << "with size"
-                                            << scene->sceneRect().size()
-                                            << size());
+                                            << scene->pageSize() << size());
   emit requestPage(page, resolution);
 }
 
@@ -77,7 +76,7 @@ void SlideView::pageChangedBlocking(const int page, SlideScene *scene)
 {
   sliders.clear();
   setScene(scene);
-  const QSizeF &pageSize = scene->sceneRect().size();
+  const QSizeF &pageSize = scene->pageSize();
   if (pageSize.width() * height() > pageSize.height() * width())
     // page is too wide, determine resolution by x direction
     resolution = width() / pageSize.width();
@@ -254,12 +253,11 @@ void SlideView::requestScaledPage(const qreal zoom)
   if (!sscene || zoom < 1e-6 || zoom > 1e6) return;
   const PixmapGraphicsItem *pageItem = sscene->pageBackground();
   if (!pageItem) return;
+  const qreal target_width = zoom * resolution * sscene->pageSize().width();
   // Check whether an enlarged page is needed and not "in preparation" yet.
-  if (waitingForPage == INT_MAX &&
-      !pageItem->hasWidth(zoom * resolution * sceneRect().width())) {
-    debug_msg(DebugRendering, "Enlarged page: searched for"
-                                  << zoom * resolution * sceneRect().width());
-    waitingForPage = static_cast<SlideScene *>(scene())->getPage();
+  if (waitingForPage == INT_MAX && !pageItem->hasWidth(target_width)) {
+    debug_msg(DebugRendering, "Enlarged page: searched for" << target_width);
+    waitingForPage = sscene->getPage();
     emit requestPage(waitingForPage, zoom * resolution);
   }
 }

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="21mm"
+   height="21.10833mm"
+   viewBox="0 0 21 21.10833"
+   version="1.1"
+   id="svg8"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs2" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <ellipse
+     style="fill:#000000;fill-opacity:1;stroke:#808080;stroke-width:0.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+     id="path1"
+     cx="10.583333"
+     cy="10.583334"
+     rx="1.8520834"
+     ry="1.8520839" />
+  <path
+     style="fill:#000000;fill-opacity:1;stroke:#808080;stroke-width:0.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+     d="m 10.583333,1.3229166 3.968749,3.96875 h -2.645833 l 0,1.8520834 H 9.2604168 l -8e-7,-1.8520834 H 6.614583 Z"
+     id="path2" />
+  <path
+     style="fill:#000000;fill-opacity:1;stroke:#808080;stroke-width:0.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+     d="M 10.583333,19.84375 14.552081,15.875 h -2.645832 l 0,-1.852083 H 9.2604171 l -8e-7,1.852083 H 6.6145828 Z"
+     id="path2-6" />
+  <path
+     style="fill:#000000;fill-opacity:1;stroke:#808080;stroke-width:0.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+     d="m 1.322916,10.583334 3.96875,3.968748 V 11.90625 l 1.8520837,0 V 9.2604172 l -1.8520837,0 V 6.6145837 Z"
+     id="path2-6-5" />
+  <path
+     style="fill:#000000;fill-opacity:1;stroke:#808080;stroke-width:0.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+     d="M 19.84375,10.583334 15.875,14.552082 V 11.90625 l -1.852084,0 V 9.2604172 l 1.852084,0 V 6.6145837 Z"
+     id="path2-6-5-5" />
+</svg>

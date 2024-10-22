@@ -132,6 +132,12 @@ class SlideScene : public QGraphicsScene
   /// Page part shown in this scene.
   const PagePart page_part;
 
+  /// Page (part) size (pt)
+  QSizeF page_size;
+
+  /// Zoom factor
+  qreal zoom = 1.0;
+
   /// Bounding rect of all currently selected items.
   SelectionRectItem selection_bounding_rect;
 
@@ -193,6 +199,12 @@ class SlideScene : public QGraphicsScene
 
   /// Destructor: delete all graphics items.
   ~SlideScene();
+
+  const QSizeF &pageSize() const noexcept { return page_size; }
+  qreal getZoom() const noexcept { return zoom; }
+
+  void resetView();
+  void setZoom(const qreal new_zoom);
 
   /// modifiable slide flags.
   SlideFlags &flags() noexcept { return slide_flags; }

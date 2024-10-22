@@ -101,7 +101,7 @@ void PathContainer::deleteStep(const drawHistory::Step &step) noexcept
   for (const auto item : step.deletedItems) releaseItem(item);
 }
 
-bool PathContainer::undo(const QList<QGraphicsScene *> &scenes)
+bool PathContainer::undo(QGraphicsScene *scene)
 {
   // Check whether a further entry in history exists.
   if (inHistory < 0 || history.length() - inHistory < 1) return false;
@@ -155,7 +155,7 @@ bool PathContainer::undo(const QList<QGraphicsScene *> &scenes)
 
   // 6. Restore old items.
   for (const auto item : step.deletedItems)
-    for (auto scene : scenes) {
+    if (scene) {
       scene->addItem(item);
       item->show();
       _ref_count[item].visible = true;
@@ -164,7 +164,7 @@ bool PathContainer::undo(const QList<QGraphicsScene *> &scenes)
   return true;
 }
 
-bool PathContainer::redo(const QList<QGraphicsScene *> &scenes)
+bool PathContainer::redo(QGraphicsScene *scene)
 {
   // First check whether there is something to redo in history.
   if (inHistory < 1) return false;
@@ -185,7 +185,7 @@ bool PathContainer::redo(const QList<QGraphicsScene *> &scenes)
 
   // 2. Restore newly created items.
   for (const auto item : step.createdItems)
-    for (auto scene : scenes) {
+    if (scene) {
       scene->addItem(item);
       item->show();
       _ref_count[item].visible = true;

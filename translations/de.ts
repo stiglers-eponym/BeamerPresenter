@@ -108,10 +108,6 @@
         <translation>Schiebe die Präsentationsansicht nach unten</translation>
     </message>
     <message>
-        <source>reset view after scrolling to show full slide again</source>
-        <translation>Setzte die (verschobene) Präsentationsansicht zurück, um die ganze Folie anzuzeigen</translation>
-    </message>
-    <message>
         <source>play all videos on the current slide</source>
         <translation>Starte alle Videos auf der aktuellen Folie</translation>
     </message>
@@ -190,6 +186,22 @@
     <message>
         <source>restore a previously removed slide</source>
         <translation>zuvor entfernte Folie wiederherstellen</translation>
+    </message>
+    <message>
+        <source>reset view after scrolling or zooming, show full slide again</source>
+        <translation>Setze die Präsentationsansicht zurück, um die ganze Folie anzuzeigen</translation>
+    </message>
+    <message>
+        <source>zoom in (enlargen slide)</source>
+        <translation>Folie vergrößern</translation>
+    </message>
+    <message>
+        <source>zoom out (shrink slide)</source>
+        <translation>Folie verkleinern</translation>
+    </message>
+    <message>
+        <source>reset zoom to fit size of slide</source>
+        <translation>Vergrößerung zurücksetzen, passend für die ganze Folie</translation>
     </message>
 </context>
 <context>
@@ -1349,6 +1361,10 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     </message>
     <message>
         <source>drag view</source>
+        <translation>Ansicht verschieben</translation>
+    </message>
+    <message>
+        <source>drag/move the view</source>
         <translation>Ansicht verschieben</translation>
     </message>
 </context>

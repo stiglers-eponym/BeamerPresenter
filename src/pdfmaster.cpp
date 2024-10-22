@@ -97,18 +97,16 @@ bool PdfMaster::loadDocument()
   return false;
 }
 
-template <class T>
-QList<T *> PdfMaster::getActiveScenes(const PPage ppage) const
+SlideScene *PdfMaster::getActiveScene(const PPage ppage) const
 {
-  QList<T *> list;
   for (auto scene : scenes) {
-    if ((ppage.part == scene->pagePart()) &&
+    if (scene && (ppage.part == scene->pagePart()) &&
         (preferences()->overlay_mode == PerLabel
              ? overlaysShifted(scene->getPage(), FirstOverlay)
              : scene->getPage() == ppage.page))
-      list.append(scene);
+      return scene;
   }
-  return list;
+  return nullptr;
 }
 
 void PdfMaster::receiveAction(const Action action)
@@ -123,13 +121,13 @@ void PdfMaster::receiveAction(const Action action)
       PathContainer *const path = paths.value(ppage, nullptr);
       if (path) {
         debug_msg(DebugDrawing, "undo:" << path);
-        const auto active_scenes = getActiveScenes<QGraphicsScene>(ppage);
-        if (path->undo(active_scenes)) {
+        const auto active_scene = getActiveScene(ppage);
+        if (path->undo(active_scene)) {
           _flags |= UnsavedDrawings;
-          for (auto scene : active_scenes)
+          if (active_scene)
             // All entries of active_scenes have been casted from SlideScene* to
             // QGraphicsScene* before, so it is save to use static_cast here:
-            static_cast<SlideScene *>(scene)->updateSelectionRect();
+            active_scene->updateSelectionRect();
         }
       }
       break;
@@ -143,13 +141,13 @@ void PdfMaster::receiveAction(const Action action)
       PathContainer *const path = paths.value(ppage, nullptr);
       if (path) {
         debug_msg(DebugDrawing, "redo:" << path);
-        const auto active_scenes = getActiveScenes<QGraphicsScene>(ppage);
-        if (path->redo(active_scenes)) {
+        const auto active_scene = getActiveScene(ppage);
+        if (path->redo(active_scene)) {
           _flags |= UnsavedDrawings;
-          for (auto scene : active_scenes)
+          if (active_scene)
             // All entries of active_scenes have been casted from SlideScene* to
             // QGraphicsScene* before, so it is save to use static_cast here:
-            static_cast<SlideScene *>(scene)->updateSelectionRect();
+            active_scene->updateSelectionRect();
         }
       }
       break;

@@ -692,6 +692,46 @@ void SlideScene::handleSelectionStopEvents(std::shared_ptr<SelectionTool> tool,
     tool->reset();
 }
 
+void SlideScene::setZoom(const qreal new_zoom)
+{
+  const QRectF rect = sceneRect();
+  const qreal shift = (1 - zoom / new_zoom) / 2;
+  setSceneRect(rect.x() + shift * rect.width(),
+               rect.y() + shift * rect.height(), zoom / new_zoom * rect.width(),
+               zoom / new_zoom * rect.height());
+  zoom = new_zoom;
+  for (auto view : views()) {
+    auto *sview = dynamic_cast<SlideView *>(view);
+    if (sview) sview->setZoom(zoom);
+  }
+}
+
+void SlideScene::resetView()
+{
+  switch (page_part) {
+    case LeftHalf:
+      setSceneRect(
+          0., 0., page_size.width(),
+          fixed_page_height > 0 ? fixed_page_height : page_size.height());
+      break;
+    case RightHalf:
+      setSceneRect(
+          page_size.width(), 0., page_size.width(),
+          fixed_page_height > 0 ? fixed_page_height : page_size.height());
+      break;
+    default:
+      setSceneRect(
+          0., 0., page_size.width(),
+          fixed_page_height > 0 ? fixed_page_height : page_size.height());
+      break;
+  }
+  zoom = 1.0;
+  for (auto view : views()) {
+    auto *sview = dynamic_cast<SlideView *>(view);
+    if (sview) sview->setZoom(1.0);
+  }
+}
+
 void SlideScene::receiveAction(const Action action)
 {
   debug_verbose(DebugFunctionCalls, action << this);
@@ -710,45 +750,17 @@ void SlideScene::receiveAction(const Action action)
       break;
     }
     case ScrollNormal:
-      setSceneRect({{0, 0}, sceneRect().size()});
+      resetView();
       break;
-    case ZoomIn: {
-      const QRectF rect = sceneRect();
-      setSceneRect(rect.x() + 0.1 / 1.2 * rect.width(),
-                   rect.y() + 0.1 / 1.2 * rect.height(), rect.width() / 1.2,
-                   rect.height() / 1.2);
-      for (auto view : views()) {
-        auto *sview = dynamic_cast<SlideView *>(view);
-        if (sview) sview->setZoomRelative(1.2);
-      }
+    case ZoomIn:
+      setZoom(1.25 * zoom);
       break;
-    }
-    case ZoomOut: {
-      const QRectF rect = sceneRect();
-      setSceneRect(rect.x() - 0.1 / 0.8 * rect.width(),
-                   rect.y() - 0.1 / 0.8 * rect.height(), rect.width() / 0.8,
-                   rect.height() / 0.8);
-      for (auto view : views()) {
-        auto *sview = dynamic_cast<SlideView *>(view);
-        if (sview) sview->setZoomRelative(0.8);
-      }
+    case ZoomOut:
+      setZoom(0.8 * zoom);
       break;
-    }
-    case ZoomReset: {
-      qreal zoom = 1.0;
-      for (auto view : views()) {
-        auto *sview = dynamic_cast<SlideView *>(view);
-        if (sview) {
-          zoom = sview->getZoom();
-          sview->setZoom(1.0);
-        }
-      }
-      const QRectF rect = sceneRect();
-      setSceneRect(rect.x() - (zoom - 1) / 2 * rect.width(),
-                   rect.y() - (zoom - 1) / 2 * rect.height(),
-                   rect.width() * zoom, rect.height() * zoom);
+    case ZoomReset:
+      setZoom(1.0);
       break;
-    }
     case PauseMedia:
       pauseMedia();
       break;
@@ -822,37 +834,19 @@ void SlideScene::prepareNavigationEvent(const int newslide, const int newpage)
   }
   // Adjust scene size.
   /// Page size in points.
-  QSizeF pagesize =
-      master->getPageSize(master->overlaysShifted(newpage, shift));
+  page_size = master->getPageSize(master->overlaysShifted(newpage, shift));
   debug_verbose(
       DebugPageChange,
-      newpage << pagesize << master->getDocument()->flexiblePageSizes());
+      newpage << page_size << master->getDocument()->flexiblePageSizes());
   // Don't do anything if page size ist not valid. This avoids cleared slide
   // scenes which could mess up the layout and invalidate cache.
-  if ((pagesize.isNull() || !pagesize.isValid()) &&
+  if ((page_size.isNull() || !page_size.isValid()) &&
       !master->getDocument()->flexiblePageSizes()) {
     pageItem->clearPixmaps();
     return;
   }
-  switch (page_part) {
-    case LeftHalf:
-      pagesize.rwidth() /= 2;
-      setSceneRect(
-          0., 0., pagesize.width(),
-          fixed_page_height > 0 ? fixed_page_height : pagesize.height());
-      break;
-    case RightHalf:
-      pagesize.rwidth() /= 2;
-      setSceneRect(
-          pagesize.width(), 0., pagesize.width(),
-          fixed_page_height > 0 ? fixed_page_height : pagesize.height());
-      break;
-    default:
-      setSceneRect(
-          0., 0., pagesize.width(),
-          fixed_page_height > 0 ? fixed_page_height : pagesize.height());
-      break;
-  }
+  if (page_part != FullPage) page_size.rwidth() /= 2;
+  resetView();
 }
 
 void SlideScene::navigationEvent(const int newslide, const int newpage,

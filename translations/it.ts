@@ -76,10 +76,6 @@
         <translation>scorrere verso l&apos;alto la visualizzazione della presentazione</translation>
     </message>
     <message>
-        <source>reset view after scrolling to show full slide again</source>
-        <translation>reimposta la visualizzazione dopo lo scorrimento per mostrare nuovamente la diapositiva completa</translation>
-    </message>
-    <message>
         <source>save drawings, times and notes to file</source>
         <translation>salva disegni, orari e note nel file</translation>
     </message>
@@ -189,6 +185,22 @@
     </message>
     <message>
         <source>restore a previously removed slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>reset view after scrolling or zooming, show full slide again</source>
+        <translation type="unfinished">reimposta la visualizzazione dopo lo scorrimento per mostrare nuovamente la diapositiva completa</translation>
+    </message>
+    <message>
+        <source>zoom in (enlargen slide)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>zoom out (shrink slide)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>reset zoom to fit size of slide</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1349,6 +1361,10 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>drag view</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>drag/move the view</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

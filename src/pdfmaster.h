@@ -90,9 +90,8 @@ class PdfMaster : public QObject
     if (!paths.value(ppage, nullptr)) paths[ppage] = new PathContainer(this);
   }
 
-  /// List of scenes active on current page and given page part.
-  template <class T>
-  QList<T *> getActiveScenes(const PPage ppage) const;
+  /// Scene active on current page and given page part.
+  SlideScene *getActiveScene(const PPage ppage) const;
 
   /// Shift page to first overlay if drawings are per label.
   void shiftToDrawings(PPage &ppage) const

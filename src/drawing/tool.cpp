@@ -108,6 +108,8 @@ const char* tool_to_description(const Tool::BasicTool tool) noexcept
       return QT_TRANSLATE_NOOP("Tool", "Select objects in a rectangle");
     case Tool::FreehandSelectionTool:
       return QT_TRANSLATE_NOOP("Tool", "Select objects inside a drawn shape");
+    case Tool::DragViewTool:
+      return QT_TRANSLATE_NOOP("Tool", "drag/move the view");
     default:
       return "";
   };

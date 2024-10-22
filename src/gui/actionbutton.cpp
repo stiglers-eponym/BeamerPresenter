@@ -39,6 +39,12 @@ const char *action_to_theme_icon(const Action action) noexcept
       return "zoom-out";
     case ZoomReset:
       return "zoom-original";
+    case ScrollDown:
+      return "pan-down";
+    case ScrollUp:
+      return "pan-up";
+    case ScrollNormal:
+      return "zoom-fit-best";
       /* Drawing */
     case UndoDrawing:
       return "edit-undo";
@@ -108,15 +114,15 @@ const QStringList action_to_custom_icons(const Action action) noexcept
     case ScrollNormal:
       return {"scroll-reset.svg"};
     case InsertSlide:
-      return {"insert-slide"};
+      return {"insert-slide.svg"};
     case RemoveSlide:
-      return {"remove-slide"};
+      return {"remove-slide.svg"};
     case RestoreSlide:
-      return {"restore-slide"};
+      return {"restore-slide.svg"};
     case SelectionToForeground:
-      return {"selection-to-foreground"};
+      return {"selection-to-foreground.svg"};
     case SelectionToBackground:
-      return {"selection-to-background"};
+      return {"selection-to-background.svg"};
     default:
       return QStringList();
   };
@@ -176,15 +182,14 @@ void ActionButton::addAction(const Action action)
   actions.insert(action);
   if (icon().isNull()) {
     const QString &name(action_to_theme_icon(action));
-    if (name.isEmpty())
-      setStatus(action, 0);
-    else {
+    if (!name.isEmpty()) {
       QIcon icon = QIcon::fromTheme(name);
       if (icon.isNull())
         // Sometimes name + "-symbolic" is a reasonable fallback icon.
         icon = QIcon::fromTheme(name + "-symbolic");
       if (!icon.isNull()) setIcon(icon);
     }
+    if (icon().isNull()) setStatus(action, 0);
   }
 }
 
@@ -268,7 +273,14 @@ const char *action_to_description(const Action action) noexcept
     case ScrollNormal:
       return QT_TRANSLATE_NOOP(
           "ActionButton",
-          "reset view after scrolling to show full slide again");
+          "reset view after scrolling or zooming, show full slide again");
+    case ZoomIn:
+      return QT_TRANSLATE_NOOP("ActionButton", "zoom in (enlargen slide)");
+    case ZoomOut:
+      return QT_TRANSLATE_NOOP("ActionButton", "zoom out (shrink slide)");
+    case ZoomReset:
+      return QT_TRANSLATE_NOOP("ActionButton",
+                               "reset zoom to fit size of slide");
     case SaveDrawings:
       return QT_TRANSLATE_NOOP("ActionButton",
                                "save drawings, times and notes to file");

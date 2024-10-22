@@ -87,14 +87,6 @@ class SlideView : public QGraphicsView
     scale(rel_scale, rel_scale);
   }
 
-  void setZoomRelative(const qreal relzoom)
-  {
-    requestScaledPage(transform().m11() * relzoom);
-    scale(relzoom, relzoom);
-  }
-
-  qreal getZoom() const noexcept { return transform().m11() / resolution; }
-
  protected slots:
   /// Handle tablet events. The tablet events are mainly handed over to
   /// the scene.
