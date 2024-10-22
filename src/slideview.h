@@ -40,6 +40,8 @@ class SlideView : public QGraphicsView
   Q_FLAG(ViewFlags);
 
  private:
+  qreal resolution = 0.0;
+
   /// List of slides for video annotations in this view.
   std::list<std::unique_ptr<MediaSlider>> sliders;
 
@@ -48,6 +50,8 @@ class SlideView : public QGraphicsView
 
   /// Show slide transitions, multimedia, etc. (all not implemented yet).
   ViewFlags view_flags = {ShowAll ^ MediaControls};
+
+  void requestScaledPage(const qreal zoom);
 
  public:
   /// Constructor: initialize and connect a lot.
@@ -75,6 +79,21 @@ class SlideView : public QGraphicsView
 
   /// read-only flags.
   const ViewFlags &flags() const noexcept { return view_flags; }
+
+  void setZoom(const qreal zoom)
+  {
+    requestScaledPage(zoom);
+    const qreal rel_scale = zoom / transform().m11() * resolution;
+    scale(rel_scale, rel_scale);
+  }
+
+  void setZoomRelative(const qreal relzoom)
+  {
+    requestScaledPage(transform().m11() * relzoom);
+    scale(relzoom, relzoom);
+  }
+
+  qreal getZoom() const noexcept { return transform().m11() / resolution; }
 
  protected slots:
   /// Handle tablet events. The tablet events are mainly handed over to

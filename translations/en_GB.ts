@@ -1074,6 +1074,18 @@ Configure cache. Slides are rendered to compressed cache. These settings defined
         <source>restore slide</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>zoom in</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>zoom out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>zoom reset</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ShapeSelectionButton</name>
@@ -1331,6 +1343,10 @@ Configure cache. Slides are rendered to compressed cache. These settings defined
     </message>
     <message>
         <source>double-click</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>drag view</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

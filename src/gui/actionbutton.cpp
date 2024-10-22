@@ -33,6 +33,12 @@ const char *action_to_theme_icon(const Action action) noexcept
       return "go-first";
     case LastPage:
       return "go-last";
+    case ZoomIn:
+      return "zoom-in";
+    case ZoomOut:
+      return "zoom-out";
+    case ZoomReset:
+      return "zoom-original";
       /* Drawing */
     case UndoDrawing:
       return "edit-undo";

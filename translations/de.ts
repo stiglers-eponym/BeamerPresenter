@@ -1076,6 +1076,18 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <source>restore slide</source>
         <translation>Folie wiederherstellen</translation>
     </message>
+    <message>
+        <source>zoom in</source>
+        <translation>vergrößern</translation>
+    </message>
+    <message>
+        <source>zoom out</source>
+        <translation>verkleinern</translation>
+    </message>
+    <message>
+        <source>zoom reset</source>
+        <translation>normale Größe</translation>
+    </message>
 </context>
 <context>
     <name>ShapeSelectionButton</name>
@@ -1334,6 +1346,10 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <source>double-click</source>
         <translation>Doppelklick</translation>
+    </message>
+    <message>
+        <source>drag view</source>
+        <translation>Ansicht verschieben</translation>
     </message>
 </context>
 <context>

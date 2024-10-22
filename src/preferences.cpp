@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "src/config.h"
+#include "src/drawing/dragtool.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/selectiontool.h"
@@ -132,6 +133,9 @@ std::shared_ptr<Tool> createTool(const QJsonObject &obj,
       tool = new TextTool(font, color, device);
       break;
     }
+    case Tool::DragViewTool:
+      tool = new DragTool(device);
+      break;
     case Tool::BasicSelectionTool:
     case Tool::RectSelectionTool:
     case Tool::FreehandSelectionTool:

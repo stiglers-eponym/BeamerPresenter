@@ -6,6 +6,7 @@
 #if (QT_VERSION_MAJOR >= 6)
 #include <QPointingDevice>
 #endif
+#include "src/drawing/dragtool.h"
 #include "src/drawing/drawtool.h"
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/selectiontool.h"
@@ -24,6 +25,8 @@ std::shared_ptr<Tool> Tool::copy() const
     newtool = new SelectionTool(*static_cast<const SelectionTool*>(this));
   else if (_tool == Tool::TextInputTool)
     newtool = new TextTool(*static_cast<const TextTool*>(this));
+  else if (_tool == Tool::DragViewTool)
+    newtool = new DragTool(*static_cast<const DragTool*>(this));
   else
     newtool = new Tool(*this);
   newtool->setDevice(_device);

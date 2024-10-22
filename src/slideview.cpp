@@ -23,6 +23,7 @@ SlideView::SlideView(SlideScene *scene, const PixCache *cache, QWidget *parent)
 {
   setMouseTracking(true);
   setAttribute(Qt::WA_AcceptTouchEvents);
+  setTransformationAnchor(AnchorViewCenter);
   grabGesture(Qt::SwipeGesture);
   setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
                  QPainter::RenderHint::SmoothPixmapTransform);
@@ -55,7 +56,6 @@ void SlideView::pageChanged(const int page, SlideScene *scene)
   sliders.clear();
   setScene(scene);
   const QSizeF &pageSize = scene->sceneRect().size();
-  qreal resolution;
   if (pageSize.width() * height() > pageSize.height() * width())
     // page is too wide, determine resolution by x direction
     resolution = width() / pageSize.width();
@@ -78,7 +78,6 @@ void SlideView::pageChangedBlocking(const int page, SlideScene *scene)
   sliders.clear();
   setScene(scene);
   const QSizeF &pageSize = scene->sceneRect().size();
-  qreal resolution;
   if (pageSize.width() * height() > pageSize.height() * width())
     // page is too wide, determine resolution by x direction
     resolution = width() / pageSize.width();
@@ -206,10 +205,6 @@ bool SlideView::event(QEvent *event)
         return QGraphicsView::event(event);
     }
     */
-    // case QEvent::TabletTrackingChange:
-    // case QEvent::TabletEnterProximity:
-    // case QEvent::TabletLeaveProximity:
-    //     break;
     case QEvent::TabletPress: {
       auto tabletevent = static_cast<const QTabletEvent *>(event);
 #if (QT_VERSION_MAJOR >= 6)
@@ -253,6 +248,22 @@ bool SlideView::event(QEvent *event)
   }
 }
 
+void SlideView::requestScaledPage(const qreal zoom)
+{
+  const SlideScene *sscene = dynamic_cast<SlideScene *>(scene());
+  if (!sscene || zoom < 1e-6 || zoom > 1e6) return;
+  const PixmapGraphicsItem *pageItem = sscene->pageBackground();
+  if (!pageItem) return;
+  // Check whether an enlarged page is needed and not "in preparation" yet.
+  if (waitingForPage == INT_MAX &&
+      !pageItem->hasWidth(zoom * resolution * sceneRect().width())) {
+    debug_msg(DebugRendering, "Enlarged page: searched for"
+                                  << zoom * resolution * sceneRect().width());
+    waitingForPage = static_cast<SlideScene *>(scene())->getPage();
+    emit requestPage(waitingForPage, zoom * resolution);
+  }
+}
+
 void SlideView::showMagnifier(QPainter *painter,
                               std::shared_ptr<const PointingTool> tool) noexcept
 {
@@ -261,17 +272,7 @@ void SlideView::showMagnifier(QPainter *painter,
   painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
   painter->setPen(tool->color());
   painter->setBrush(Qt::NoBrush);
-  const qreal resolution = tool->scale() * painter->transform().m11();
-  PixmapGraphicsItem *pageItem =
-      static_cast<SlideScene *>(scene())->pageBackground();
-  // Check whether an enlarged page is needed and not "in preparation" yet.
-  if (waitingForPage == INT_MAX &&
-      !pageItem->hasWidth(resolution * sceneRect().width())) {
-    debug_msg(DebugRendering, "Enlarged page: searched for"
-                                  << resolution * sceneRect().width());
-    waitingForPage = static_cast<SlideScene *>(scene())->getPage();
-    emit requestPage(waitingForPage, resolution);
-  }
+  requestScaledPage(tool->scale());
   // Draw magnifier(s) at all positions of tool.
   for (const auto &pos : tool->pos()) {
     // calculate target rect: size of the magnifier

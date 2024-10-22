@@ -329,8 +329,11 @@ clear all drawings on the left/right part of current page, assuming that the pag
 .BR "scroll up" / normal / down
 scroll the slide view up / to normal position / down. This allows the presenter to add extra space for drawings.
 .TP
+.BR "zoom in" / reset / out
+experimental: zoom the slide view. Use the tool \[dq]drag view\[dq] (experimental) to drag the zoomed view.
+.TP
 .B save
-save drawings to file. Doesn't ask for file name if a file name is known.
+save drawings to file. Does not ask for file name if a file name is known.
 .TP
 .B save as
 save drawings to file. Always asks for the file name.
@@ -408,7 +411,7 @@ drop-down menu of draw tool widths. This must be provided as a JSON object in th
 Options in the dictionary for tools. All lengths (e.g. stroke width) are given in points (1/72 inch) in the PDF:
 .TP
 .B tool
-mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text, click select, rectangle select, freehand select, or none
+mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text, click select, rectangle select, freehand select, drag view, or none
 .TP
 .B color
 color name known to Qt or #RRGGBB or #AARRGGBB

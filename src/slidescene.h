@@ -38,6 +38,7 @@ class QGraphicsRectItem;
 class PdfMaster;
 class DrawTool;
 class TextTool;
+class DragTool;
 class QFont;
 class PointingTool;
 class SelectionTool;
@@ -328,6 +329,8 @@ class SlideScene : public QGraphicsScene
   /// Helper function for handleEvents: text tool events
   bool handleTextEvents(std::shared_ptr<const TextTool> tool, const int device,
                         const QList<QPointF> &pos);
+  bool handleDragView(std::shared_ptr<DragTool> tool, const int device,
+                      const QList<QPointF> &pos, const QPointF &start_pos);
   /// Handle selection start events (only called from handleEvents().
   void handleSelectionStartEvents(std::shared_ptr<SelectionTool> tool,
                                   const QPointF &pos);

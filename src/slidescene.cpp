@@ -28,6 +28,7 @@
 #include "src/config.h"
 #include "src/drawing/arrowgraphicsitem.h"
 #include "src/drawing/basicgraphicspath.h"
+#include "src/drawing/dragtool.h"
 #include "src/drawing/ellipsegraphicsitem.h"
 #include "src/drawing/flexgraphicslineitem.h"
 #include "src/drawing/fullgraphicspath.h"
@@ -321,29 +322,50 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos,
                 "Handling event" << tool->tool() << tool->device() << device);
   // Handle draw tool events.
   if (tool->tool() & Tool::AnyDrawTool)
-    handleDrawEvents(std::static_pointer_cast<const DrawTool>(tool), device,
+    handleDrawEvents(std::dynamic_pointer_cast<const DrawTool>(tool), device,
                      pos, pressure);
   // Handle pointing tool events.
   else if (tool->tool() & Tool::AnyPointingTool)
-    handlePointingEvents(std::static_pointer_cast<PointingTool>(tool), device,
+    handlePointingEvents(std::dynamic_pointer_cast<PointingTool>(tool), device,
                          pos);
   // Handle selection tool events.
   else if (tool->tool() & Tool::AnySelectionTool)
-    handleSelectionEvents(std::static_pointer_cast<SelectionTool>(tool), device,
-                          pos, start_pos);
+    handleSelectionEvents(std::dynamic_pointer_cast<SelectionTool>(tool),
+                          device, pos, start_pos);
   // Handle text tool events.
   // Here we detect start events and not stop events, because otherwise touch
   // events will be discarded: If a touch start event is not handled, the whole
   // touch event is treated as a mouse event.
   else if (tool->tool() == Tool::TextInputTool &&
            (device & Tool::AnyEvent) == Tool::StartEvent && pos.size() == 1)
-    return handleTextEvents(std::static_pointer_cast<const TextTool>(tool),
+    return handleTextEvents(std::dynamic_pointer_cast<const TextTool>(tool),
                             device, pos);
+  else if (tool->tool() == Tool::DragViewTool)
+    return handleDragView(std::dynamic_pointer_cast<DragTool>(tool), device,
+                          pos, start_pos);
   // Fall back to no tool.
   else if ((device & Tool::AnyEvent) == Tool::StopEvent && pos.size() == 1)
     noToolClicked(pos.constFirst(), start_pos);
   else
     return false;
+  return true;
+}
+
+bool SlideScene::handleDragView(std::shared_ptr<DragTool> tool,
+                                const int device, const QList<QPointF> &pos,
+                                const QPointF &start_pos)
+{
+  if (!tool || pos.size() != 1) return false;
+  if ((device & Tool::AnyEvent) == Tool::StartEvent)
+    tool->setReference(pos.constFirst());
+  else {
+    const QPointF delta = tool->dragTo(
+        pos.constFirst(), (device & Tool::AnyEvent) == Tool::StopEvent);
+    if (delta.isNull()) return false;
+    QRectF rect = sceneRect();
+    rect.translate(delta);
+    setSceneRect(rect);
+  }
   return true;
 }
 
@@ -675,15 +697,58 @@ void SlideScene::receiveAction(const Action action)
   debug_verbose(DebugFunctionCalls, action << this);
   debug_msg(DebugKeyInput, "SlideScene received action" << action);
   switch (action) {
-    case ScrollDown:
-      setSceneRect(sceneRect().translated(0, sceneRect().height() / 5));
+    case ScrollDown: {
+      QRectF rect = sceneRect();
+      rect.translate(0, 0.2 * rect.height());
+      setSceneRect(rect);
       break;
-    case ScrollUp:
-      setSceneRect(sceneRect().translated(0, -sceneRect().height() / 5));
+    }
+    case ScrollUp: {
+      QRectF rect = sceneRect();
+      rect.translate(0, -0.2 * rect.height());
+      setSceneRect(rect);
       break;
+    }
     case ScrollNormal:
       setSceneRect({{0, 0}, sceneRect().size()});
       break;
+    case ZoomIn: {
+      const QRectF rect = sceneRect();
+      setSceneRect(rect.x() + 0.1 / 1.2 * rect.width(),
+                   rect.y() + 0.1 / 1.2 * rect.height(), rect.width() / 1.2,
+                   rect.height() / 1.2);
+      for (auto view : views()) {
+        auto *sview = dynamic_cast<SlideView *>(view);
+        if (sview) sview->setZoomRelative(1.2);
+      }
+      break;
+    }
+    case ZoomOut: {
+      const QRectF rect = sceneRect();
+      setSceneRect(rect.x() - 0.1 / 0.8 * rect.width(),
+                   rect.y() - 0.1 / 0.8 * rect.height(), rect.width() / 0.8,
+                   rect.height() / 0.8);
+      for (auto view : views()) {
+        auto *sview = dynamic_cast<SlideView *>(view);
+        if (sview) sview->setZoomRelative(0.8);
+      }
+      break;
+    }
+    case ZoomReset: {
+      qreal zoom = 1.0;
+      for (auto view : views()) {
+        auto *sview = dynamic_cast<SlideView *>(view);
+        if (sview) {
+          zoom = sview->getZoom();
+          sview->setZoom(1.0);
+        }
+      }
+      const QRectF rect = sceneRect();
+      setSceneRect(rect.x() - (zoom - 1) / 2 * rect.width(),
+                   rect.y() - (zoom - 1) / 2 * rect.height(),
+                   rect.width() * zoom, rect.height() * zoom);
+      break;
+    }
     case PauseMedia:
       pauseMedia();
       break;

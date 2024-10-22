@@ -1076,6 +1076,18 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
         <source>restore slide</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>zoom in</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>zoom out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>zoom reset</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ShapeSelectionButton</name>
@@ -1334,6 +1346,10 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     <message>
         <source>double-click</source>
         <translation>doppio-click</translation>
+    </message>
+    <message>
+        <source>drag view</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

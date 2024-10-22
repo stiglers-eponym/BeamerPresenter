@@ -33,8 +33,10 @@ class Tool
     // General tools, class Tool
     /// Invalid tool
     InvalidTool = 0,
+    /// Draw view
+    DragViewTool = 1,
     /// Text input tool
-    TextInputTool = 1,
+    TextInputTool = 2,
     /// No tool
     NoTool = 0x1f,
 
@@ -165,6 +167,7 @@ static const QMap<QString, Tool::BasicTool> string_to_tool{
     {QT_TRANSLATE_NOOP("Tool", "torch"), Tool::Torch},
     {QT_TRANSLATE_NOOP("Tool", "magnifier"), Tool::Magnifier},
     {QT_TRANSLATE_NOOP("Tool", "text"), Tool::TextInputTool},
+    {QT_TRANSLATE_NOOP("Tool", "drag view"), Tool::DragViewTool},
     {QT_TRANSLATE_NOOP("Tool", "click select"), Tool::BasicSelectionTool},
     {QT_TRANSLATE_NOOP("Tool", "rectangle select"), Tool::RectSelectionTool},
     {QT_TRANSLATE_NOOP("Tool", "freehand select"), Tool::FreehandSelectionTool},

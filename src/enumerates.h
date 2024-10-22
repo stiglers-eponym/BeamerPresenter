@@ -151,6 +151,9 @@ enum Action {
   ScrollDown,    ///< scroll slide down
   ScrollUp,      ///< scroll slide up
   ScrollNormal,  ///< scroll slide back to normal
+  ZoomIn,        ///< zoom in on a slide
+  ZoomOut,       ///< zoom out of a slide
+  ZoomReset,     ///< reset slide zoom
   SaveDrawings,  ///< save drawings to known file name, ask for file name if no
                  ///< file name is known
   SaveDrawingsAs,       ///< save drawings to file, always ask for file name
