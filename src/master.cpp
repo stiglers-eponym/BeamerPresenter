@@ -1487,3 +1487,51 @@ bool Master::readXmlHeader(QXmlStreamReader &reader, const bool read_notes)
   }
   return true;
 }
+
+void Master::loadPdfpcJSON(const QString &filename)
+{
+  if (documents.isEmpty() || !documents.first()) return;
+  QFile file(filename);
+  if (!file.exists() || !file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    qWarning() << tr("Could not read file:") << filename;
+    return;
+  }
+  QJsonParseError error;
+  const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
+  if (error.error != QJsonParseError::NoError || doc.isNull() ||
+      doc.isEmpty()) {
+    qWarning() << tr("JSON file is empty or parsing failed:")
+               << error.errorString();
+    return;
+  }
+  QJsonArray array;
+  if (doc.isArray())
+    array = doc.array();
+  else
+    array = doc.object().value("pages").toArray();
+  if (array.isEmpty()) return;
+  QMap<int, QString> labels;
+  QJsonObject obj;
+  int idx, intlabel;
+  QString label;
+  for (auto element : std::as_const(array)) {
+    obj = element.toObject();
+    idx = obj.value("idx").toInt(-1);
+    if (idx < 0) continue;
+    if (obj.value("hidden").toBool(false)) {
+      const int slide = page_to_slide.value(idx, -1);
+      if (slide >= 0) removeSlide(slide);
+    }
+    label = obj.value("label").toString();
+    if (label.isEmpty()) {
+      intlabel = obj.value("label").toInt(-1);
+      if (intlabel > 0) label = QString::number(intlabel);
+    }
+    if ((!label.isEmpty() && (labels.empty() || label != labels.last())) ||
+        (obj.value("overlay").toInt(-1) == 0))
+      labels[idx] = label;
+  }
+  if (!labels.isEmpty())
+    documents.first()->getDocument()->overrideLabels(labels);
+  navigateToSlide(preferences()->slide);
+}

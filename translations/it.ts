@@ -500,6 +500,14 @@
         <source>Failed to read bpr/xopp document: </source>
         <translation>Impossibile leggere il documento bpr/xopp:</translation>
     </message>
+    <message>
+        <source>Could not read file:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>JSON file is empty or parsing failed:</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MuPdfDocument</name>
@@ -1098,6 +1106,18 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>zoom reset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>select pdfpc/JSON file containing overlay information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select JSON file containing overlay information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>pdfpc/JSON files (*.pdfpc *.json);;all files (*)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

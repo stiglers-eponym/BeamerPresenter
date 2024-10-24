@@ -227,6 +227,9 @@ class Master : public QObject
   std::shared_ptr<PdfMaster> readXmlPage(QXmlStreamReader &reader,
                                          std::shared_ptr<PdfMaster> pdf,
                                          int &page, const bool clear_drawings);
+  /// Read overlay information for main PDF file from JSON file for PdfPc,
+  /// useful for slides created with Polylux (Typst).
+  void loadPdfpcJSON(const QString &filename);
 
  protected:
   /// Timeout event: cache videos or change slide

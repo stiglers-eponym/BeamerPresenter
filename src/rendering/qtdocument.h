@@ -40,14 +40,6 @@ class QtDocument : public PdfDocument
   /// QtPdfDocument representing the PDF.
   QPdfDocument *doc = nullptr;
 
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
-  /// Map page numbers to labels: Only the first page number with a
-  /// new label is listed here.
-  /// Exception: pages with an own TOC entry always have their label
-  /// explicitly defined.
-  QMap<int, QString> pageLabels;
-#endif
-
  public:
   /// Constructor: calls loadDocument().
   QtDocument(const QString &filename);
@@ -79,23 +71,6 @@ class QtDocument : public PdfDocument
   virtual const QString pageLabel(const int page) const override
   {
     return doc->pageLabel(page);
-  }
-
-  /// List of indices, at which slide labels change. An empty list indicates
-  /// that all consecutive slides have different labels.
-  virtual QList<int> overlayIndices() const noexcept override
-  {
-    return pageLabels.size() == doc->pageCount() ? QList<int>()
-                                                 : pageLabels.keys();
-  }
-
-  /// Label of page with given index.
-  virtual int pageIndex(const QString &label) const override
-  {
-    if (pageLabels.isEmpty()) return label.toInt() - 1;
-    // this is slow, but possibly faster than the native implementation for some
-    // documents
-    return pageLabels.key(label, -1);
   }
 #endif  // QT_VERSION >= 6.5
 

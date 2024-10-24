@@ -189,37 +189,6 @@ const PngPixmap *PopplerDocument::getPng(const int page, const qreal resolution,
   return new PngPixmap(bytes, page, resolution);
 }
 
-int PopplerDocument::overlaysShifted(const int start,
-                                     const int shift_overlay) const
-{
-  // Get the "number" part of shift_overlay by removing the "overlay" flags.
-  int shift = shift_overlay >= 0 ? shift_overlay & ~ShiftOverlays::AnyOverlay
-                                 : shift_overlay | ShiftOverlays::AnyOverlay;
-  // Check whether the document has non-trivial page labels and shift has
-  // non-trivial overlay flags.
-  if (pageLabels.empty() || shift == shift_overlay) return start + shift;
-  // Find the beginning of next slide.
-  QMap<int, QString>::const_iterator it = pageLabels.upperBound(start);
-  // Shift the iterator according to shift.
-  while (shift > 0 && it != pageLabels.cend()) {
-    --shift;
-    ++it;
-  }
-  while (shift < 0 && it != pageLabels.cbegin()) {
-    ++shift;
-    --it;
-  }
-  // Check if the iterator has reached the beginning or end of the set.
-  if (it == pageLabels.cbegin()) return 0;
-  if (it == pageLabels.cend()) {
-    if (shift_overlay & FirstOverlay) return (--it).key();
-    return doc->numPages() - 1;
-  }
-  // Return first or last overlay depending on overlay flags.
-  if (shift_overlay & FirstOverlay) return (--it).key();
-  return it.key() - 1;
-}
-
 void PopplerDocument::loadPageLabels()
 {
   // Poppler functions for converting between labels and numbers seem to be

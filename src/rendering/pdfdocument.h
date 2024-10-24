@@ -220,6 +220,12 @@ class PdfDocument
    */
   QVector<PdfOutlineEntry> outline = {{"", -1, 1}};
 
+  /// Map page numbers to labels: Only the first page number with a
+  /// new label is listed here.
+  /// Exception: pages with an own TOC entry always have their label
+  /// explicitly defined.
+  QMap<int, QString> pageLabels;
+
  public:
   /// Constructor: only initialize filename.
   explicit PdfDocument(const QString &filename) : path(filename) {}
@@ -242,16 +248,10 @@ class PdfDocument
 
   /// Label of page with given index.
   /// The default implementation returns a string representing the page number.
-  virtual const QString pageLabel(const int page) const
-  {
-    return QString::number(page + 1);
-  }
+  virtual const QString pageLabel(const int page) const;
 
   /// Label of page with given index.
-  virtual int pageIndex(const QString &label) const
-  {
-    return label.toInt() - 1;
-  }
+  virtual int pageIndex(const QString &label) const;
 
   /// Starting from page start, get the number (index) of the page shifted
   /// by shift_overlay.
@@ -259,22 +259,23 @@ class PdfDocument
   /// shift_overlay = (shift & ~AnyOverlay) | overlay
   /// overlay = shift & AnyOverlay
   /// shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
-  virtual int overlaysShifted(const int start, const int shift_overlay) const
-  {
-    return start + (shift_overlay >= 0 ? shift_overlay & ~AnyOverlay
-                                       : shift_overlay | AnyOverlay);
-  }
+  virtual int overlaysShifted(const int start, const int shift_overlay) const;
 
   /// List of indices, at which slide labels change. An empty list indicates
   /// that all consecutive slides have different labels.
-  /// The default implementation always returns an empty list.
-  virtual QList<int> overlayIndices() const noexcept { return QList<int>(); }
+  virtual QList<int> overlayIndices() const noexcept;
 
   /// Check whether a file has been loaded successfully.
   virtual bool isValid() const = 0;
 
   /// Load the PDF labels and outline, fill PdfDocument::outline.
   virtual void loadLabels() {};
+
+  /// Explicitly set pageLabels
+  void overrideLabels(const QMap<int, QString> &labels) noexcept
+  {
+    pageLabels = labels;
+  }
 
   /// Search which page contains needle.
   virtual std::pair<int, QRectF> search(const QString &needle,

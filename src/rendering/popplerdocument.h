@@ -40,12 +40,6 @@ class PopplerDocument : public PdfDocument
   /// Poppler document representing the PDF.
   std::unique_ptr<Poppler::Document> doc = nullptr;
 
-  /// Map page numbers to labels: Only the first page number with a
-  /// new label is listed here.
-  /// Exception: pages with an own TOC entry always have their label
-  /// explicitly defined.
-  QMap<int, QString> pageLabels;
-
   /// populate pageLabels. Must be called after loadOutline.
   void loadPageLabels();
 
@@ -114,22 +108,6 @@ class PopplerDocument : public PdfDocument
 
   /// Label of page with given index.
   int pageIndex(const QString &label) const override;
-
-  /// Starting from page start, get the number (index) of the page shifted
-  /// by shift_overlay.
-  /// If shift is an int and overlay is of type ShiftOverlays:
-  /// shift_overlay = (shift & ~AnyOverlay) | overlay
-  /// overlay = shift & AnyOverlay
-  /// shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
-  int overlaysShifted(const int start, const int shift_overlay) const override;
-
-  /// List of indices, at which slide labels change. An empty list indicates
-  /// that all consecutive slides have different labels.
-  virtual QList<int> overlayIndices() const noexcept override
-  {
-    return pageLabels.size() == doc->numPages() ? QList<int>()
-                                                : pageLabels.keys();
-  }
 
   /// Link at given position (in point = inch/72).
   const PdfLink *linkAt(const int page, const QPointF &position) const override;

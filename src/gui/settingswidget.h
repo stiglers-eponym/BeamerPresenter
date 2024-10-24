@@ -55,6 +55,9 @@ class SettingsWidget : public QTabWidget
 
   /// Select GUI config file from QFileDialog
   void setGuiConfigFile();
+
+  /// Select JSON file created for pdfpc from QFileDialog
+  void setPdfpcJSONFile();
 };
 
 #endif  // SETTINGSWIDGET_H

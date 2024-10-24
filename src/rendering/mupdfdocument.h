@@ -75,12 +75,6 @@ class MuPdfDocument : public PdfDocument
   /// Total number of pages in document.
   int number_of_pages;
 
-  /// Map page numbers to labels: Only the first page number with a
-  /// new label is listed here.
-  /// Exception: pages with an own TOC entry always have their label
-  /// explicitly defined.
-  QMap<int, QString> pageLabels;
-
   /// Map of PDF object numbers to embedded media data streams
   QMap<int, std::shared_ptr<QByteArray>> embedded_media;
 
@@ -114,42 +108,23 @@ class MuPdfDocument : public PdfDocument
   const QSizeF pageSize(const int page) const override;
 
   /// Check whether a file has been loaded successfully.
-  bool isValid() const override { return doc && ctx && number_of_pages > 0; }
-
-  /// Label of given page. This currently only supports numerical values.
-  const QString pageLabel(const int page) const override;
+  bool isValid() const noexcept override
+  {
+    return doc && ctx && number_of_pages > 0;
+  }
 
   /// Duration of given page in secons. Default value is -1 is interpreted as
   /// infinity.
   qreal duration(const int page) const noexcept override;
 
-  /// Label of page with given index.
-  int pageIndex(const QString &label) const override;
-
-  /// Starting from page start, get the number (index) of the page shifted
-  /// by shift_overlay.
-  /// If shift is an int and overlay is of type ShiftOverlays:
-  /// shift_overlay = (shift & ~AnyOverlay) | overlay
-  /// overlay = shift & AnyOverlay
-  /// shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
-  int overlaysShifted(const int start, const int shift_overlay) const override;
-
-  /// List of indices, at which slide labels change. An empty list indicates
-  /// that all consecutive slides have different labels.
-  virtual QList<int> overlayIndices() const noexcept override
-  {
-    return pageLabels.size() == number_of_pages ? QList<int>()
-                                                : pageLabels.keys();
-  }
-
   /// Total number of pages in document.
-  int numberOfPages() const override { return number_of_pages; }
+  int numberOfPages() const noexcept override { return number_of_pages; }
 
   /// Fitz context.
-  fz_context *getContext() const { return ctx; }
+  fz_context *getContext() const noexcept { return ctx; }
 
   /// Fitz document.
-  pdf_document *getDocument() const { return doc; }
+  pdf_document *getDocument() const noexcept { return doc; }
 
   /// Load the PDF labels and outline, fill PdfDocument::outline.
   void loadLabels() override;

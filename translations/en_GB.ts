@@ -500,6 +500,14 @@
         <source>Failed to read bpr/xopp document: </source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Could not read file:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>JSON file is empty or parsing failed:</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MuPdfDocument</name>
@@ -1096,6 +1104,18 @@ Configure cache. Slides are rendered to compressed cache. These settings defined
     </message>
     <message>
         <source>zoom reset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>select pdfpc/JSON file containing overlay information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select JSON file containing overlay information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>pdfpc/JSON files (*.pdfpc *.json);;all files (*)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

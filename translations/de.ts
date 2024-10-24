@@ -500,6 +500,14 @@
         <source>&quot;. Using fallback GUI config file.</source>
         <translation>&quot;. Benutze stattdessen die Standardkonfiguration.</translation>
     </message>
+    <message>
+        <source>Could not read file:</source>
+        <translation>Datei konnte nicht gelesen werden:</translation>
+    </message>
+    <message>
+        <source>JSON file is empty or parsing failed:</source>
+        <translation>JSON-Datei ist leer oder konnte nicht verstanden werden:</translation>
+    </message>
 </context>
 <context>
     <name>MuPdfDocument</name>
@@ -1099,6 +1107,18 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <source>zoom reset</source>
         <translation>normale Größe</translation>
+    </message>
+    <message>
+        <source>select pdfpc/JSON file containing overlay information</source>
+        <translation>wähle pdfpc/JSON-Datei mit Informationen zu Overlays</translation>
+    </message>
+    <message>
+        <source>Select JSON file containing overlay information</source>
+        <translation>wähle JSON-Datei mit Informationen zu Overlays</translation>
+    </message>
+    <message>
+        <source>pdfpc/JSON files (*.pdfpc *.json);;all files (*)</source>
+        <translation>pdfpc/JSON Dateien (*.pdfpc *.json);;Alle Dateien (*)</translation>
     </message>
 </context>
 <context>

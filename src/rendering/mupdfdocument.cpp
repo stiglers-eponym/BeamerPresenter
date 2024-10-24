@@ -277,53 +277,6 @@ const QSizeF MuPdfDocument::pageSize(const int page) const
   return QSizeF(bbox.x1 - bbox.x0, bbox.y1 - bbox.y0);
 }
 
-const QString MuPdfDocument::pageLabel(const int page) const
-{
-  // Check if the page number is valid.
-  if (page < 0 || page >= number_of_pages) return "";
-
-  if (pageLabels.isEmpty()) return QString::number(page + 1);
-  return (--pageLabels.upperBound(page)).value();
-}
-
-int MuPdfDocument::pageIndex(const QString &label) const
-{
-  if (pageLabels.isEmpty()) return label.toInt() - 1;
-  // This is slow (linear time):
-  return pageLabels.key(label, -1);
-}
-
-int MuPdfDocument::overlaysShifted(const int start,
-                                   const int shift_overlay) const
-{
-  // Get the "number" part of shift_overlay by removing the "overlay" flags.
-  int shift = shift_overlay >= 0 ? shift_overlay & ~ShiftOverlays::AnyOverlay
-                                 : shift_overlay | ShiftOverlays::AnyOverlay;
-  // Check whether the document has non-trivial page labels and shift has
-  // non-trivial overlay flags.
-  if (pageLabels.empty() || shift == shift_overlay) return start + shift;
-  // Find the beginning of next slide.
-  QMap<int, QString>::const_iterator it = pageLabels.upperBound(start);
-  // Shift the iterator according to shift.
-  while (shift > 0 && it != pageLabels.cend()) {
-    --shift;
-    ++it;
-  }
-  while (shift < 0 && it != pageLabels.cbegin()) {
-    ++shift;
-    --it;
-  }
-  // Check if the iterator has reached the beginning or end of the set.
-  if (it == pageLabels.cbegin()) return 0;
-  if (it == pageLabels.cend()) {
-    if (shift_overlay & FirstOverlay) return (--it).key();
-    return number_of_pages - 1;
-  }
-  // Return first or last overlay depending on overlay flags.
-  if (shift_overlay & FirstOverlay) return (--it).key();
-  return it.key() - 1;
-}
-
 #if (FZ_VERSION_MAJOR > 1) || \
     ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR >= 22))
 

@@ -23,6 +23,7 @@
 #include "src/drawing/tool.h"
 #include "src/gui/actionbutton.h"
 #include "src/gui/keyinputlabel.h"
+#include "src/master.h"
 #include "src/names.h"
 #include "src/preferences.h"
 
@@ -236,6 +237,12 @@ void SettingsWidget::initRendering()
 #endif
   layout->addRow(tr("page part threshold"), page_part_box);
 
+  QPushButton *select_file_button = new QPushButton(
+      tr("select pdfpc/JSON file containing overlay information"), rendering);
+  connect(select_file_button, &QPushButton::clicked, this,
+          &SettingsWidget::setPdfpcJSONFile);
+  layout->addRow(select_file_button);
+
   rendering->setLayout(layout);
 }
 
@@ -440,4 +447,12 @@ void SettingsWidget::setGuiConfigFile()
       preferences()->gui_config_file, tr("JSON files (*.json);;all files (*)"));
   if (!newfile.isNull() && writable_preferences()->setGuiConfigFile(newfile))
     setTabText(1, tr("misc (restart required)"));
+}
+
+void SettingsWidget::setPdfpcJSONFile()
+{
+  const QString newfile = QFileDialog::getOpenFileName(
+      this, tr("Select JSON file containing overlay information"), "",
+      tr("pdfpc/JSON files (*.pdfpc *.json);;all files (*)"));
+  if (!newfile.isNull()) master()->loadPdfpcJSON(newfile);
 }
