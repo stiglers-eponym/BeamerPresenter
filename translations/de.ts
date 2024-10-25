@@ -1252,15 +1252,15 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <translation>Text auf der Folie hinzufügen oder bearbeiten</translation>
     </message>
     <message>
-        <source>Select objects by clicking on them</source>
+        <source>select objects by clicking on them</source>
         <translation>Objekte durch Anklicken auswählen</translation>
     </message>
     <message>
-        <source>Select objects in a rectangle</source>
+        <source>select objects in a rectangle</source>
         <translation>Objekte innerhalb eines Rechtecks auswählen</translation>
     </message>
     <message>
-        <source>Select objects inside a drawn shape</source>
+        <source>select objects inside a drawn shape</source>
         <translation>Objekte innerhalb einer gemalten Form auswählen</translation>
     </message>
     <message>
@@ -1384,8 +1384,8 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <translation>Ansicht verschieben</translation>
     </message>
     <message>
-        <source>drag/move the view</source>
-        <translation>Ansicht verschieben</translation>
+        <source>drag/move the view. When active, double-click and touch gestures can be used to zoom in.</source>
+        <translation>Ansicht verschieben. Doppelklick und Touchscreen-Gesten können zum vergrößern verwendet werden, solange das Werkzeug aktiv ist.</translation>
     </message>
 </context>
 <context>

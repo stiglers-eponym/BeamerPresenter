@@ -103,13 +103,15 @@ const char* tool_to_description(const Tool::BasicTool tool) noexcept
     case Tool::TextInputTool:
       return QT_TRANSLATE_NOOP("Tool", "add or edit text on slide");
     case Tool::BasicSelectionTool:
-      return QT_TRANSLATE_NOOP("Tool", "Select objects by clicking on them");
+      return QT_TRANSLATE_NOOP("Tool", "select objects by clicking on them");
     case Tool::RectSelectionTool:
-      return QT_TRANSLATE_NOOP("Tool", "Select objects in a rectangle");
+      return QT_TRANSLATE_NOOP("Tool", "select objects in a rectangle");
     case Tool::FreehandSelectionTool:
-      return QT_TRANSLATE_NOOP("Tool", "Select objects inside a drawn shape");
+      return QT_TRANSLATE_NOOP("Tool", "select objects inside a drawn shape");
     case Tool::DragViewTool:
-      return QT_TRANSLATE_NOOP("Tool", "drag/move the view");
+      return QT_TRANSLATE_NOOP("Tool",
+                               "drag/move the view. When active, double-click "
+                               "and touch gestures can be used to zoom in.");
     default:
       return "";
   };

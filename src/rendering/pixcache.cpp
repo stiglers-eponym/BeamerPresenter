@@ -477,6 +477,7 @@ void PixCache::requestPage(const int page, const qreal resolution,
 {
   debug_verbose(DebugCache | DebugFunctionCalls,
                 "requested page" << page << resolution << this);
+  if (page < 0 || resolution <= 0) return;
   // Try to return a page from cache.
   {
     mutex.lock();

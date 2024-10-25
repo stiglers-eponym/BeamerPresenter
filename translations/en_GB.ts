@@ -1250,18 +1250,6 @@ Configure cache. Slides are rendered to compressed cache. These settings defined
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Select objects by clicking on them</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Select objects in a rectangle</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Select objects inside a drawn shape</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>none</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1382,7 +1370,19 @@ Configure cache. Slides are rendered to compressed cache. These settings defined
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>drag/move the view</source>
+        <source>select objects by clicking on them</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>select objects in a rectangle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>select objects inside a drawn shape</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>drag/move the view. When active, double-click and touch gestures can be used to zoom in.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

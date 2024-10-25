@@ -8,7 +8,6 @@
 #include <QGraphicsVideoItem>
 #include <memory>
 #include <set>
-#include <utility>
 
 #include "src/config.h"
 #include "src/enumerates.h"

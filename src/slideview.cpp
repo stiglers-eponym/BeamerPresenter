@@ -8,6 +8,7 @@
 #include <QResizeEvent>
 #include <QWidget>
 
+#include "src/drawing/dragtool.h"
 #include "src/drawing/pixmapgraphicsitem.h"
 #include "src/drawing/pointingtool.h"
 #include "src/drawing/selectiontool.h"
@@ -25,6 +26,7 @@ SlideView::SlideView(SlideScene *scene, const PixCache *cache, QWidget *parent)
   setAttribute(Qt::WA_AcceptTouchEvents);
   setTransformationAnchor(AnchorViewCenter);
   grabGesture(Qt::SwipeGesture);
+  grabGesture(Qt::PinchGesture);
   setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
                  QPainter::RenderHint::SmoothPixmapTransform);
   setMinimumSize(4, 3);
@@ -83,7 +85,7 @@ void SlideView::pageChangedBlocking(const int page, SlideScene *scene)
   else
     // page is too high, determine resolution by y direction
     resolution = height() / pageSize.height();
-  if (resolution < 1e-9 || resolution > 1e9) return;
+  if (resolution < 1e-6 || resolution > 1e6) return;
   resetTransform();
   scale(resolution, resolution);
   QPixmap pixmap;
@@ -157,45 +159,60 @@ const QPointF SlideView::mapToScene(const QPointF &pos) const
   // return viewportTransform().inverted().map(pos);
 }
 
+bool SlideView::handleGestureEvent(QGestureEvent *event)
+{
+  const auto tool = preferences()->currentTool(Tool::TouchInput);
+  QSwipeGesture *swipe =
+      static_cast<QSwipeGesture *>(event->gesture(Qt::SwipeGesture));
+  bool handled = false;
+  if (swipe && swipe->state() == Qt::GestureFinished) {
+    Gesture gesture = InvalidGesture;
+    handled = true;
+    if (swipe->swipeAngle() < 22.5 || swipe->swipeAngle() > 337.5)
+      gesture = SwipeRight;
+    else if (swipe->swipeAngle() > 247.5 && swipe->swipeAngle() < 292.5)
+      gesture = SwipeDown;
+    else if (swipe->swipeAngle() > 157.5 && swipe->swipeAngle() < 202.5)
+      gesture = SwipeLeft;
+    else if (swipe->swipeAngle() > 67.5 && swipe->swipeAngle() < 112.5)
+      gesture = SwipeUp;
+    else
+      debug_msg(DebugOtherInput,
+                "Swipe gesture ignored, angle:" << swipe->swipeAngle());
+    if (gesture != InvalidGesture) {
+      debug_msg(DebugOtherInput,
+                "Swipe gesture, angle:" << swipe->swipeAngle()
+                                        << "interpret as:" << gesture);
+      const QList<Action> actions{
+          preferences()->gesture_actions.values(gesture)};
+      if (!actions.isEmpty()) {
+        for (auto action : actions) emit sendAction(action);
+        event->accept();
+      }
+    }
+  }
+  const QPinchGesture *pinch =
+      static_cast<QPinchGesture *>(event->gesture(Qt::PinchGesture));
+  if (pinch && tool && tool->tool() == Tool::DragViewTool) {
+    auto *sscene = dynamic_cast<SlideScene *>(scene());
+    if (sscene) {
+      event->accept();
+      handled = true;
+      std::static_pointer_cast<DragTool>(tool)->clear();
+      const qreal zoom = pinch->scaleFactor() * sscene->getZoom();
+      debug_msg(DebugOtherInput, pinch);
+      sscene->setZoom(zoom, mapToScene(pinch->centerPoint()),
+                      pinch->state() == Qt::GestureFinished);
+    }
+  }
+  return handled || QGraphicsView::event(event);
+}
+
 bool SlideView::event(QEvent *event)
 {
   switch (event->type()) {
-    case QEvent::Gesture: {
-      const QGestureEvent *gesture_event = static_cast<QGestureEvent *>(event);
-      debug_verbose(DebugOtherInput, gesture_event);
-      QSwipeGesture *swipe = static_cast<QSwipeGesture *>(
-          gesture_event->gesture(Qt::SwipeGesture));
-      if (swipe && swipe->state() == Qt::GestureFinished) {
-        event->accept();
-        Gesture gesture = InvalidGesture;
-        if (swipe->swipeAngle() < 22.5 || swipe->swipeAngle() > 337.5)
-          gesture = SwipeRight;
-        else if (swipe->swipeAngle() > 247.5 && swipe->swipeAngle() < 292.5)
-          gesture = SwipeDown;
-        else if (swipe->swipeAngle() > 157.5 && swipe->swipeAngle() < 202.5)
-          gesture = SwipeLeft;
-        else if (swipe->swipeAngle() > 67.5 && swipe->swipeAngle() < 112.5)
-          gesture = SwipeUp;
-        else {
-          debug_msg(DebugOtherInput,
-                    "Swipe gesture ignored, angle:" << swipe->swipeAngle());
-          return false;
-        }
-        debug_msg(DebugOtherInput,
-                  "Swipe gesture, angle:" << swipe->swipeAngle()
-                                          << "interpret as:" << gesture);
-        const QList<Action> actions{
-            preferences()->gesture_actions.values(gesture)};
-        for (auto action : actions) emit sendAction(action);
-        return !actions.isEmpty();
-      }
-      const QPanGesture *pan =
-          static_cast<QPanGesture *>(gesture_event->gesture(Qt::PanGesture));
-      if (pan)
-        debug_msg(DebugOtherInput, "Pan gesture:" << pan << pan->offset()
-                                                  << pan->acceleration());
-      return QGraphicsView::event(event);
-    }
+    case QEvent::Gesture:
+      return handleGestureEvent(static_cast<QGestureEvent *>(event));
     /* Native gesture does not work like this.
     case QEvent::NativeGesture:
     {

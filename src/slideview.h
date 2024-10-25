@@ -13,6 +13,7 @@
 #include "src/media/mediaslider.h"
 
 class QResizeEvent;
+class QGestureEvent;
 class PointingTool;
 class PixCache;
 class QWidget;
@@ -51,7 +52,13 @@ class SlideView : public QGraphicsView
   /// Show slide transitions, multimedia, etc. (all not implemented yet).
   ViewFlags view_flags = {ShowAll ^ MediaControls};
 
+  /// Send request for rendering page with resolution increased by zoom relative
+  /// to normal view.
   void requestScaledPage(const qreal zoom);
+
+ protected:
+  /// Handle gesture events. Currently, this handles swipe and pinch gestures
+  bool handleGestureEvent(QGestureEvent *event);
 
  public:
   /// Constructor: initialize and connect a lot.
@@ -77,12 +84,14 @@ class SlideView : public QGraphicsView
   /// Modifiable flags.
   ViewFlags &flags() noexcept { return view_flags; }
 
-  /// read-only flags.
+  /// Read-only flags.
   const ViewFlags &flags() const noexcept { return view_flags; }
 
-  void setZoom(const qreal zoom)
+  /// Set zoom relative to normal size. If render is true, request to render the
+  /// page with adjusted resolution.
+  void setZoom(const qreal zoom, const bool render = true)
   {
-    requestScaledPage(zoom);
+    if (render) requestScaledPage(zoom);
     const qreal rel_scale = zoom / transform().m11() * resolution;
     scale(rel_scale, rel_scale);
   }

@@ -26,12 +26,14 @@ class DragTool : public Tool
   ~DragTool() {}
   const QPointF &reference() const noexcept { return reference_point; }
   void setReference(const QPointF &pos) noexcept { reference_point = pos; }
+  void clear() noexcept { reference_point = QPointF(); }
   QPointF dragTo(const QPointF target, const bool force) noexcept
   {
     if (force || ++event_counter >= skip_events)
       event_counter = 0;
     else
       return QPointF();
+    if (reference_point.isNull()) reference_point = target;
     return reference_point - target;
   }
 };

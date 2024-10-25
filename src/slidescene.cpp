@@ -42,7 +42,7 @@
 #include "src/drawing/shaperecognizer.h"
 #include "src/drawing/texttool.h"
 #include "src/log.h"
-#include "src/media/mediaplayer.h"
+#include "src/media/mediaitem.h"
 #include "src/pdfmaster.h"
 #include "src/preferences.h"
 #include "src/slideview.h"
@@ -203,16 +203,20 @@ bool SlideScene::event(QEvent *event)
       break;
     }
     case QEvent::GraphicsSceneMouseDoubleClick: {
-      // Double click: These events are ignored, except if a text tool is used.
+      // Double click: These events are ignored, except if a text or drag tool
+      // is used.
       const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
       device = (mouseevent->buttons() << 1) | Tool::StartEvent;
       std::shared_ptr<Tool> tool =
           preferences()->currentTool(mouseevent->buttons() << 1);
-      debug_verbose(DebugFunctionCalls,
-                    "complete event handling" << event << this);
-      if (tool && tool->tool() == Tool::TextInputTool)
-        return QGraphicsScene::event(event);
+      if (!tool) return false;
       event->accept();
+      if (tool->tool() == Tool::TextInputTool)
+        return QGraphicsScene::event(event);
+      if (tool->tool() == Tool::DragViewTool) {
+        setZoom(1.25 * zoom, mouseevent->scenePos());
+        return true;
+      }
       return false;
     }
     case QEvent::TouchBegin: {
@@ -269,7 +273,7 @@ bool SlideScene::event(QEvent *event)
     case QEvent::GraphicsSceneDragLeave:
       /* Try to clean up pointers on the slide scene when the device
        * leaves the scene. */
-      for (auto tool : std::as_const(preferences()->current_tools)) {
+      for (const auto &tool : std::as_const(preferences()->current_tools)) {
         if (tool && tool->tool() & Tool::AnyPointingTool) {
           auto ptool = std::dynamic_pointer_cast<PointingTool>(tool);
           if (ptool) ptool->clearPos();
@@ -356,12 +360,14 @@ bool SlideScene::handleDragView(std::shared_ptr<DragTool> tool,
                                 const QPointF &start_pos)
 {
   if (!tool || pos.size() != 1) return false;
-  if ((device & Tool::AnyEvent) == Tool::StartEvent)
+  if ((device & Tool::AnyEvent) == Tool::StartEvent) {
+    debug_msg(DebugOtherInput, "Start drag view");
     tool->setReference(pos.constFirst());
-  else {
+  } else {
     const QPointF delta = tool->dragTo(
         pos.constFirst(), (device & Tool::AnyEvent) == Tool::StopEvent);
     if (delta.isNull()) return false;
+    debug_msg(DebugOtherInput, "drag view" << delta);
     QRectF rect = sceneRect();
     rect.translate(delta);
     setSceneRect(rect);
@@ -440,7 +446,7 @@ void SlideScene::handleDrawEvents(std::shared_ptr<const DrawTool> tool,
     case Tool::CancelEvent:
       if (stopInputEvent(tool)) {
         PathContainer *container = master->pathContainer({page, page_part});
-        if (container) container->undo({this});
+        if (container) container->undo(this);
         break;
       }
   }
@@ -471,7 +477,7 @@ void SlideScene::handlePointingEvents(std::shared_ptr<PointingTool> tool,
             break;
           case Tool::CancelEvent:
             if (container->applyMicroStep()) {
-              container->undo({this});
+              container->undo(this);
               emit newUnsavedDrawings();
             }
             break;
@@ -692,7 +698,7 @@ void SlideScene::handleSelectionStopEvents(std::shared_ptr<SelectionTool> tool,
     tool->reset();
 }
 
-void SlideScene::setZoom(const qreal new_zoom)
+void SlideScene::setZoom(const qreal new_zoom, const bool render)
 {
   const QRectF rect = sceneRect();
   const qreal shift = (1 - zoom / new_zoom) / 2;
@@ -702,29 +708,31 @@ void SlideScene::setZoom(const qreal new_zoom)
   zoom = new_zoom;
   for (auto view : views()) {
     auto *sview = dynamic_cast<SlideView *>(view);
-    if (sview) sview->setZoom(zoom);
+    if (sview) sview->setZoom(zoom, render);
+  }
+}
+
+void SlideScene::setZoom(const qreal new_zoom, const QPointF reference,
+                         const bool render)
+{
+  const QRectF rect = sceneRect();
+  const qreal shift = 1 - zoom / new_zoom;
+  setSceneRect(rect.x() + shift * (reference.x() - rect.x()),
+               rect.y() + shift * (reference.y() - rect.y()),
+               zoom / new_zoom * rect.width(), zoom / new_zoom * rect.height());
+  zoom = new_zoom;
+  for (auto view : views()) {
+    auto *sview = dynamic_cast<SlideView *>(view);
+    if (sview) sview->setZoom(zoom, render);
   }
 }
 
 void SlideScene::resetView()
 {
-  switch (page_part) {
-    case LeftHalf:
-      setSceneRect(
-          0., 0., page_size.width(),
-          fixed_page_height > 0 ? fixed_page_height : page_size.height());
-      break;
-    case RightHalf:
-      setSceneRect(
-          page_size.width(), 0., page_size.width(),
-          fixed_page_height > 0 ? fixed_page_height : page_size.height());
-      break;
-    default:
-      setSceneRect(
-          0., 0., page_size.width(),
-          fixed_page_height > 0 ? fixed_page_height : page_size.height());
-      break;
-  }
+  if (page_part == RightHalf)
+    setSceneRect(page_size.width(), 0., page_size.width(), page_size.height());
+  else
+    setSceneRect(0., 0., page_size.width(), page_size.height());
   zoom = 1.0;
   for (auto view : views()) {
     auto *sview = dynamic_cast<SlideView *>(view);
@@ -838,6 +846,7 @@ void SlideScene::prepareNavigationEvent(const int newslide, const int newpage)
   debug_verbose(
       DebugPageChange,
       newpage << page_size << master->getDocument()->flexiblePageSizes());
+  if (fixed_page_height > 0) page_size.setHeight(fixed_page_height);
   // Don't do anything if page size ist not valid. This avoids cleared slide
   // scenes which could mess up the layout and invalidate cache.
   if ((page_size.isNull() || !page_size.isValid()) &&

@@ -14,7 +14,6 @@
 #include <QTabletEvent>
 #include <map>
 #include <memory>
-#include <set>
 
 #include "src/config.h"
 #if (QT_VERSION_MAJOR >= 6)
@@ -200,11 +199,28 @@ class SlideScene : public QGraphicsScene
   /// Destructor: delete all graphics items.
   ~SlideScene();
 
+  /// Get page size of current slide.
   const QSizeF &pageSize() const noexcept { return page_size; }
+
+  /// Get current zoom factor.
   qreal getZoom() const noexcept { return zoom; }
 
+  /// Reset scene rect to view the whole slide.
   void resetView();
-  void setZoom(const qreal new_zoom);
+
+  /** Set zoom factor.
+   * @param new_zoom zoom factor relative to default view
+   * @param reference anchor point that remains fixed in the view while zooming
+   * (in scene coordinates)
+   * @param render if true, views will render the slide with adjusted resolution
+   */
+  void setZoom(const qreal new_zoom, const QPointF reference,
+               const bool render = true);
+  /** Set zoom factor, anchor point is the center of the view.
+   * @param new_zoom zoom factor relative to default view
+   * @param render if true, views will render the slide with adjusted resolution
+   */
+  void setZoom(const qreal new_zoom, const bool render = true);
 
   /// modifiable slide flags.
   SlideFlags &flags() noexcept { return slide_flags; }

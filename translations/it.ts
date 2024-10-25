@@ -1252,16 +1252,16 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
         <translation>aggiungere o modificare il testo sulla diapositiva</translation>
     </message>
     <message>
-        <source>Select objects by clicking on them</source>
-        <translation>Seleziona gli oggetti cliccandoci sopra</translation>
+        <source>select objects by clicking on them</source>
+        <translation>seleziona gli oggetti cliccandoci sopra</translation>
     </message>
     <message>
-        <source>Select objects in a rectangle</source>
-        <translation>Seleziona gli oggetti in un rettangolo</translation>
+        <source>select objects in a rectangle</source>
+        <translation>seleziona gli oggetti in un rettangolo</translation>
     </message>
     <message>
-        <source>Select objects inside a drawn shape</source>
-        <translation>Selezionare gli oggetti all&apos;interno di una forma disegnata</translation>
+        <source>select objects inside a drawn shape</source>
+        <translation>selezionare gli oggetti all&apos;interno di una forma disegnata</translation>
     </message>
     <message>
         <source>none</source>
@@ -1384,7 +1384,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>drag/move the view</source>
+        <source>drag/move the view. When active, double-click and touch gestures can be used to zoom in.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
