@@ -48,34 +48,36 @@ QList<int> PdfDocument::overlayIndices() const noexcept
                                               : pageLabels.keys();
 }
 
-int PdfDocument::overlaysShifted(const int start, const int shift_overlay) const
+int PdfDocument::overlaysShifted(const int start, PageShift shift_overlay) const
 {
-  // Get the "number" part of shift_overlay by removing the "overlay" flags.
-  int shift = shift_overlay >= 0 ? shift_overlay & ~ShiftOverlays::AnyOverlay
-                                 : shift_overlay | ShiftOverlays::AnyOverlay;
   // Check whether the document has non-trivial page labels and shift has
   // non-trivial overlay flags.
-  if (pageLabels.empty() || shift == shift_overlay) return start + shift;
+  if (pageLabels.empty() || shift_overlay.overlay == NoOverlay)
+    return start + shift_overlay.shift;
   // Find the beginning of next slide.
   QMap<int, QString>::const_iterator it = pageLabels.upperBound(start);
   // Shift the iterator according to shift.
-  while (shift > 0 && it != pageLabels.cend()) {
-    --shift;
+  while (shift_overlay.shift > 0 && it != pageLabels.cend()) {
+    --shift_overlay.shift;
     ++it;
   }
-  while (shift < 0 && it != pageLabels.cbegin()) {
-    ++shift;
+  while (shift_overlay.shift < 0 && it != pageLabels.cbegin()) {
+    ++shift_overlay.shift;
     --it;
   }
   // Check if the iterator has reached the beginning or end of the set.
   if (it == pageLabels.cbegin()) return 0;
   if (it == pageLabels.cend()) {
-    if (shift_overlay & FirstOverlay) return (--it).key();
-    return numberOfPages() - 1;
+    if (shift_overlay.overlay == FirstOverlay)
+      return (--it).key();
+    else
+      return numberOfPages() - 1;
   }
   // Return first or last overlay depending on overlay flags.
-  if (shift_overlay & FirstOverlay) return (--it).key();
-  return it.key() - 1;
+  if (shift_overlay.overlay == FirstOverlay)
+    return (--it).key();
+  else
+    return it.key() - 1;
 }
 
 const QString PdfDocument::pageLabel(const int page) const

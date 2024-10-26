@@ -101,7 +101,7 @@ SlideScene *PdfMaster::getActiveScene(const PPage ppage) const
 {
   for (auto scene : scenes) {
     if (scene && (ppage.part == scene->pagePart()) &&
-        (preferences()->overlay_mode == PerLabel
+        (preferences()->overlay_mode == PerLabel && ppage.page >= 0
              ? overlaysShifted(scene->getPage(), FirstOverlay)
              : scene->getPage() == ppage.page))
       return scene;
@@ -239,13 +239,13 @@ void PdfMaster::distributeNavigationEvents(const int slide,
   QMap<PPage, SlideScene *> scenemap;
   for (const auto scene : std::as_const(scenes)) {
     /// scenepage: the page index that will be shown by the scene.
-    const int scenepage = overlaysShifted(page, scene->getShift());
+    const int scenepage = overlaysShiftedPage(page, scene->getShift());
     /// sceneslide: slide index of scene page
     const int sceneslide =
         scenepage == page ? slide : preferences()->slideForPage(scenepage);
     /// index page: the overlay root page, to which all drawings are attached.
     PPage indexpage = {scenepage, scene->pagePart()};
-    if (preferences()->overlay_mode == PerLabel)
+    if (preferences()->overlay_mode == PerLabel && page >= 0)
       indexpage.page = overlaysShifted(scenepage, FirstOverlay);
     if (scenemap.contains(indexpage))
       scene->navigationEvent(sceneslide, scenepage, scenemap[indexpage]);
@@ -379,8 +379,9 @@ PathContainer *PdfMaster::pathContainerCreate(PPage ppage)
       shiftToDrawings(ppage);
       return paths.value(ppage, nullptr);
     case Cumulative: {
-      PathContainer *container = paths.value(ppage);
-      if (container && !container->empty() && !container->isPlainCopy())
+      PathContainer *container = paths.value(ppage, nullptr);
+      if (ppage.page < 0 ||
+          (container && !container->empty() && !container->isPlainCopy()))
         return container;
       const int start_overlay =
           document->overlaysShifted(ppage.page, FirstOverlay);
@@ -474,4 +475,30 @@ QPixmap PdfMaster::exportImage(const PPage ppage,
     painter.end();
   }
   return pixmap;
+}
+
+int PdfMaster::overlaysShiftedSlide(int slide,
+                                    const PageShift shift_overlay) const
+{
+  if (shift_overlay.overlay == NoOverlay)
+    return preferences()->pageForSlide(slide + shift_overlay.shift);
+  int page = preferences()->pageForSlide(slide);
+  while (page < 0 && --slide >= 0) page = preferences()->pageForSlide(slide);
+  return document->overlaysShifted(std::max(page, 0), shift_overlay);
+}
+
+int PdfMaster::overlaysShiftedPage(int page,
+                                   const PageShift shift_overlay) const
+{
+  if (shift_overlay.overlay == NoOverlay) {
+    if (shift_overlay.shift == 0) return page;
+    const int slide = preferences()->slideForPage(page) + shift_overlay.shift;
+    page = preferences()->pageForSlide(slide);
+    return page == INT_MIN ? 0 : page;
+  } else if (page < 0) {
+    int slide = preferences()->slideForPage(page);
+    while (page < 0 && --slide >= 0) page = preferences()->pageForSlide(slide);
+  }
+  page = document->overlaysShifted(std::max(page, 0), shift_overlay);
+  return page;
 }

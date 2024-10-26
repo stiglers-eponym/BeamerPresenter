@@ -120,7 +120,7 @@ class SlideScene : public QGraphicsScene
   /// Shift of currently shown page relative to the current presentation
   /// slide. Overlay specifications are stored in the nonzero bits of
   /// FirstOverlay and LastOverlay.
-  int shift = 0;
+  PageShift shift = {0, NoOverlay};
 
   /// Currently visible page.
   int page = 0;
@@ -234,8 +234,8 @@ class SlideScene : public QGraphicsScene
   /// Get current page item (the pixmap graphics item showing the current page)
   PixmapGraphicsItem *pageBackground() const noexcept { return pageItem; }
 
-  /// Set shift in the form ((shift & ~AnyOverlay) | overlay).
-  void setPageShift(const int relative_shift) noexcept
+  /// Set shift (number of pages and overlays).
+  void setPageShift(const PageShift relative_shift) noexcept
   {
     shift = relative_shift;
   }
@@ -246,8 +246,8 @@ class SlideScene : public QGraphicsScene
   /// Currently visible page.
   int getPage() const noexcept { return page; }
 
-  /// Shift in the form ((shift & ~AnyOverlay) | overlay).
-  int getShift() const noexcept { return shift; }
+  /// Shift (number of pages and overlays).
+  PageShift getShift() const noexcept { return shift; }
 
   /// return page_part.
   PagePart pagePart() const noexcept { return page_part; }

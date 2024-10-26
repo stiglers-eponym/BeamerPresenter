@@ -132,19 +132,7 @@ class PixmapGraphicsItem : public QGraphicsObject
   void addPixmap(const QPixmap &pixmap) noexcept;
 
   /// Set (overwrite) bounding rect.
-  void setRect(const QRectF &rect) noexcept
-  {
-    bounding_rect = rect;
-    if (pixmaps.size() > 0) {
-      const QSize ref_size = pixmaps.last().size();
-      if (ref_size.width() / ref_size.height() <
-          0.98 * rect.width() / rect.height()) {
-        bounding_rect.setHeight(ref_size.height() * rect.width() /
-                                ref_size.width());
-      }
-    }
-    update();
-  }
+  void setRect(const QRectF &rect) noexcept;
 
   /// Set (overwrite) bounding rect size.
   void setSize(const QSizeF &size) noexcept { bounding_rect.setSize(size); }

@@ -467,12 +467,12 @@ SlideView *Master::createSlide(const QJsonObject &object,
   }
 
   // Calculate the shift for scene.
-  int shift = object.value("shift").toInt() & ~ShiftOverlays::AnyOverlay;
+  PageShift shift = {object.value("shift").toInt(), NoOverlay};
   const QString overlays = object.value("overlays").toString().toLower();
   if (overlays == "first")
-    shift |= ShiftOverlays::FirstOverlay;
+    shift.overlay = ShiftOverlays::FirstOverlay;
   else if (overlays == "last")
-    shift |= ShiftOverlays::LastOverlay;
+    shift.overlay = ShiftOverlays::LastOverlay;
 
   // Get the page part.
   const QString page_part_str = object.value("page part").toString().toLower();
@@ -506,8 +506,8 @@ SlideView *Master::createSlide(const QJsonObject &object,
   // Create new slide scene if necessary.
   if (scene == nullptr) {
     scene = new SlideScene(pdf, page_part, parent);
-    if (shift) scene->setPageShift(shift);
-    if (shift == 0 || is_master) {
+    scene->setPageShift(shift);
+    if (shift == PageShift({0, NoOverlay}) || is_master) {
       connect(scene, &SlideScene::finishTransition, this,
               &Master::postNavigation);
       pdf->getScenes().prepend(scene);
@@ -827,8 +827,7 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
     handleAction(action);
   }
   // Search tools in preferences for given key sequence.
-  for (const auto tool : static_cast<const QList<std::shared_ptr<Tool>>>(
-           preferences()->key_tools.values(key_code)))
+  for (const auto &tool : preferences()->key_tools.values(key_code))
     if (tool && tool->device()) setTool(tool->copy());
   event->accept();
   return true;
@@ -850,12 +849,12 @@ void Master::handleAction(const Action action)
       navigateToSlide(preferences()->slide - 1);
       break;
     case NextSkippingOverlays:
-      navigateToPage(documents.first()->overlaysShifted(preferences()->page,
-                                                        1 | FirstOverlay));
+      navigateToPage(documents.first()->overlaysShiftedPage(preferences()->page,
+                                                            {1, FirstOverlay}));
       break;
     case PreviousSkippingOverlays:
-      navigateToPage(documents.first()->overlaysShifted(preferences()->page,
-                                                        -1 & ~FirstOverlay));
+      navigateToPage(documents.first()->overlaysShiftedPage(
+          preferences()->page, {-1, FirstOverlay}));
       break;
     case FirstPage:
       navigateToSlide(0);
@@ -897,7 +896,7 @@ void Master::handleAction(const Action action)
       // TODO: problems with slide labels, navigation, and videos after
       // reloading files
       bool changed = false;
-      for (const auto doc : std::as_const(documents))
+      for (const auto &doc : std::as_const(documents))
         changed |= doc->loadDocument();
       if (changed) {
         initializePageIndex();
@@ -1004,7 +1003,7 @@ void Master::leaveSlide(const int slide) const
 {
   writable_preferences()->previous_page = preferences()->page;
   bool flexible_page_numbers = false;
-  for (const auto doc : std::as_const(documents)) {
+  for (const auto &doc : std::as_const(documents)) {
     doc->clearHistory({slide, FullPage},
                       preferences()->history_length_hidden_slides);
     doc->clearHistory({slide, LeftHalf},
@@ -1236,7 +1235,7 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
     writer.writeEndElement();  // "beamerpresenter" element
   }
 
-  for (const auto pdf : documents) pdf->writePages(writer, save_bp_specific);
+  for (const auto &pdf : documents) pdf->writePages(writer, save_bp_specific);
 
   writer.writeEndElement();  // "xournal" element
   writer.writeEndDocument();
@@ -1358,7 +1357,7 @@ std::shared_ptr<PdfMaster> Master::readXmlPageBg(QXmlStreamReader &reader,
         if (!pdf || (abs_filename != pdf->getFilename() &&
                      filename != pdf->getFilename())) {
           pdf = nullptr;
-          for (const auto doc : std::as_const(documents)) {
+          for (const auto &doc : std::as_const(documents)) {
             if (doc && (doc->getFilename() == filename ||
                         doc->getFilename() == abs_filename)) {
               debug_msg(DebugDrawing,

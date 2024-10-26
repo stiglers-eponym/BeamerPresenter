@@ -733,10 +733,12 @@ void SlideScene::resetView()
     setSceneRect(page_size.width(), 0., page_size.width(), page_size.height());
   else
     setSceneRect(0., 0., page_size.width(), page_size.height());
-  zoom = 1.0;
-  for (auto view : views()) {
-    auto *sview = dynamic_cast<SlideView *>(view);
-    if (sview) sview->setZoom(1.0);
+  if (zoom != 1.0) {
+    zoom = 1.0;
+    for (auto view : views()) {
+      auto *sview = dynamic_cast<SlideView *>(view);
+      if (sview) sview->setZoom(1.0);
+    }
   }
 }
 
@@ -842,7 +844,7 @@ void SlideScene::prepareNavigationEvent(const int newslide, const int newpage)
   }
   // Adjust scene size.
   /// Page size in points.
-  page_size = master->getPageSize(master->overlaysShifted(newpage, shift));
+  page_size = master->getPageSize(master->overlaysShiftedPage(newpage, shift));
   debug_verbose(
       DebugPageChange,
       newpage << page_size << master->getDocument()->flexiblePageSizes());
@@ -937,9 +939,8 @@ void SlideScene::postRendering()
   pageItem->clearOld();
   int newpage =
       page + 1;  ///< newpage is the next page after the currently shown page.
-  if (shift & AnyOverlay)
-    newpage =
-        master->getDocument()->overlaysShifted(page, 1 | (shift & AnyOverlay));
+  if (shift.overlay != NoOverlay)
+    newpage = master->getDocument()->overlaysShifted(page, {1, shift.overlay});
   if (slide_flags & CacheVideos) cacheMedia(newpage);
   // Clean up media
   if (mediaItems.size() > 2) {

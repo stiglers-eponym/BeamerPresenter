@@ -160,15 +160,29 @@ class PdfMaster : public QObject
   /// Number of pages in the document.
   int numberOfPages() const { return document->numberOfPages(); }
 
-  /// Get page number of start shifted by shift_overlay.
+  /// Get page number of page shifted by shift_overlay.
   /// Here in shift_overlay the bits of ShiftOverlay::FirstOverlay and
   /// ShiftOverlay::LastOverlay control the interpretation of the shift.
   /// Shifting with overlays means that only pages with a different page
   /// label (or own outline entry) start a new "real" slide.
-  int overlaysShifted(const int start, const int shift_overlay) const
+  int overlaysShifted(const int page, const PageShift shift_overlay) const
   {
-    return document->overlaysShifted(start, shift_overlay);
+    return document->overlaysShifted(page, shift_overlay);
   }
+  int overlaysShifted(const int page, const ShiftOverlays overlay) const
+  {
+    return document->overlaysShifted(page, overlay);
+  }
+
+  /// Get page number of slide shifted by shift_overlay.
+  /// If slide is an inserted slide and shift considers overlays,
+  /// use the nearest earlier page as reference.
+  int overlaysShiftedSlide(int slide, const PageShift shift_overlay) const;
+
+  /// Get page number of page shifted by shift_overlay.
+  /// If page is an inserted slide and shift considers overlays,
+  /// use the nearest earlier page as reference.
+  int overlaysShiftedPage(int page, const PageShift shift_overlay) const;
 
   /// Write page (part) to image, including drawings.
   QPixmap exportImage(const PPage ppage, const qreal resolution) const noexcept;
@@ -185,11 +199,12 @@ class PdfMaster : public QObject
   /// page (part) number is given as (page | page_part).
   PathContainer *pathContainer(PPage ppage) const
   {
-    if (preferences()->overlay_mode == PerLabel)
+    if (preferences()->overlay_mode == PerLabel && ppage.page >= 0)
       ppage.page = overlaysShifted(ppage.page, FirstOverlay);
     return paths.value(ppage, nullptr);
   }
 
+  /// Check if a path exists for given page for any page part.
   bool hasPage(const int page) const
   {
     return paths.contains({page, FullPage}) ||

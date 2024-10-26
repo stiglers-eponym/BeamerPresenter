@@ -156,6 +156,7 @@ void PixmapGraphicsItem::clearOld() noexcept
     else
       it = pixmaps.erase(it);
   }
+  newHashs.clear();
 }
 
 void PixmapGraphicsItem::setMaskType(const MaskType type) noexcept
@@ -197,4 +198,18 @@ bool PixmapGraphicsItem::hasWidth(const qreal width) const noexcept
     if (pix.width() > width - max_width_tolerance) return true;
   }
   return false;
+}
+
+void PixmapGraphicsItem::setRect(const QRectF &rect) noexcept
+{
+  bounding_rect = rect;
+  if (pixmaps.size() > 0) {
+    const QSize ref_size = pixmaps.last().size();
+    if (ref_size.width() / ref_size.height() <
+        0.98 * rect.width() / rect.height()) {
+      bounding_rect.setHeight(ref_size.height() * rect.width() /
+                              ref_size.width());
+    }
+  }
+  update();
 }

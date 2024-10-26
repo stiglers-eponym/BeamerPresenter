@@ -255,11 +255,15 @@ class PdfDocument
 
   /// Starting from page start, get the number (index) of the page shifted
   /// by shift_overlay.
-  /// If shift is an int and overlay is of type ShiftOverlays:
-  /// shift_overlay = (shift & ~AnyOverlay) | overlay
-  /// overlay = shift & AnyOverlay
-  /// shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
-  virtual int overlaysShifted(const int start, const int shift_overlay) const;
+  virtual int overlaysShifted(const int start, PageShift shift_overlay) const;
+
+  /// Starting from page start, get the number (index) of the page shifted by
+  /// overlay.
+  virtual int overlaysShifted(const int start,
+                              const ShiftOverlays overlay) const
+  {
+    return overlaysShifted(start, {0, overlay});
+  }
 
   /// List of indices, at which slide labels change. An empty list indicates
   /// that all consecutive slides have different labels.

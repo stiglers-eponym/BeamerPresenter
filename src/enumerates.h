@@ -130,6 +130,26 @@ enum ShiftOverlays {
   AnyOverlay = (LastOverlay | FirstOverlay),
 };
 
+struct PageShift {
+  int shift;
+  ShiftOverlays overlay;
+};
+
+inline bool operator<(PageShift a, PageShift b) noexcept
+{
+  return a.shift < b.shift || (a.shift == b.shift && a.overlay < b.overlay);
+}
+inline bool operator>(PageShift a, PageShift b) noexcept
+{
+  return a.shift > b.shift || (a.shift == b.shift && a.overlay > b.overlay);
+}
+inline bool operator==(PageShift a, PageShift b) noexcept
+{
+  return a.shift == b.shift && a.overlay == b.overlay;
+}
+
+Q_DECLARE_METATYPE(PageShift);
+
 /// Actions triggered by keyboard shortcuts, buttons, or some widgets.
 enum Action {
   InvalidAction = 0,  ///< invalid actoin
