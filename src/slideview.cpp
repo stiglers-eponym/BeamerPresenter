@@ -287,7 +287,8 @@ void SlideView::showMagnifier(QPainter *painter,
   painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
   painter->setPen(tool->color());
   painter->setBrush(Qt::NoBrush);
-  requestScaledPage(tool->scale());
+  const SlideScene *sscene = dynamic_cast<SlideScene *>(scene());
+  if (sscene) requestScaledPage(sscene->getZoom() * tool->scale());
   // Draw magnifier(s) at all positions of tool.
   for (const auto &pos : tool->pos()) {
     // calculate target rect: size of the magnifier

@@ -20,7 +20,7 @@ ThumbnailThread::ThumbnailThread(std::shared_ptr<const PdfDocument> document)
 
     // Create the renderer without any checks.
 #ifdef USE_EXTERNAL_RENDERER
-  if (preferences()->renderer == renderer::ExternalRenderer)
+  if (preferences()->renderer == Renderer::ExternalRenderer)
     renderer = new ExternalRenderer(preferences()->rendering_command,
                                     preferences()->rendering_arguments,
                                     document, preferences()->default_page_part);
@@ -31,7 +31,7 @@ ThumbnailThread::ThumbnailThread(std::shared_ptr<const PdfDocument> document)
   // Check if the renderer is valid
   if (renderer == nullptr || !renderer->isValid()) {
     renderer = nullptr;
-    qCritical() << tr("Creating renderer failed") << preferences()->renderer;
+    qCritical() << tr("Creating renderer failed");
     return;
   }
 }

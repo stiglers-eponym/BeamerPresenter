@@ -98,7 +98,7 @@ class MuPdfDocument : public PdfDocument
   /// Destructor: delete mutexes, drop doc and ctx.
   ~MuPdfDocument() override;
 
-  PdfEngine type() const noexcept override { return MuPdfEngine; }
+  PdfEngine type() const noexcept override { return PdfEngine::MuPdf; }
 
   /// Load or reload the PDF document if the file has been modified since
   /// it was loaded. Return true if the document was reloaded.

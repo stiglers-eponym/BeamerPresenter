@@ -608,16 +608,16 @@
 <context>
     <name>PixCache</name>
     <message>
-        <source>Creating renderer failed, default is</source>
-        <translation>Creazione del renderer non riuscita, il valore predefinito è</translation>
-    </message>
-    <message>
         <source>Invalid renderer</source>
         <translation>Rendering non valido</translation>
     </message>
     <message>
         <source>Rendering page failed for (page, resolution) =</source>
         <translation>Rendering della pagina non riuscito per (pagina, risoluzione) =</translation>
+    </message>
+    <message>
+        <source>Creating renderer failed</source>
+        <translation>Creazione del renderer non riuscita</translation>
     </message>
 </context>
 <context>

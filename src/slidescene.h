@@ -120,7 +120,7 @@ class SlideScene : public QGraphicsScene
   /// Shift of currently shown page relative to the current presentation
   /// slide. Overlay specifications are stored in the nonzero bits of
   /// FirstOverlay and LastOverlay.
-  PageShift shift = {0, NoOverlay};
+  PageShift shift = {0, ShiftOverlays::NoOverlay};
 
   /// Currently visible page.
   int page = 0;

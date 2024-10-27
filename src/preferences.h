@@ -93,7 +93,7 @@ class Preferences : public QObject
   /// Maximum number of steps in drawing history of hidden slide.
   int history_length_hidden_slides = 20;
   /// Define how should drawings be assigned to overlays.
-  OverlayDrawingMode overlay_mode = Cumulative;
+  OverlayDrawingMode overlay_mode = OverlayDrawingMode::Cumulative;
 
   // SHAPE RECOGNITION
   /// Parameter for sensitivity of line detectoin.
@@ -137,19 +137,19 @@ class Preferences : public QObject
 
 #ifdef USE_MUPDF
   /// PDF engine (should be same as renderer except if renderer is external)
-  PdfEngine pdf_engine{MuPdfEngine};
+  PdfEngine pdf_engine = PdfEngine::MuPdf;
   /// Renderer used to convert PDF page to image.
-  renderer::Renderer renderer{renderer::MuPDF};
+  Renderer renderer = Renderer::MuPDF;
 #elif defined(USE_POPPLER)
   /// PDF engine (should be same as renderer except if renderer is external)
-  PdfEngine pdf_engine{PopplerEngine};
+  PdfEngine pdf_engine = PdfEngine::Poppler;
   /// Renderer used to convert PDF page to image.
-  renderer::Renderer renderer{renderer::Poppler};
+  Renderer renderer = Renderer::Poppler;
 #elif defined(USE_QTPDF)
   /// PDF engine (should be same as renderer except if renderer is external)
-  PdfEngine pdf_engine{QtPDFEngine};
+  PdfEngine pdf_engine = PdfEngine::QtPDF;
   /// Renderer used to convert PDF page to image.
-  renderer::Renderer renderer{renderer::QtPDF};
+  Renderer renderer = Renderer::QtPDF;
 #endif
 #ifdef USE_EXTERNAL_RENDERER
   /// Rendering command for external renderer.

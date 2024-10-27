@@ -47,7 +47,7 @@ class QtDocument : public PdfDocument
   /// Destructor: trivial
   ~QtDocument() noexcept override { delete doc; }
 
-  PdfEngine type() const noexcept override { return QtPDFEngine; }
+  PdfEngine type() const noexcept override { return PdfEngine::QtPDF; }
 
   /// Render page to QPixmap. page is given as page index.
   /// resolution is given in pixels per point (dpi/72).

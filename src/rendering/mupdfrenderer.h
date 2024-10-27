@@ -40,7 +40,7 @@ class MuPdfRenderer : public AbstractRenderer
   MuPdfRenderer(const std::shared_ptr<const PdfDocument> &document,
                 const PagePart part = FullPage)
       : AbstractRenderer(part),
-        doc(document && document->type() == MuPdfEngine
+        doc(document && document->type() == PdfEngine::MuPdf
                 ? std::dynamic_pointer_cast<const MuPdfDocument>(document)
                 : nullptr)
   {

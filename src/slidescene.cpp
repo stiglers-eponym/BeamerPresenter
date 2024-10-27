@@ -939,7 +939,7 @@ void SlideScene::postRendering()
   pageItem->clearOld();
   int newpage =
       page + 1;  ///< newpage is the next page after the currently shown page.
-  if (shift.overlay != NoOverlay)
+  if (shift.overlay != ShiftOverlays::NoOverlay)
     newpage = master->getDocument()->overlaysShifted(page, {1, shift.overlay});
   if (slide_flags & CacheVideos) cacheMedia(newpage);
   // Clean up media

@@ -45,7 +45,7 @@ bool PixCacheThread::initializeRenderer(
 {
   // Create the renderer without any checks.
 #ifdef USE_EXTERNAL_RENDERER
-  if (preferences()->renderer == renderer::ExternalRenderer)
+  if (preferences()->renderer == Renderer::ExternalRenderer)
     renderer = new ExternalRenderer(preferences()->rendering_command,
                                     preferences()->rendering_arguments, doc,
                                     page_part);
@@ -57,7 +57,7 @@ bool PixCacheThread::initializeRenderer(
   if (renderer->isValid()) return true;
 
   // Creating renderer failed. Clean up and return false.
-  qCritical() << tr("Creating renderer failed") << preferences()->renderer;
+  qCritical() << tr("Creating renderer failed");
   delete renderer;
   renderer = nullptr;
   return false;

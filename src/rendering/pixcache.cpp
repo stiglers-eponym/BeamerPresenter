@@ -43,7 +43,7 @@ void PixCache::init()
   priority.clear();
   // Create the renderer without any checks.
 #ifdef USE_EXTERNAL_RENDERER
-  if (preferences()->renderer == renderer::ExternalRenderer)
+  if (preferences()->renderer == Renderer::ExternalRenderer)
     renderer = new ExternalRenderer(preferences()->rendering_command,
                                     preferences()->rendering_arguments, pdfDoc,
                                     page_part);
@@ -52,9 +52,7 @@ void PixCache::init()
     renderer = createRenderer(pdfDoc, page_part);
 
   // Check if the renderer is valid
-  if (!renderer->isValid())
-    qCritical() << tr("Creating renderer failed, default is")
-                << preferences()->renderer;
+  if (!renderer->isValid()) qCritical() << tr("Creating renderer failed");
 
   // Create threads.
   for (auto &thread : threads) {

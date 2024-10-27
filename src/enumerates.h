@@ -37,6 +37,15 @@ enum PagePart {
   UnknownPagePart = 1,
 };
 
+/**
+ * @brief PPage: page and page part identifies what is shown in one slide.
+ *
+ * A "slide" as shown in a slide widget can be either a full page of a PDF
+ * document, or just half of a page. LaTeX beamer has an option to create
+ * PDF pages into the presentation (left half) and notes for the speaker
+ * (right half). Thus, the correct identifier for what is shown in a slide
+ * widget is PPage (page index + page part).
+ */
 struct PPage {
   int page;
   PagePart part;
@@ -58,26 +67,25 @@ inline bool operator==(PPage a, PPage b) noexcept
 Q_DECLARE_METATYPE(PPage);
 
 /// PDF engine
-enum PdfEngine {
+enum class PdfEngine {
 #ifdef USE_QTPDF
   /// Internal Qt PDF engine (Qt PDF)
-  QtPDFEngine = 0,
+  QtPDF = 0,
 #endif
 #ifdef USE_POPPLER
   /// Poppler PDF engine
-  PopplerEngine = 1,
+  Poppler = 1,
 #endif
 #ifdef USE_MUPDF
   /// MuPDF PDF engine
-  MuPdfEngine = 2,
+  MuPdf = 2,
 #endif
 };
 
-/// @todo restructure namespaces
-namespace renderer
-{
+Q_DECLARE_METATYPE(PdfEngine);
+
 /// Type of PDF renderer.
-enum Renderer {
+enum class Renderer {
 #ifdef USE_QTPDF
   QtPDF = 0,
 #endif
@@ -91,11 +99,12 @@ enum Renderer {
   ExternalRenderer = 3,
 #endif
 };
-}  // namespace renderer
+
+Q_DECLARE_METATYPE(Renderer);
 
 /// Mode for handling drawings in overlays.
 /// Overlays are PDF pages sharing the same label.
-enum OverlayDrawingMode {
+enum class OverlayDrawingMode {
   /// Unknown mode, used to indicate invalid user input
   InvalidOverlayMode,
   /// Every page has independent drawings.
@@ -108,28 +117,29 @@ enum OverlayDrawingMode {
   Cumulative,
 };
 
-/**
- * @brief Use single bits of an integer to mark skipping of overlays.
- *
- * Page shifts are stored as integers in SlideScenes.
- * The information about whether overlays should be considered is
- * stored in the bits controlled by FirstOverlay and LastOverlay.
- * If shift is an int and overlay is of type ShiftOverlays:
- * * shift_overlay = (shift & ~AnyOverlay) | overlay
- * * overlay = shift & AnyOverlay
- * * shift = shift >= 0 ? shift & ~AnyOverlay : shift | AnyOverlay
- */
-enum ShiftOverlays {
-  /// No overlay, only consider page index for shifting.
+Q_DECLARE_METATYPE(OverlayDrawingMode);
+
+/// How to interpret a page shift when a presentation contains overlays.
+enum class ShiftOverlays {
+  /// Ignore overlays, only consider slide index when shifting.
   NoOverlay = 0,
   /// Only consider first overlay of each slide when shifting.
-  FirstOverlay = (INT_MAX >> 2) + 1,
+  FirstOverlay,
   /// Only consider last overlay of each slide when shifting.
-  LastOverlay = (INT_MAX >> 1) + 1,
-  /// Any overlay is used.
-  AnyOverlay = (LastOverlay | FirstOverlay),
+  LastOverlay,
 };
 
+Q_DECLARE_METATYPE(ShiftOverlays);
+
+/**
+ * @brief PageShift: integer shift + information how to handle overlays
+ *
+ * A slide widget can show a preview of the next slide. More generally, you can
+ * show the slide obtained by a general shift relative to the current slide.
+ * PageShift encodes this shift. It consists of an integer shift and the
+ * overlay information that determines how to interpret the shift.
+ * For example, this can be the last overlay of the shifted page.
+ */
 struct PageShift {
   int shift;
   ShiftOverlays overlay;

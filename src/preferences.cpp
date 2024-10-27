@@ -315,7 +315,7 @@ void Preferences::loadSettings()
   value = settings.value("history length hidden").toUInt(&ok);
   if (ok) history_length_hidden_slides = value;
   overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(),
-                                              Cumulative);
+                                              OverlayDrawingMode::Cumulative);
   qreal num = settings.value("line sensitifity").toDouble(&ok);
   if (ok && 0 < num && num < 0.1) line_sensitivity = num;
   num = settings.value("snap angle").toDouble(&ok);
@@ -371,22 +371,22 @@ void Preferences::loadSettings()
       bool understood_renderer = false;
 #ifdef USE_QTPDF
       if (renderer_str.count("qtpdf") > 0) {
-        renderer = renderer::QtPDF;
-        pdf_engine = QtPDFEngine;
+        renderer = Renderer::QtPDF;
+        pdf_engine = PdfEngine::QtPDF;
         understood_renderer = true;
       }
 #endif
 #ifdef USE_MUPDF
       if (renderer_str.count("mupdf") > 0) {
-        renderer = renderer::MuPDF;
-        pdf_engine = MuPdfEngine;
+        renderer = Renderer::MuPDF;
+        pdf_engine = PdfEngine::MuPdf;
         understood_renderer = true;
       }
 #endif
 #ifdef USE_POPPLER
       if (renderer_str.count("poppler") > 0) {
-        renderer = renderer::Poppler;
-        pdf_engine = PopplerEngine;
+        renderer = Renderer::Poppler;
+        pdf_engine = PdfEngine::Poppler;
         understood_renderer = true;
       }
 #endif
@@ -399,7 +399,7 @@ void Preferences::loadSettings()
                      "\"rendering arguments\" are required.";
           understood_renderer = true;
         } else
-          renderer = renderer::ExternalRenderer;
+          renderer = Renderer::ExternalRenderer;
       }
 #endif
       if (!understood_renderer)
@@ -575,22 +575,22 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
     debug_msg(DebugSettings, "renderer" << renderer_str);
 #ifdef USE_QTPDF
     if (renderer_str.count("qtpdf", Qt::CaseInsensitive) > 0) {
-      renderer = renderer::QtPDF;
-      pdf_engine = QtPDFEngine;
+      renderer = Renderer::QtPDF;
+      pdf_engine = PdfEngine::QtPDF;
       understood_renderer = true;
     }
 #endif
 #ifdef USE_MUPDF
     if (renderer_str.count("mupdf", Qt::CaseInsensitive) > 0) {
-      renderer = renderer::MuPDF;
-      pdf_engine = MuPdfEngine;
+      renderer = Renderer::MuPDF;
+      pdf_engine = PdfEngine::MuPdf;
       understood_renderer = true;
     }
 #endif
 #ifdef USE_POPPLER
     if (renderer_str.count("poppler", Qt::CaseInsensitive) > 0) {
-      renderer = renderer::Poppler;
-      pdf_engine = PopplerEngine;
+      renderer = Renderer::Poppler;
+      pdf_engine = PdfEngine::Poppler;
       understood_renderer = true;
     }
 #endif
@@ -603,7 +603,7 @@ void Preferences::loadFromParser(const QCommandLineParser &parser)
                    "\"rendering arguments\" are required.";
         understood_renderer = true;
       } else
-        renderer = renderer::ExternalRenderer;
+        renderer = Renderer::ExternalRenderer;
     }
 #endif
     if (!understood_renderer)
@@ -871,9 +871,9 @@ void Preferences::setRenderingArguments(const QString &string)
 
 void Preferences::setOverlayMode(const QString &string)
 {
-  const OverlayDrawingMode mode =
-      string_to_overlay_mode.value(string, InvalidOverlayMode);
-  if (mode == InvalidOverlayMode) return;
+  const OverlayDrawingMode mode = string_to_overlay_mode.value(
+      string, OverlayDrawingMode::InvalidOverlayMode);
+  if (mode == OverlayDrawingMode::InvalidOverlayMode) return;
   overlay_mode = mode;
   settings.beginGroup("drawing");
   settings.setValue("mode", string);

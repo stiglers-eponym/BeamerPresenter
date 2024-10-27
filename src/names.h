@@ -85,9 +85,9 @@ Gesture string_to_gesture(const QString &string) noexcept;
 /// Map human readable string to overlay mode.
 /// @see PdfMaster
 static const QMap<QString, OverlayDrawingMode> string_to_overlay_mode{
-    {"per page", PerPage},
-    {"per label", PerLabel},
-    {"cumulative", Cumulative},
+    {"per page", OverlayDrawingMode::PerPage},
+    {"per label", OverlayDrawingMode::PerLabel},
+    {"cumulative", OverlayDrawingMode::Cumulative},
 };
 
 static const QMap<PagePart, QString> page_part_names{

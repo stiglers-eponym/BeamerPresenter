@@ -467,7 +467,7 @@ SlideView *Master::createSlide(const QJsonObject &object,
   }
 
   // Calculate the shift for scene.
-  PageShift shift = {object.value("shift").toInt(), NoOverlay};
+  PageShift shift = {object.value("shift").toInt(), ShiftOverlays::NoOverlay};
   const QString overlays = object.value("overlays").toString().toLower();
   if (overlays == "first")
     shift.overlay = ShiftOverlays::FirstOverlay;
@@ -507,7 +507,7 @@ SlideView *Master::createSlide(const QJsonObject &object,
   if (scene == nullptr) {
     scene = new SlideScene(pdf, page_part, parent);
     scene->setPageShift(shift);
-    if (shift == PageShift({0, NoOverlay}) || is_master) {
+    if (shift == PageShift({0, ShiftOverlays::NoOverlay}) || is_master) {
       connect(scene, &SlideScene::finishTransition, this,
               &Master::postNavigation);
       pdf->getScenes().prepend(scene);
@@ -849,12 +849,12 @@ void Master::handleAction(const Action action)
       navigateToSlide(preferences()->slide - 1);
       break;
     case NextSkippingOverlays:
-      navigateToPage(documents.first()->overlaysShiftedPage(preferences()->page,
-                                                            {1, FirstOverlay}));
+      navigateToPage(documents.first()->overlaysShiftedPage(
+          preferences()->page, {1, ShiftOverlays::FirstOverlay}));
       break;
     case PreviousSkippingOverlays:
       navigateToPage(documents.first()->overlaysShiftedPage(
-          preferences()->page, {-1, FirstOverlay}));
+          preferences()->page, {-1, ShiftOverlays::FirstOverlay}));
       break;
     case FirstPage:
       navigateToSlide(0);
@@ -1151,22 +1151,30 @@ bool Master::saveBpr(const QString &filename)
   if (!writeXml(buffer, save_bp_specific)) return false;
 
   // Write to gzipped file.
-  gzFile file = gzopen(filename.toUtf8(), "wb");
-  if (file) {
-    gzwrite(file, buffer.data().data(), buffer.data().length());
-    gzclose_w(file);
-  } else {
-    QFile file(filename);
-    if (file.open(QFile::WriteOnly)) {
-      qWarning() << "Compressing document failed. Saving without compression.";
-      file.write(buffer.data());
-      file.close();
-    } else {
-      preferences()->showErrorMessage(
-          tr("Error while saving file"),
-          tr("Saving document failed for file path: ") + filename);
-      return false;
+  if (!filename.endsWith(".xml")) {
+    gzFile zfile = gzopen(filename.toUtf8(), "wb");
+    if (zfile) {
+      gzwrite(zfile, buffer.data().data(), buffer.data().length());
+      gzclose_w(zfile);
+      qInfo() << "Saved gzip-compressed XML to" << filename;
+      master_file = filename;
+      return true;
     }
+  }
+  QFile file(filename);
+  if (file.open(QFile::WriteOnly)) {
+    if (filename.endsWith(".xml"))
+      qInfo() << "Saving uncompressed XML to" << filename;
+    else
+      qWarning() << "Compressing document failed. Saving uncompressed XML to"
+                 << filename;
+    file.write(buffer.data());
+    file.close();
+  } else {
+    preferences()->showErrorMessage(
+        tr("Error while saving file"),
+        tr("Saving document failed for file path: ") + filename);
+    return false;
   }
   master_file = filename;
   return true;

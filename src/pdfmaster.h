@@ -96,8 +96,10 @@ class PdfMaster : public QObject
   /// Shift page to first overlay if drawings are per label.
   void shiftToDrawings(PPage &ppage) const
   {
-    if (ppage.page >= 0 && preferences()->overlay_mode == PerLabel)
-      ppage.page = document->overlaysShifted(ppage.page, FirstOverlay);
+    if (ppage.page >= 0 &&
+        preferences()->overlay_mode == OverlayDrawingMode::PerLabel)
+      ppage.page =
+          document->overlaysShifted(ppage.page, ShiftOverlays::FirstOverlay);
   }
 
  public:
@@ -199,8 +201,9 @@ class PdfMaster : public QObject
   /// page (part) number is given as (page | page_part).
   PathContainer *pathContainer(PPage ppage) const
   {
-    if (preferences()->overlay_mode == PerLabel && ppage.page >= 0)
-      ppage.page = overlaysShifted(ppage.page, FirstOverlay);
+    if (preferences()->overlay_mode == OverlayDrawingMode::PerLabel &&
+        ppage.page >= 0)
+      ppage.page = overlaysShifted(ppage.page, ShiftOverlays::FirstOverlay);
     return paths.value(ppage, nullptr);
   }
 

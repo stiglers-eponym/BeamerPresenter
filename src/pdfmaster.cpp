@@ -62,17 +62,17 @@ bool PdfMaster::loadDocument(const QString &filename)
   // Load a new document
   switch (preferences()->pdf_engine) {
 #ifdef USE_POPPLER
-    case PopplerEngine:
+    case PdfEngine::Poppler:
       document = std::shared_ptr<PdfDocument>(new PopplerDocument(filename));
       break;
 #endif
 #ifdef USE_MUPDF
-    case MuPdfEngine:
+    case PdfEngine::MuPdf:
       document = std::shared_ptr<PdfDocument>(new MuPdfDocument(filename));
       break;
 #endif
 #ifdef USE_QTPDF
-    case QtPDFEngine:
+    case PdfEngine::QtPDF:
       document = std::shared_ptr<PdfDocument>(new QtDocument(filename));
       break;
 #endif
@@ -101,8 +101,9 @@ SlideScene *PdfMaster::getActiveScene(const PPage ppage) const
 {
   for (auto scene : scenes) {
     if (scene && (ppage.part == scene->pagePart()) &&
-        (preferences()->overlay_mode == PerLabel && ppage.page >= 0
-             ? overlaysShifted(scene->getPage(), FirstOverlay)
+        (preferences()->overlay_mode == OverlayDrawingMode::PerLabel &&
+                 ppage.page >= 0
+             ? overlaysShifted(scene->getPage(), ShiftOverlays::FirstOverlay)
              : scene->getPage() == ppage.page))
       return scene;
   }
@@ -157,8 +158,10 @@ void PdfMaster::receiveAction(const Action action)
     case ClearDrawingRight: {
       PPage ppage = {preferences()->page,
                      static_cast<PagePart>(action ^ RedoDrawing)};
-      if (ppage.page >= 0 && preferences()->overlay_mode == PerLabel)
-        ppage.page = document->overlaysShifted(ppage.page, FirstOverlay);
+      if (ppage.page >= 0 &&
+          preferences()->overlay_mode == OverlayDrawingMode::PerLabel)
+        ppage.page =
+            document->overlaysShifted(ppage.page, ShiftOverlays::FirstOverlay);
       PathContainer *const path = paths.value(ppage, nullptr);
       if (path) {
         debug_msg(DebugDrawing, "clear:" << path);
@@ -245,8 +248,9 @@ void PdfMaster::distributeNavigationEvents(const int slide,
         scenepage == page ? slide : preferences()->slideForPage(scenepage);
     /// index page: the overlay root page, to which all drawings are attached.
     PPage indexpage = {scenepage, scene->pagePart()};
-    if (preferences()->overlay_mode == PerLabel && page >= 0)
-      indexpage.page = overlaysShifted(scenepage, FirstOverlay);
+    if (preferences()->overlay_mode == OverlayDrawingMode::PerLabel &&
+        page >= 0)
+      indexpage.page = overlaysShifted(scenepage, ShiftOverlays::FirstOverlay);
     if (scenemap.contains(indexpage))
       scene->navigationEvent(sceneslide, scenepage, scenemap[indexpage]);
     else {
@@ -373,18 +377,18 @@ void PdfMaster::readDrawingsFromStream(QXmlStreamReader &reader, const int page)
 PathContainer *PdfMaster::pathContainerCreate(PPage ppage)
 {
   switch (preferences()->overlay_mode) {
-    case PerPage:
+    case OverlayDrawingMode::PerPage:
       return paths.value(ppage, nullptr);
-    case PerLabel:
+    case OverlayDrawingMode::PerLabel:
       shiftToDrawings(ppage);
       return paths.value(ppage, nullptr);
-    case Cumulative: {
+    case OverlayDrawingMode::Cumulative: {
       PathContainer *container = paths.value(ppage, nullptr);
       if (ppage.page < 0 ||
           (container && !container->empty() && !container->isPlainCopy()))
         return container;
       const int start_overlay =
-          document->overlaysShifted(ppage.page, FirstOverlay);
+          document->overlaysShifted(ppage.page, ShiftOverlays::FirstOverlay);
       PathContainer *copy_container;
       int source_page = ppage.page;
       while (source_page-- > start_overlay) {
@@ -480,7 +484,7 @@ QPixmap PdfMaster::exportImage(const PPage ppage,
 int PdfMaster::overlaysShiftedSlide(int slide,
                                     const PageShift shift_overlay) const
 {
-  if (shift_overlay.overlay == NoOverlay)
+  if (shift_overlay.overlay == ShiftOverlays::NoOverlay)
     return preferences()->pageForSlide(slide + shift_overlay.shift);
   int page = preferences()->pageForSlide(slide);
   while (page < 0 && --slide >= 0) page = preferences()->pageForSlide(slide);
@@ -490,7 +494,7 @@ int PdfMaster::overlaysShiftedSlide(int slide,
 int PdfMaster::overlaysShiftedPage(int page,
                                    const PageShift shift_overlay) const
 {
-  if (shift_overlay.overlay == NoOverlay) {
+  if (shift_overlay.overlay == ShiftOverlays::NoOverlay) {
     if (shift_overlay.shift == 0) return page;
     const int slide = preferences()->slideForPage(page) + shift_overlay.shift;
     page = preferences()->pageForSlide(slide);

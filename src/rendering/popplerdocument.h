@@ -57,7 +57,7 @@ class PopplerDocument : public PdfDocument
   /// Destructor: trivial
   ~PopplerDocument() noexcept override {}
 
-  PdfEngine type() const noexcept override { return PopplerEngine; }
+  PdfEngine type() const noexcept override { return PdfEngine::Poppler; }
 
   /// Render page to QPixmap. page is given as page index.
   /// resolution is given in pixels per point (dpi/72).

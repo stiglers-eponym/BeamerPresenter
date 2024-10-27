@@ -19,15 +19,15 @@ AbstractRenderer *createRenderer(const std::shared_ptr<const PdfDocument> &doc,
 {
   switch (doc->type()) {
 #ifdef USE_MUPDF
-    case MuPdfEngine:
+    case PdfEngine::MuPdf:
       return new MuPdfRenderer(doc, page_part);
 #endif
 #ifdef USE_POPPLER
-    case PopplerEngine:
+    case PdfEngine::Poppler:
       return new PopplerRenderer(doc, page_part);
 #endif
 #ifdef USE_QTPDF
-    case QtPDFEngine:
+    case PdfEngine::QtPDF:
       return new QtRenderer(doc, page_part);
 #endif
     default:
@@ -52,7 +52,7 @@ int PdfDocument::overlaysShifted(const int start, PageShift shift_overlay) const
 {
   // Check whether the document has non-trivial page labels and shift has
   // non-trivial overlay flags.
-  if (pageLabels.empty() || shift_overlay.overlay == NoOverlay)
+  if (pageLabels.empty() || shift_overlay.overlay == ShiftOverlays::NoOverlay)
     return start + shift_overlay.shift;
   // Find the beginning of next slide.
   QMap<int, QString>::const_iterator it = pageLabels.upperBound(start);
@@ -68,13 +68,13 @@ int PdfDocument::overlaysShifted(const int start, PageShift shift_overlay) const
   // Check if the iterator has reached the beginning or end of the set.
   if (it == pageLabels.cbegin()) return 0;
   if (it == pageLabels.cend()) {
-    if (shift_overlay.overlay == FirstOverlay)
+    if (shift_overlay.overlay == ShiftOverlays::FirstOverlay)
       return (--it).key();
     else
       return numberOfPages() - 1;
   }
   // Return first or last overlay depending on overlay flags.
-  if (shift_overlay.overlay == FirstOverlay)
+  if (shift_overlay.overlay == ShiftOverlays::FirstOverlay)
     return (--it).key();
   else
     return it.key() - 1;

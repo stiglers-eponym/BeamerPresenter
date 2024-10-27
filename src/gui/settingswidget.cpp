@@ -175,23 +175,26 @@ void SettingsWidget::initRendering()
 
   QComboBox *select_renderer = new QComboBox(rendering);
 #ifdef USE_MUPDF
-  select_renderer->addItem("MuPDF", MuPdfEngine);
+  select_renderer->addItem("MuPDF", QVariant::fromValue(PdfEngine::MuPdf));
 #endif
 #ifdef USE_POPPLER
-  select_renderer->addItem("Poppler", PopplerEngine);
+  select_renderer->addItem("Poppler", QVariant::fromValue(PdfEngine::Poppler));
 #endif
 #ifdef USE_QTPDF
-  select_renderer->addItem("QtPDF", QtPDFEngine);
+  select_renderer->addItem("QtPDF", QVariant::fromValue(PdfEngine::QtPDF));
 #endif
 #ifdef USE_EXTERNAL_RENDERER
 #ifdef USE_MUPDF
-  select_renderer->addItem("MuPDF + external", MuPdfEngine);
+  select_renderer->addItem("MuPDF + external",
+                           QVariant::fromValue(PdfEngine::MuPdf));
 #endif
 #ifdef USE_POPPLER
-  select_renderer->addItem("Poppler + external", PopplerEngine);
+  select_renderer->addItem("Poppler + external",
+                           QVariant::fromValue(PdfEngine::Poppler));
 #endif
 #ifdef USE_QTPDF
-  select_renderer->addItem("QtPDF + external", QtPDFEngine);
+  select_renderer->addItem("QtPDF + external",
+                           QVariant::fromValue(PdfEngine::QtPDF));
 #endif
 #endif  // USE_EXTERNAL_RENDERER
   connect(select_renderer, &QComboBox::currentTextChanged,

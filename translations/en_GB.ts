@@ -608,15 +608,15 @@
 <context>
     <name>PixCache</name>
     <message>
-        <source>Creating renderer failed, default is</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Invalid renderer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Rendering page failed for (page, resolution) =</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Creating renderer failed</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

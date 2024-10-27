@@ -32,7 +32,7 @@ class PopplerRenderer : public AbstractRenderer
   PopplerRenderer(const std::shared_ptr<const PdfDocument> &document,
                   const PagePart part = FullPage)
       : AbstractRenderer(part),
-        doc(document && document->type() == PopplerEngine
+        doc(document && document->type() == PdfEngine::Poppler
                 ? std::dynamic_pointer_cast<const PopplerDocument>(document)
                 : nullptr) {};
 

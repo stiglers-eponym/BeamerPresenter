@@ -32,7 +32,7 @@ class QtRenderer : public AbstractRenderer
   QtRenderer(const std::shared_ptr<const PdfDocument> &document,
              const PagePart part = FullPage)
       : AbstractRenderer(part),
-        doc(document && document->type() == QtPDFEngine
+        doc(document && document->type() == PdfEngine::QtPDF
                 ? std::dynamic_pointer_cast<const QtDocument>(document)
                 : nullptr)
   {
