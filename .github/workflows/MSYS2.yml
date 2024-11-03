@@ -61,7 +61,8 @@ jobs:
     - name: '🚦 Test package'
       run: |
         which beamerpresenter
+        beamerpresenter --version
         dos2unix tests/minimal.pdf
         dos2unix tests/minimal.xml
-        beamerpresenter --test tests/minimal.pdf
-        beamerpresenter --test tests/minimal.xml
+        timeout 20 beamerpresenter --test --platform minimal tests/minimal.pdf
+        timeout 20 beamerpresenter --test --platform minimal tests/minimal.xml

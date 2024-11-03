@@ -169,7 +169,13 @@ int main(int argc, char *argv[])
     }
   }
   // Show all windows.
-  master()->showAll();
+  if (parser.isSet("test")) {
+    qInfo() << "Running in test mode.";
+    qInfo() << "Using GUI config file" << gui_config_file;
+    qInfo() << "PDF file alias:" << preferences()->file_alias;
+  } else {
+    master()->showAll();
+  }
   // Navigate to first page.
   master()->navigateToPage(0);
   // Distribute cache memory.
@@ -178,13 +184,7 @@ int main(int argc, char *argv[])
                    &Master::distributeMemory);
   // Run the program.
   int status = 0;
-  if (parser.isSet("test")) {
-    qInfo() << "Test results:";
-    qInfo() << "GUI config file was:" << gui_config_file;
-    qInfo() << "PDF file alias:" << preferences()->file_alias;
-  } else {
-    status = app.exec();
-  }
+  if (!parser.isSet("test")) status = app.exec();
   // Clean up. preferences() must be deleted after everything else.
   // Deleting master may take some time since this requires the interruption
   // and deletion of multiple threads.
