@@ -381,7 +381,8 @@ void PathContainer::eraserMicroStep(const QPointF &scene_pos, const qreal size)
           // group, stacking order is irrelevant since all items were created
           // from the same path by erasing.
           const auto group = static_cast<QGraphicsItemGroup *>(item);
-          for (const auto child : group->childItems())
+          const auto children = group->childItems();
+          for (const auto child : children)
             // All items in the group should be paths. But we better check
             // again.
             if (child && (child->type() == FullGraphicsPath::Type ||
@@ -452,7 +453,8 @@ bool PathContainer::applyMicroStep()
         scene = group->scene();
         // TODO: check whether the transformation of the group must be taken
         // into account
-        for (const auto child : group->childItems()) {
+        const auto children = group->childItems();
+        for (const auto child : children) {
           if (finalize && (child->type() == BasicGraphicsPath::Type ||
                            child->type() == FullGraphicsPath::Type))
             static_cast<AbstractGraphicsPath *>(child)->finalize();

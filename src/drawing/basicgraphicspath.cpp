@@ -8,7 +8,7 @@
 #include <QStyleOptionGraphicsItem>
 #include <QWidget>
 #include <QtConfig>
-#include <algorithm>
+#include <cmath>
 
 #include "src/drawing/drawtool.h"
 #include "src/log.h"

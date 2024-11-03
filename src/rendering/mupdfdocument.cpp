@@ -10,7 +10,7 @@
 #include <QRectF>
 #include <QSizeF>
 #include <QUrl>
-#include <iterator>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -22,13 +22,17 @@
 #include "src/log.h"
 #include "src/preferences.h"
 #include "src/rendering/mupdfdocument.h"
-#include "src/rendering/mupdfrenderer.h"
 
 #ifndef FZ_VERSION_MAJOR
 #define FZ_VERSION_MAJOR 0
 #endif
 #ifndef FZ_VERSION_MINOR
 #define FZ_VERSION_MINOR 0
+#endif
+
+#if (FZ_VERSION_MAJOR < 1) || \
+    ((FZ_VERSION_MAJOR == 1) && (FZ_VERSION_MINOR < 22))
+#include <iterator>
 #endif
 
 #if (FZ_VERSION_MAJOR < 1) || \

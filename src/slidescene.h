@@ -315,7 +315,7 @@ class SlideScene : public QGraphicsScene
   void copyToClipboard() const;
 
   /// Remove selection.
-  void removeSelection() const;
+  void removeSelection();
 
   /// Paste from clipboard.
   void pasteFromClipboard();
@@ -409,7 +409,7 @@ class SlideScene : public QGraphicsScene
   void updateSelectionRect() noexcept;
 
   /// Update tool, change selected items if necessary.
-  void toolChanged(std::shared_ptr<const Tool> tool) noexcept;
+  void toolChanged(std::shared_ptr<Tool> tool) noexcept;
 
   /// Update tool properties for selected items.
   void toolPropertiesChanged(const tool_variant &properties) noexcept;
@@ -420,36 +420,35 @@ class SlideScene : public QGraphicsScene
  signals:
   /// Send navigation event to views.
   /// Here page is already adapted to shift.
-  void navigationToViews(const int page, SlideScene *scene) const;
+  void navigationToViews(const int page, SlideScene *scene);
 
   /// Send a navigation signal (to master).
   void navigationSignal(const int slide, const int page);
 
   /// Send action (to master).
-  void sendAction(const Action action) const;
+  void sendAction(const Action action);
 
   /// Tell views to clear background.
-  void clearViews() const;
+  void clearViews();
 
   /// Send new path to PdfMaster.
-  void sendNewPath(PPage ppage, QGraphicsItem *item) const;
+  void sendNewPath(PPage ppage, QGraphicsItem *item);
 
   /// Send transformations for QGraphicsItems to PdfMaster.
   void sendHistoryStep(
       PPage ppage, std::map<QGraphicsItem *, QTransform> *transforms,
       std::map<AbstractGraphicsPath *, drawHistory::DrawToolDifference> *tools,
       std::map<TextGraphicsItem *, drawHistory::TextPropertiesDifference>
-          *texts) const;
+          *texts);
 
   /// Replace old path by new path in a single drawing history step.
-  void replacePath(PPage ppage, QGraphicsItem *olditem,
-                   QGraphicsItem *newitem) const;
+  void replacePath(PPage ppage, QGraphicsItem *olditem, QGraphicsItem *newitem);
 
   /// Add new paths in single history step.
-  void sendAddPaths(PPage ppage, const QList<QGraphicsItem *> &paths) const;
+  void sendAddPaths(PPage ppage, const QList<QGraphicsItem *> &paths);
 
   /// Remove paths in single history step.
-  void sendRemovePaths(PPage ppage, const QList<QGraphicsItem *> &paths) const;
+  void sendRemovePaths(PPage ppage, const QList<QGraphicsItem *> &paths);
 
   /// Tell master that transition has ended.
   void finishTransition();
@@ -466,10 +465,10 @@ class SlideScene : public QGraphicsScene
 
   /// Bring given items to foreground and add history step.
   void bringToForeground(PPage ppage,
-                         const QList<QGraphicsItem *> &to_foreground) const;
+                         const QList<QGraphicsItem *> &to_foreground);
   /// Bring given items to background and add history step.
   void bringToBackground(PPage ppage,
-                         const QList<QGraphicsItem *> &to_background) const;
+                         const QList<QGraphicsItem *> &to_background);
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(SlideScene::SlideFlags);

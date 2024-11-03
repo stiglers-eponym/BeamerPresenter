@@ -52,7 +52,7 @@ class ToolButton : public QToolButton
 
  signals:
   /// Send a copy of tool. Ownership of toolcopy is handed to receiver.
-  void sendTool(std::shared_ptr<Tool> toolcopy) const;
+  void sendTool(std::shared_ptr<Tool> toolcopy);
 };
 
 /// Take an svg file, replace #ff0000 by given color, render it to given size

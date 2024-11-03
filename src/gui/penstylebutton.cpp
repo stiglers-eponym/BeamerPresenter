@@ -17,7 +17,7 @@ PenStyleButton::PenStyleButton(QWidget *parent) : ToolPropertyButton(parent)
   }
 }
 
-void PenStyleButton::setToolProperty(std::shared_ptr<Tool> tool) const
+void PenStyleButton::setToolProperty(std::shared_ptr<Tool> tool)
 {
   const Qt::PenStyle style = currentData().value<Qt::PenStyle>();
   if (tool && tool->tool() & Tool::AnyDrawTool)
@@ -25,7 +25,7 @@ void PenStyleButton::setToolProperty(std::shared_ptr<Tool> tool) const
   emit sendToolProperties(tool_variant(style));
 }
 
-void PenStyleButton::toolChanged(std::shared_ptr<const Tool> tool)
+void PenStyleButton::toolChanged(std::shared_ptr<Tool> tool)
 {
   if (tool && tool->tool() & Tool::AnyDrawTool) {
     const int index = findData(QVariant::fromValue(

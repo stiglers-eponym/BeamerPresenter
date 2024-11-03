@@ -52,7 +52,7 @@ It is recommended to use Qt 6 (if available) and Poppler or MuPDF.
 More details can be found in the [installation manual](INSTALL.md).
 
 BeamerPresenter can be found in the [Nix repositories](https://search.nixos.org/packages?channel=unstable&type=packages&query=BeamerPresenter) and [in the AUR](https://aur.archlinux.org/packages/beamerpresenter) (for Arch/Manjaro/Endeavour, also as a [mainline version](https://aur.archlinux.org/packages/beamerpresenter-git)).
-The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro/Endeavour, Ubuntu 20.04 / 22.04, and flatpak.
+The [releases](https://github.com/stiglers-eponym/BeamerPresenter/releases) come with packages for Arch/Manjaro/Endeavour, Ubuntu 24.04 / 22.04 / 20.04, and flatpak.
 For example, the commands for installing BeamerPresenter with Poppler as PDF engine after downloading the corresponding file are:
 ```sh
 # Ubuntu 24.04:

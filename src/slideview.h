@@ -121,18 +121,18 @@ class SlideView : public QGraphicsView
   /// Draw magnifier to painter. tool should have BasicTool Magnifier, but this
   /// is not checked.
   void showMagnifier(QPainter *painter,
-                     std::shared_ptr<const PointingTool> tool) noexcept;
+                     std::shared_ptr<PointingTool> tool) noexcept;
   /// Draw pointer to painter. tool should have BasicTool Pointer, but this is
   /// not checked.
   void showPointer(QPainter *painter,
-                   std::shared_ptr<const PointingTool> tool) noexcept;
+                   std::shared_ptr<PointingTool> tool) noexcept;
   /// Draw torch to painter. tool should have BasicTool Torch, but this is not
   /// checked.
   void showTorch(QPainter *painter,
-                 std::shared_ptr<const PointingTool> tool) noexcept;
+                 std::shared_ptr<PointingTool> tool) noexcept;
   /// Draw circle representing eraser.
   void showEraser(QPainter *painter,
-                  std::shared_ptr<const PointingTool> tool) noexcept;
+                  std::shared_ptr<PointingTool> tool) noexcept;
 
   /// Draw pointing tools in foreground.
   void drawForeground(QPainter *painter, const QRectF &rect) override;
@@ -157,16 +157,16 @@ class SlideView : public QGraphicsView
   /// Inform cache that page is required.
   /// Resolution is given in pixels per point (dpi/72).
   void requestPage(const int page, const qreal resolution,
-                   const bool cache_page = true) const;
+                   const bool cache_page = true);
 
   /// Send key event to Master.
-  void sendKeyEvent(QKeyEvent *event) const;
+  void sendKeyEvent(QKeyEvent *event);
 
   /// Send an action (from a gesture) to master.
-  void sendAction(Action action) const;
+  void sendAction(Action action);
 
   /// Inform cache that widget has been resized.
-  void resizeCache(const QSizeF &size) const;
+  void resizeCache(const QSizeF &size);
 
   /// Draw foreground: pointing tools
   void drawSceneForeground(QPainter *painter, const QRectF &rect);

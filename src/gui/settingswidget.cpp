@@ -86,7 +86,7 @@ void SettingsWidget::initShortcuts()
   layout->addRow(explanation_label);
 
   KeyInputLabel *input_shortcut;
-  QMap<int, QString> action_to_string;
+  QMap<Action, QString> action_to_string;
   for (auto it = string_to_action_map.cbegin();
        it != string_to_action_map.cend(); ++it)
     action_to_string[*it] = it.key();
@@ -98,7 +98,7 @@ void SettingsWidget::initShortcuts()
     label->setToolTip(ActionButton::tr(action_to_description(*it)));
     layout->addRow(label, input_shortcut);
   }
-  QMap<int, QString> tool_to_string;
+  QMap<Tool::BasicTool, QString> tool_to_string;
   for (auto it = string_to_tool.cbegin(); it != string_to_tool.cend(); ++it)
     tool_to_string[*it] = it.key();
   const auto &key_tools = preferences()->key_tools;

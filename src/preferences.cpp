@@ -427,7 +427,7 @@ void Preferences::loadSettings()
                         string_to_input_device.value(dev.toStdString(),
                                                      Tool::AnyNormalDevice));
     actions.clear();
-    for (const auto tool : std::as_const(tools))
+    for (const auto &tool : std::as_const(tools))
       current_tools.insert(tool->tool(), tool);
   }
   settings.endGroup();
@@ -443,7 +443,7 @@ void Preferences::loadSettings()
         qWarning() << "Unknown key sequence in config:" << key;
       else {
         parseActionsTools(settings.value(key), actions, tools);
-        for (const auto tool : std::as_const(tools))
+        for (const auto &tool : std::as_const(tools))
           key_tools.insert(seq, tool);
         for (const auto action : std::as_const(actions))
           key_actions.insert(seq, action);
@@ -911,7 +911,7 @@ void Preferences::showErrorMessage(const QString &title,
                                    const QString &text) const
 {
   qCritical() << text;
-  emit sendErrorMessage(title, text);
+  master->showErrorMessage(title, text);
 }
 
 bool Preferences::setGuiConfigFile(const QString &file)

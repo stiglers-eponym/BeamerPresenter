@@ -7,6 +7,7 @@
 #include <QSet>
 #include <QStringList>
 #include <QToolButton>
+#include <utility>
 
 #include "src/config.h"
 #include "src/enumerates.h"
@@ -47,9 +48,9 @@ class ActionButton : public QToolButton
 
  protected slots:
   /// Send out action(s).
-  void onClicked() const noexcept
+  void onClicked() noexcept
   {
-    for (const auto action : actions) emit sendAction(action);
+    for (const auto action : std::as_const(actions)) emit sendAction(action);
   }
 
  public slots:
@@ -61,7 +62,7 @@ class ActionButton : public QToolButton
 
  signals:
   /// Send out an action.
-  void sendAction(const Action action) const;
+  void sendAction(const Action action);
 };
 
 /// Map actions to icon names.

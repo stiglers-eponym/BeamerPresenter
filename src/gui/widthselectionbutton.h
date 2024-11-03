@@ -28,11 +28,11 @@ class WidthSelectionButton : public ToolPropertyButton
 
  protected:
   /// Set width of tool to selected value.
-  void setToolProperty(std::shared_ptr<Tool> tool) const override;
+  void setToolProperty(std::shared_ptr<Tool> tool) override;
 
  public slots:
   /// Update currently selected width based on tool.
-  void toolChanged(std::shared_ptr<const Tool> tool) override;
+  void toolChanged(std::shared_ptr<Tool> tool) override;
 };
 
 #endif  // WIDTHSELECTIONBUTTON_H

@@ -62,7 +62,7 @@ bool ToolPropertyButton::event(QEvent *event)
   return QComboBox::event(event);
 }
 
-void ToolPropertyButton::changed(const int index) const
+void ToolPropertyButton::changed(const int index)
 {
   std::shared_ptr<Tool> tool = preferences()->currentTool(device);
   setToolProperty(tool);

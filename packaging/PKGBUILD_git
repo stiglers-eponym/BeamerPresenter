@@ -68,7 +68,7 @@ then
     depends+=("poppler-qt${_qt_version_major}")
 fi
 
-if [ "${_use_mupdf}" == 'ON' ]
+if [ "${_use_qtpdf}" == 'ON' ]
 then
     depends+=("qt${_qt_version_major}-webengine>=${_qt_min_version}" "qt${_qt_version_major}-webengine<${_qt_max_version}")
 fi

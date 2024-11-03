@@ -129,7 +129,7 @@ class NotesWidget : public QTextEdit
 
  signals:
   /// Notify Master of new unsaved changes.
-  void newUnsavedChanges() const;
+  void newUnsavedChanges();
 
   /// Notify Master that drawings should be saved.
   /// @param filename file path for saving drawings, should never be empty.

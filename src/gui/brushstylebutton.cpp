@@ -17,7 +17,7 @@ BrushStyleButton::BrushStyleButton(QWidget *parent) : ToolPropertyButton(parent)
   }
 }
 
-void BrushStyleButton::setToolProperty(std::shared_ptr<Tool> tool) const
+void BrushStyleButton::setToolProperty(std::shared_ptr<Tool> tool)
 {
   const Qt::BrushStyle style = currentData().value<Qt::BrushStyle>();
   if (tool && tool->tool() & Tool::AnyDrawTool) {
@@ -29,7 +29,7 @@ void BrushStyleButton::setToolProperty(std::shared_ptr<Tool> tool) const
   emit sendToolProperties(tool_variant(style));
 }
 
-void BrushStyleButton::toolChanged(std::shared_ptr<const Tool> tool)
+void BrushStyleButton::toolChanged(std::shared_ptr<Tool> tool)
 {
   if (tool && tool->tool() & Tool::AnyDrawTool) {
     const int index = findData(QVariant::fromValue(

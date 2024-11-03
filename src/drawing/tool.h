@@ -155,6 +155,7 @@ class Tool
   /// create copy of this.
   std::shared_ptr<Tool> copy() const;
 };
+Q_DECLARE_METATYPE(std::shared_ptr<Tool>);
 
 /// convert string (from configuration files or saved file) to tool
 static const QMap<QString, Tool::BasicTool> string_to_tool{

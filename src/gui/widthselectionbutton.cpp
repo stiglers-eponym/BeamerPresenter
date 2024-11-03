@@ -24,7 +24,7 @@ WidthSelectionButton::WidthSelectionButton(const QJsonArray &array,
   }
 }
 
-void WidthSelectionButton::setToolProperty(std::shared_ptr<Tool> tool) const
+void WidthSelectionButton::setToolProperty(std::shared_ptr<Tool> tool)
 {
   const qreal width = currentData().value<qreal>();
   if (width <= 0.) return;
@@ -33,7 +33,7 @@ void WidthSelectionButton::setToolProperty(std::shared_ptr<Tool> tool) const
   emit sendToolProperties(tool_variant(width));
 }
 
-void WidthSelectionButton::toolChanged(std::shared_ptr<const Tool> tool)
+void WidthSelectionButton::toolChanged(std::shared_ptr<Tool> tool)
 {
   if (tool && tool->tool() & Tool::AnyDrawTool) {
     const int idx =

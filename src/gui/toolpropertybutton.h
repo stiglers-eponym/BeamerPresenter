@@ -44,21 +44,21 @@ class ToolPropertyButton : public QComboBox
   bool event(QEvent *event) override;
 
   /// Set property for given tool.
-  virtual void setToolProperty(std::shared_ptr<Tool> tool) const = 0;
+  virtual void setToolProperty(std::shared_ptr<Tool> tool) = 0;
 
   /// Update currently selected tool property based on device.
   virtual void updateTool() { toolChanged(preferences()->currentTool(device)); }
 
  public slots:
   /// Update currently selected tool property based on tool.
-  virtual void toolChanged(std::shared_ptr<const Tool> tool) = 0;
+  virtual void toolChanged(std::shared_ptr<Tool> tool) = 0;
 
   /// Update the icon.
   virtual void updateIcon();
 
  protected slots:
   /// Choose tool and call setToolProperty.
-  void changed(const int index) const;
+  void changed(const int index);
 
  public:
   /// Constructor: adjust some widget properties.
@@ -69,10 +69,10 @@ class ToolPropertyButton : public QComboBox
 
  signals:
   /// Notify master/scene that tool has changed.
-  void sendUpdatedTool(std::shared_ptr<const Tool> tool) const;
+  void sendUpdatedTool(std::shared_ptr<Tool> tool);
 
   /// Notify master/scene that tool properties have been updated.
-  void sendToolProperties(const tool_variant &properties) const;
+  void sendToolProperties(const tool_variant &properties);
 };
 
 #endif  // TOOLPROPERTYBUTTON_H

@@ -46,7 +46,7 @@ For building BeamerPresenter with poppler in Ubuntu 24.04 with Qt6.4 use:
 mkdir -p build_dir
 cmake \
     -B build_dir \
-    -DUBUNTU_VERSION=24.04 \
+    -DUBUNTU_VERSION='24.04' \
     -DCMAKE_BUILD_TYPE='Release' \
     -DGIT_VERSION=OFF \
     -DUSE_POPPLER=ON \

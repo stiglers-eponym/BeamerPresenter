@@ -50,13 +50,6 @@
 #include "src/slidescene.h"
 #include "src/slideview.h"
 
-Master::Master()
-{
-  if (preferences())
-    connect(preferences(), &Preferences::sendErrorMessage, this,
-            &Master::showErrorMessage);
-}
-
 Master::~Master()
 {
   emit clearCache();
@@ -65,7 +58,7 @@ Master::~Master()
     cache->thread()->wait(thread_wait_time_ms);
     delete cache;
   }
-  for (const auto doc : std::as_const(documents)) {
+  for (const auto &doc : std::as_const(documents)) {
     QList<SlideScene *> &scenes = doc->getScenes();
     while (!scenes.isEmpty()) delete scenes.takeLast();
   }
@@ -623,11 +616,12 @@ std::shared_ptr<PdfMaster> Master::openFile(
     debug_msg(DebugDrawing, "Loading drawing file:" << name << abs_path
                                                     << known_files.size());
     loadBprInit(abs_path);
-    for (const auto doc : documents) known_files[doc->getFilename()] = doc;
+    for (const auto &doc : std::as_const(documents))
+      known_files[doc->getFilename()] = doc;
     for (auto it = preferences()->file_alias.cbegin();
          it != preferences()->file_alias.cend(); ++it) {
       const QString abs_alias_path = QFileInfo(*it).absoluteFilePath();
-      for (const auto doc : documents) {
+      for (const auto &doc : std::as_const(documents)) {
         debug_msg(DebugDrawing, "Comparing:" << name << abs_alias_path
                                              << doc->getFilename()
                                              << doc->drawingsPath());
@@ -827,7 +821,8 @@ bool Master::eventFilter(QObject *obj, QEvent *event)
     handleAction(action);
   }
   // Search tools in preferences for given key sequence.
-  for (const auto &tool : preferences()->key_tools.values(key_code))
+  const auto tools = preferences()->key_tools.values(key_code);
+  for (const auto &tool : tools)
     if (tool && tool->device()) setTool(tool->copy());
   event->accept();
   return true;
@@ -1088,7 +1083,7 @@ void Master::showErrorMessage(const QString &title, const QString &text) const
                         text);
 }
 
-void Master::setTool(std::shared_ptr<Tool> tool) const noexcept
+void Master::setTool(std::shared_ptr<Tool> tool)
 {
   if (!tool || !tool->device()) return;
   debug_msg(DebugDrawing | DebugKeyInput,
@@ -1243,7 +1238,8 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
     writer.writeEndElement();  // "beamerpresenter" element
   }
 
-  for (const auto &pdf : documents) pdf->writePages(writer, save_bp_specific);
+  for (const auto &pdf : std::as_const(documents))
+    pdf->writePages(writer, save_bp_specific);
 
   writer.writeEndElement();  // "xournal" element
   writer.writeEndDocument();
@@ -1261,7 +1257,7 @@ bool Master::loadBprDrawings(const QString &filename, const bool clear_drawings)
 {
   QBuffer *buffer = loadZipToBuffer(filename);
   if (!buffer) return false;
-  const bool status = loadXmlDrawings(buffer, clear_drawings);
+  const bool status = loadXmlDrawings(buffer, clear_drawings, filename);
   buffer->close();
   delete buffer;
   if (status) master_file = filename;
@@ -1298,7 +1294,7 @@ bool Master::loadXmlInit(QBuffer *buffer, const QString &abs_path)
   std::shared_ptr<PdfMaster> pdf(nullptr);
   while (reader.readNextStartElement()) {
     if (reader.name().toUtf8() == "beamerpresenter")
-      readXmlHeader(reader, false);
+      readXmlHeader(reader, false, abs_path);
     else if (reader.name().toUtf8() == "page")
       pdf = readXmlPageBg(reader, pdf, abs_path);
     else if (!reader.isEndElement())
@@ -1312,7 +1308,8 @@ bool Master::loadXmlInit(QBuffer *buffer, const QString &abs_path)
   return true;
 }
 
-bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
+bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings,
+                             const QString &abs_path)
 {
   if (!buffer) return false;
   debug_msg(DebugDrawing, "Loading drawings from buffer");
@@ -1335,9 +1332,9 @@ bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings)
   page_to_slide.clear();
   while (reader.readNextStartElement()) {
     if (reader.name().toUtf8() == "beamerpresenter")
-      readXmlHeader(reader, true);
+      readXmlHeader(reader, true, abs_path);
     else if (reader.name().toUtf8() == "page") {
-      pdf = readXmlPage(reader, pdf, page, clear_drawings);
+      pdf = readXmlPage(reader, pdf, page, abs_path, clear_drawings);
       page_to_slide[page] = page_idx.size();
       page_idx.append(page);
     } else if (!reader.isEndElement())
@@ -1360,8 +1357,11 @@ std::shared_ptr<PdfMaster> Master::readXmlPageBg(QXmlStreamReader &reader,
     if (reader.name().toUtf8() == "background") {
       const auto filename = reader.attributes().value("filename");
       if (!filename.isEmpty()) {
-        const QString abs_filename =
-            QFileInfo(filename.toString()).absoluteFilePath();
+        QFileInfo finfo(filename.toString());
+        if (finfo.isRelative() && !finfo.isFile())
+          finfo = QFileInfo(QFileInfo(drawings_path).absoluteDir(),
+                            filename.toString());
+        const QString abs_filename = finfo.absoluteFilePath();
         if (!pdf || (abs_filename != pdf->getFilename() &&
                      filename != pdf->getFilename())) {
           pdf = nullptr;
@@ -1392,8 +1392,13 @@ std::shared_ptr<PdfMaster> Master::readXmlPageBg(QXmlStreamReader &reader,
 std::shared_ptr<PdfMaster> Master::readXmlPage(QXmlStreamReader &reader,
                                                std::shared_ptr<PdfMaster> pdf,
                                                int &page,
+                                               const QString &abs_path,
                                                const bool clear_drawings)
 {
+  /// Regular expression matching exactly 2 non-digit characters at the end of a
+  /// string
+  static const QRegularExpression regexpr_2nondigits{"[^0-9]{2,2}$"};
+
   page = INT_MIN;
   if (reader.name().toUtf8() != "page") return pdf;
   while (reader.readNextStartElement()) {
@@ -1418,8 +1423,11 @@ std::shared_ptr<PdfMaster> Master::readXmlPage(QXmlStreamReader &reader,
         // Read file name
         const auto filename = attr.value("filename");
         if (!filename.isEmpty()) {
-          const QString abs_filename =
-              QFileInfo(filename.toString()).absoluteFilePath();
+          QFileInfo finfo(filename.toString());
+          if (finfo.isRelative() && !finfo.isFile())
+            finfo = QFileInfo(QFileInfo(abs_path).absoluteDir(),
+                              filename.toString());
+          const QString abs_filename = finfo.absoluteFilePath();
           if (!pdf || (abs_filename != pdf->getFilename() &&
                        filename != pdf->getFilename())) {
             pdf = nullptr;
@@ -1459,7 +1467,8 @@ std::shared_ptr<PdfMaster> Master::readXmlPage(QXmlStreamReader &reader,
   return pdf;
 }
 
-bool Master::readXmlHeader(QXmlStreamReader &reader, const bool read_notes)
+bool Master::readXmlHeader(QXmlStreamReader &reader, const bool read_notes,
+                           const QString &abs_path)
 {
   debug_msg(DebugDrawing, "Reading header");
   const QTime time = QTime::fromString(
@@ -1480,7 +1489,13 @@ bool Master::readXmlHeader(QXmlStreamReader &reader, const bool read_notes)
         if (reader.name().toUtf8() == "file") {
           const QXmlStreamAttributes &attr = reader.attributes();
           const QString alias = attr.value("alias").toString();
-          const QString path = attr.value("path").toString();
+          QString path = attr.value("path").toString();
+          if (!path.isEmpty()) {
+            QFileInfo finfo(path);
+            if (finfo.isRelative() && !finfo.isFile())
+              path = QFileInfo(QFileInfo(abs_path).absoluteDir(), path)
+                         .absoluteFilePath();
+          }
           const QString old_alias = preferences()->file_alias.value(alias);
           if (!alias.isEmpty() && !path.isEmpty() &&
               (old_alias.isEmpty() ||
@@ -1521,7 +1536,7 @@ void Master::loadPdfpcJSON(const QString &filename)
   QJsonObject obj;
   int idx, intlabel;
   QString label;
-  for (auto element : std::as_const(array)) {
+  for (const auto &element : std::as_const(array)) {
     obj = element.toObject();
     idx = obj.value("idx").toInt(-1);
     if (idx < 0) continue;

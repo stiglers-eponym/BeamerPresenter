@@ -27,7 +27,7 @@ class PenStyleButton : public ToolPropertyButton
 
  protected:
   /// Set style of tool to selected value.
-  void setToolProperty(std::shared_ptr<Tool> tool) const override;
+  void setToolProperty(std::shared_ptr<Tool> tool) override;
 
   /// Update currently selected style based on the tool for device.
   void updateTool() override
@@ -37,7 +37,7 @@ class PenStyleButton : public ToolPropertyButton
 
  public slots:
   /// Update currently selected tool property based on tool.
-  void toolChanged(std::shared_ptr<const Tool> tool) override;
+  void toolChanged(std::shared_ptr<Tool> tool) override;
 };
 
 #endif  // PENSTYLEBUTTON_H

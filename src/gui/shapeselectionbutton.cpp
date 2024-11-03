@@ -28,14 +28,14 @@ ShapeSelectionButton::ShapeSelectionButton(QWidget *parent)
   }
 }
 
-void ShapeSelectionButton::setToolProperty(std::shared_ptr<Tool> tool) const
+void ShapeSelectionButton::setToolProperty(std::shared_ptr<Tool> tool)
 {
   if (tool && tool->tool() & Tool::AnyDrawTool)
     std::static_pointer_cast<DrawTool>(tool)->setShape(
         currentData().value<DrawTool::Shape>());
 }
 
-void ShapeSelectionButton::toolChanged(std::shared_ptr<const Tool> tool)
+void ShapeSelectionButton::toolChanged(std::shared_ptr<Tool> tool)
 {
   if (tool && tool->tool() & Tool::AnyDrawTool) {
     const int index =

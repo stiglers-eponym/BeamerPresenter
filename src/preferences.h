@@ -351,12 +351,10 @@ class Preferences : public QObject
   void setFinalizePaths(const bool finalize);
 
  signals:
-  /// Send error message to master (main window), which will show a message box.
-  void sendErrorMessage(const QString &title, const QString &text) const;
   /// Interrupt drawing to avoid problems when changing or deleting tools.
-  void stopDrawing() const;
+  void stopDrawing();
   /// Tell master to redistribute cache memory.
-  void distributeMemory() const;
+  void distributeMemory();
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Preferences::GlobalFlags);

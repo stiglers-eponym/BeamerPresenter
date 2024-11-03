@@ -8,10 +8,10 @@
 #include <QStyleOptionGraphicsItem>
 #include <QVector>
 #include <QWidget>
+#include <QtDebug>
 #include <cmath>
 
 #include "src/drawing/basicgraphicspath.h"
-#include "src/log.h"
 
 constexpr qreal PI = 3.1415926535897932384626433;
 

@@ -38,7 +38,7 @@ When installing BeamerPresenter you need to choose a PDF engine from MuPDF, Popp
 
 
 ## Requirements
-Building is currently tested in Arch Linux, Xubuntu 20.04, Kubuntu 24.04 and 22.04, Fedora 40, and MinGW-w64 in MSYS2 (Windows).
+Building is currently tested in Arch Linux, Ubuntu 24.04, 22.04, 20.04 and 24.10, Fedora 41, and MinGW-w64 in MSYS2 (Windows).
 
 In order to compile BeamerPresenter you need to have CMake, zlib and Qt 5/6 including the multimedia and SVG modules installed.
 For translations you also need the linguist tools.
@@ -47,10 +47,10 @@ Qt versions since 5.12 (for Qt 5) or 6.2 (Qt 6) are supported.
 
 ### Dependencies in Ubuntu
 * `cmake` (only for building)
-    * cmake requires a compiler (e.g. `g++`) and a build system (e.g. Unix makefiles or ninja)
+    * cmake requires a compiler (e.g. `g++`) and a build system (e.g. `make` for Unix makefiles)
 * `zlib1g-dev`
 * `qt6-multimedia-dev` (Qt 6) or qtmultimedia5-dev (Qt 5)
-* `libqt6svg6-dev` (Qt 6) or `libqt5svg5-dev` (Qt 5)
+* `libqt6svg6-dev` (Qt 6) or `qt6-svg-dev` (Qt 6, Ubuntu 24.10) or `libqt5svg5-dev` (Qt 5)
 * for translations (only for building, you can disable translations with `-DUSE_TRANSLATIONS=OFF` in the [CMake command](#configure))
     * Qt 6: `qt6-tools-dev`, `qt6-tools-dev-tools`, and `qt6-l10n-tools`
     * Qt 5: `qttools5-dev`
@@ -71,7 +71,7 @@ When compiling with MuPDF:
 * only Ubuntu ≥22.04: `libgumbo-dev`
 
 When compiling with Qt PDF:
-* `qtpdf5-dev` (Qt 5) or `qtpdf6-dev` (Qt 6)
+* `qtpdf5-dev` (Qt 5) or `qtpdf6-dev` (Qt 6) or `qt6-pdf-dev` (Qt 6, Ubuntu 24.10)
 
 ### Dependencies in Arch Linux/Manjaro/Endeavour
 Replace qt6 with qt5 in all package names if you want to use Qt 5.
@@ -97,13 +97,13 @@ Optional, for showing videos:
 ### Dependencies in Fedora
 Fedora is the only RPM-based system tested so far. Please open an issue if these instructions seem wrong or outdated!
 
-General build dependencies in Fedora 40:
+General build dependencies in Fedora 41:
 * `cmake`
 * `git` (only when building mainline version)
 * `zlib-devel`
 * `qt6-qtmultimedia-devel` (`qt5-qtmultimedia-devel` for Qt 5)
 * `qt6-qtsvg-devel` (`qt5-qtsvg-devel` for Qt 5)
-* `qt6-qttools-devel` (`qt5-qttools-devel` for Qt 5)
+* `qt6-qttools-devel` (only for translations, `qt5-qttools-devel` for Qt 5)
 * `fedora-packager`
 
 When using poppler:
@@ -117,7 +117,10 @@ When using MuPDF:
 * `openjpeg2-devel`
 * `jbig2dec-devel`
 * `gumbo-parser-devel`
-* `tesseract-devel` (use the option `LINK_TESSERACT=ON`)
+* only Fedora <41: `tesseract-devel` (use the option `LINK_TESSERACT=ON`)
+
+When using QtPDF:
+* `qt6-qtpdf-devel`
 
 
 ## Manual installation

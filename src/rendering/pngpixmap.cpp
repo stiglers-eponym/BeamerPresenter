@@ -6,8 +6,7 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QPixmap>
-
-#include "src/log.h"
+#include <QtDebug>
 
 PngPixmap::PngPixmap(const QPixmap pixmap, const int page,
                      const float resolution)

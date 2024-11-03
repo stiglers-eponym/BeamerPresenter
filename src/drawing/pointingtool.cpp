@@ -5,6 +5,7 @@
 
 #include <QRadialGradient>
 #include <QtConfig>
+#include <utility>
 
 #include "src/slidescene.h"
 

@@ -206,7 +206,6 @@ bool SlideScene::event(QEvent *event)
       // Double click: These events are ignored, except if a text or drag tool
       // is used.
       const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
-      device = (mouseevent->buttons() << 1) | Tool::StartEvent;
       std::shared_ptr<Tool> tool =
           preferences()->currentTool(mouseevent->buttons() << 1);
       if (!tool) return false;
@@ -682,8 +681,9 @@ void SlideScene::handleSelectionStopEvents(std::shared_ptr<SelectionTool> tool,
       // setSelectionArea(path, Qt::ReplaceSelection, Qt::ContainsItemShape);
       clearSelection();
       setFocusItem(nullptr);
-      for (QGraphicsItem *item :
-           items(path.boundingRect(), Qt::IntersectsItemBoundingRect)) {
+      const auto intersect_items =
+          items(path.boundingRect(), Qt::IntersectsItemBoundingRect);
+      for (QGraphicsItem *item : intersect_items) {
         if (path.contains(item->mapToScene(item->shape())))
           item->setSelected(true);
       }
@@ -706,7 +706,8 @@ void SlideScene::setZoom(const qreal new_zoom, const bool render)
                rect.y() + shift * rect.height(), zoom / new_zoom * rect.width(),
                zoom / new_zoom * rect.height());
   zoom = new_zoom;
-  for (auto view : views()) {
+  const auto all_views = views();
+  for (auto view : all_views) {
     auto *sview = dynamic_cast<SlideView *>(view);
     if (sview) sview->setZoom(zoom, render);
   }
@@ -721,7 +722,8 @@ void SlideScene::setZoom(const qreal new_zoom, const QPointF reference,
                rect.y() + shift * (reference.y() - rect.y()),
                zoom / new_zoom * rect.width(), zoom / new_zoom * rect.height());
   zoom = new_zoom;
-  for (auto view : views()) {
+  const auto all_views = views();
+  for (auto view : all_views) {
     auto *sview = dynamic_cast<SlideView *>(view);
     if (sview) sview->setZoom(zoom, render);
   }
@@ -735,7 +737,8 @@ void SlideScene::resetView()
     setSceneRect(0., 0., page_size.width(), page_size.height());
   if (zoom != 1.0) {
     zoom = 1.0;
-    for (auto view : views()) {
+    const auto all_views = views();
+    for (auto view : all_views) {
       auto *sview = dynamic_cast<SlideView *>(view);
       if (sview) sview->setZoom(1.0);
     }
@@ -818,10 +821,12 @@ void SlideScene::receiveAction(const Action action)
       }
       break;
     case SelectAll:
-      if (slide_flags & ShowDrawings && hasFocus())
-        for (const auto item : items())
+      if (slide_flags & ShowDrawings && hasFocus()) {
+        const auto all_items = items();
+        for (const auto item : all_items)
           if (item->flags() & QGraphicsItem::ItemIsSelectable)
             item->setSelected(true);
+      }
       break;
     case ClearSelection:
       clearSelection();
@@ -845,6 +850,7 @@ void SlideScene::prepareNavigationEvent(const int newslide, const int newpage)
   // Adjust scene size.
   /// Page size in points.
   page_size = master->getPageSize(master->overlaysShiftedPage(newpage, shift));
+  if (page_part != FullPage) page_size.rwidth() /= 2;
   debug_verbose(
       DebugPageChange,
       newpage << page_size << master->getDocument()->flexiblePageSizes());
@@ -856,7 +862,6 @@ void SlideScene::prepareNavigationEvent(const int newslide, const int newpage)
     pageItem->clearPixmaps();
     return;
   }
-  if (page_part != FullPage) page_size.rwidth() /= 2;
   resetView();
 }
 
@@ -1705,7 +1710,7 @@ void SlideScene::updateSelectionRect() noexcept
   selection_bounding_rect.show();
 }
 
-void SlideScene::removeSelection() const
+void SlideScene::removeSelection()
 {
   const QList<QGraphicsItem *> selection = selectedItems();
   debug_verbose(DebugFunctionCalls, selection << this);
@@ -1807,12 +1812,12 @@ void SlideScene::pasteFromClipboard()
   else if (pasted_rect.bottom() <= scene_rect.top() + 3)
     dy = scene_rect.top() - pasted_rect.top();
   if (dx != 0 || dy != 0)
-    for (const auto item : items) item->moveBy(dx, dy);
+    for (const auto item : std::as_const(items)) item->moveBy(dx, dy);
   emit sendAddPaths({page, page_part}, items);
   updateSelectionRect();
 }
 
-void SlideScene::toolChanged(std::shared_ptr<const Tool> tool) noexcept
+void SlideScene::toolChanged(std::shared_ptr<Tool> tool) noexcept
 {
   debug_verbose(DebugFunctionCalls, tool.get() << this);
   if (!tool ||
@@ -1845,7 +1850,7 @@ void SlideScene::toolChanged(std::shared_ptr<const Tool> tool) noexcept
         text_changes;
     const auto text_tool = std::static_pointer_cast<const TextTool>(tool);
     TextGraphicsItem *text;
-    for (auto item : selection)
+    for (auto item : std::as_const(selection))
       if (item->type() == TextGraphicsItem::Type) {
         text = static_cast<TextGraphicsItem *>(item);
         const QColor &old_color = text->defaultTextColor(),
@@ -1874,7 +1879,7 @@ void SlideScene::toolPropertiesChanged(const tool_variant &properties) noexcept
         text_changes;
     const QFont font = std::get<QFont>(properties);
     TextGraphicsItem *text;
-    for (auto item : selection)
+    for (auto item : std::as_const(selection))
       if (item->type() == TextGraphicsItem::Type) {
         text = static_cast<TextGraphicsItem *>(item);
         if (text->font() != font)
@@ -1891,7 +1896,7 @@ void SlideScene::toolPropertiesChanged(const tool_variant &properties) noexcept
         tool_changes;
     std::map<TextGraphicsItem *, drawHistory::TextPropertiesDifference>
         text_changes;
-    for (auto item : selection) {
+    for (auto item : std::as_const(selection)) {
       switch (item->type()) {
         case BasicGraphicsPath::Type:
         case FullGraphicsPath::Type: {
@@ -1927,7 +1932,7 @@ void SlideScene::toolPropertiesChanged(const tool_variant &properties) noexcept
 
   std::map<AbstractGraphicsPath *, drawHistory::DrawToolDifference>
       tool_changes;
-  for (auto item : selection) {
+  for (auto item : std::as_const(selection)) {
     switch (item->type()) {
       case BasicGraphicsPath::Type:
       case FullGraphicsPath::Type: {
@@ -1985,7 +1990,8 @@ void SlideScene::updateSearchResults()
     searchResults = nullptr;
   } else if (pair.first == page) {
     if (searchResults) {
-      for (const auto &item : searchResults->childItems()) {
+      const auto child_items = searchResults->childItems();
+      for (const auto &item : child_items) {
         searchResults->removeFromGroup(item);
         delete item;
       }

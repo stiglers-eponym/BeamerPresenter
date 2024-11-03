@@ -8,8 +8,9 @@
 #include <QWidget>
 #include <algorithm>
 #include <array>
-#include <iterator>
+#include <cmath>
 #include <random>
+#include <utility>
 
 #include "src/log.h"
 
@@ -32,7 +33,7 @@ shuffled_array()
 }
 
 /// Shuffle the glitter array.
-static void reshuffle_array(const int seed = 42)
+static void reshuffle_array(const int seed = RANDOM_INT)
 {
   static std::random_device rd;
   static std::default_random_engine re(rd());
@@ -54,10 +55,9 @@ void PixmapGraphicsItem::paint(QPainter *painter,
   debug_msg(DebugRendering, "start painting pixmap" << this);
   if (pixmaps.isEmpty()) return;
   const QRectF target_rect = painter->transform().mapRect(bounding_rect);
-  const QRectF viewport = painter->viewport();
   const int ref_width = target_rect.width();
   QPixmap pixmap;
-  for (const auto &pix : pixmaps) {
+  for (const auto &pix : std::as_const(pixmaps)) {
     if (pix.width() >= ref_width) {
       pixmap = pix;
       break;
@@ -129,6 +129,14 @@ void PixmapGraphicsItem::paint(QPainter *painter,
     debug_msg(DebugRendering, "painting pixmap not pixel-aligned" << this);
     painter->drawPixmap(target_rect.toRect(), pixmap);
   }
+#ifdef QT_DEBUG
+  if ((preferences()->debug_level & (DebugRendering | DebugVerbose)) ==
+      (DebugRendering | DebugVerbose)) {
+    const QString str = QString::number(pixmap.width()) + "x" +
+                        QString::number(pixmap.height());
+    painter->drawText(target_rect, str);
+  }
+#endif
 }
 
 void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap) noexcept
@@ -150,6 +158,9 @@ void PixmapGraphicsItem::addPixmap(const QPixmap &pixmap) noexcept
 
 void PixmapGraphicsItem::clearOld() noexcept
 {
+  if (newHashs.empty()) return;
+  debug_verbose(DebugRendering,
+                "clearing pixmaps:" << newHashs.size() << pixmaps.size());
   for (auto it = pixmaps.begin(); it != pixmaps.end();) {
     if (newHashs.contains(it->width()))
       ++it;

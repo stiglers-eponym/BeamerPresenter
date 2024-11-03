@@ -8,7 +8,6 @@
 #include <QByteArray>
 #include <QRectF>
 #include <QUrl>
-#include <algorithm>
 #include <memory>
 
 #include "src/config.h"
@@ -150,14 +149,7 @@ class ExternalMedia : public MediaAnnotation
   /// Media source
   const QUrl &url() const noexcept { return _url; }
 
-  virtual bool operator==(const MediaAnnotation &other) const noexcept override
-  {
-    if (type() != other.type() || mode() != other.mode() ||
-        rect().toAlignedRect() != other.rect().toAlignedRect())
-      return false;
-    const auto &other_ext = static_cast<const ExternalMedia &>(other);
-    return _url == other_ext._url;
-  }
+  virtual bool operator==(const MediaAnnotation &other) const noexcept override;
 };
 
 /**
@@ -192,20 +184,7 @@ class EmbeddedMedia : public MediaAnnotation
   /// Data representing media.
   std::shared_ptr<QByteArray> &data() noexcept { return _data; }
 
-  virtual bool operator==(const MediaAnnotation &other) const noexcept override
-  {
-    if (type() != other.type() || mode() != other.mode() ||
-        rect().toAlignedRect() != other.rect().toAlignedRect())
-      return false;
-    const auto &other_em = static_cast<const EmbeddedMedia &>(other);
-#if (QT_VERSION_MAJOR >= 6)
-    return _data->size() == other_em._data->size() &&
-           other_em._data->startsWith(
-               _data->first(std::min(_data->size(), qsizetype(64))));
-#else
-    return _data->size() == other_em._data->size();
-#endif
-  }
+  virtual bool operator==(const MediaAnnotation &other) const noexcept override;
 };
 
 /**
@@ -269,21 +248,7 @@ class EmbeddedAudio : public MediaAnnotation
   virtual ~EmbeddedAudio() {}
 
   /// Comparison by all properties, including beginning of data.
-  virtual bool operator==(const MediaAnnotation &other) const noexcept override
-  {
-    if (type() != other.type() || mode() != other.mode() ||
-        rect().toAlignedRect() != other.rect().toAlignedRect())
-      return false;
-    const auto &other_em = static_cast<const EmbeddedAudio &>(other);
-    return _data->size() == other_em._data->size()
-#if (QT_VERSION_MAJOR >= 6)
-           && other_em._data->startsWith(
-                  _data->first(std::min(_data->size(), qsizetype(64))))
-#endif
-           && sampling_rate == other_em.sampling_rate &&
-           encoding == other_em.encoding && channels == other_em.channels &&
-           bits_per_sample == other_em.bits_per_sample;
-  }
+  virtual bool operator==(const MediaAnnotation &other) const noexcept override;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(MediaAnnotation::MediaFlags);

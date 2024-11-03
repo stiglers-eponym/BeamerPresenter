@@ -157,7 +157,7 @@ void PdfMaster::receiveAction(const Action action)
     case ClearDrawingLeft:
     case ClearDrawingRight: {
       PPage ppage = {preferences()->page,
-                     static_cast<PagePart>(action ^ RedoDrawing)};
+                     static_cast<PagePart>(action ^ ClearDrawing)};
       if (ppage.page >= 0 &&
           preferences()->overlay_mode == OverlayDrawingMode::PerLabel)
         ppage.page =
@@ -277,7 +277,7 @@ void PdfMaster::writePages(QXmlStreamWriter &writer,
     }
     if (!container_lst.empty()) {
       QRectF drawing_rect = QRectF({0, 0}, size);
-      for (auto container : container_lst)
+      for (auto container : std::as_const(container_lst))
         drawing_rect = drawing_rect.united(container->boundingBox());
       size = drawing_rect.size();
     }
@@ -459,8 +459,8 @@ QPixmap PdfMaster::exportImage(const PPage ppage,
   QPixmap pixmap;
   if (ppage.page >= 0) {
     const auto *renderer = createRenderer(document, ppage.part);
-    if (!renderer || !renderer->isValid()) return QPixmap();
-    QPixmap pixmap = renderer->renderPixmap(ppage.page, resolution);
+    if (!renderer || !renderer->isValid()) return pixmap;
+    pixmap = renderer->renderPixmap(ppage.page, resolution);
   } else {
     pixmap = QPixmap(document->pageSize(0).toSize());
   }

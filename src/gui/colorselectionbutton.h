@@ -29,11 +29,11 @@ class ColorSelectionButton : public ToolPropertyButton
 
  protected:
   /// Set color of tool to selected value.
-  void setToolProperty(std::shared_ptr<Tool> tool) const override;
+  void setToolProperty(std::shared_ptr<Tool> tool) override;
 
  public slots:
   /// Update currently selected color based on tool.
-  void toolChanged(std::shared_ptr<const Tool> tool) override;
+  void toolChanged(std::shared_ptr<Tool> tool) override;
 };
 
 #endif  // COLORSELECTIONBUTTON_H

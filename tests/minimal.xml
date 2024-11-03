@@ -3,8 +3,8 @@
 <title>BeamerPresenter document, compatible with Xournal++ - see https://github.com/stiglers-eponym/BeamerPresenter</title>
 <beamerpresenter duration="0:03:00">
 <documents>
-<file alias="notes" path="tests/minimal.pdf"/>
-<file alias="presentation" path="tests/minimal.pdf"/>
+<file alias="notes" path="minimal.pdf"/>
+<file alias="presentation" path="minimal.pdf"/>
 </documents>
 <speakernotes identifier="label">
 <page-notes label="1">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -13,7 +13,7 @@
 </speakernotes>
 </beamerpresenter>
 <page width="99" height="99">
-<background type="pdf" pageno="1" domain="absolute" filename="tests/minimal.pdf" endtime="0:02:00"/>
+<background type="pdf" pageno="1" domain="absolute" filename="minimal.pdf" endtime="0:02:00"/>
 <layer>
 <text font="DejaVu Sans" size="10" color="#ff0000ff" x="18" y="33">test</text>
 <stroke tool="highlighter" color="#ffff00ff" width="20">19.2 38.1 32.3 43.9 45.3 49.7</stroke>

@@ -41,7 +41,7 @@ class ToolWidgetButton : public ToolButton
  public slots:
   /// Receive a new tool from master. Only changes the tool if the
   /// new tool is connected to this->device.
-  void receiveNewTool(std::shared_ptr<const Tool> newtool);
+  void receiveNewTool(std::shared_ptr<Tool> newtool);
 };
 
 #endif  // TOOLWIDGETBUTTON_H

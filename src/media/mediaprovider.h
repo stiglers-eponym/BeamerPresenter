@@ -7,7 +7,6 @@
 #include <QBuffer>
 #include <QGraphicsVideoItem>
 #include <memory>
-#include <utility>
 
 #include "src/config.h"
 #if (QT_VERSION_MAJOR >= 6)
@@ -16,11 +15,9 @@
 #ifdef USE_WEBCAMS
 #include <QCamera>
 #include <QMediaCaptureSession>
-#include <QMediaDevices>
 #endif  // USE_WEBCAMS
 #else   // QT_VERSION_MAJOR
 #include <QMediaContent>
-#include <QMediaPlaylist>
 #endif  // QT_VERSION_MAJOR
 
 #include "src/log.h"
@@ -177,73 +174,60 @@ class MediaPlayerProvider :
    * to the buffer. This aims at handling an error that occurs when using
    * Qt 5 and playing an embedded video file.
    */
-  void handleCommonError(QMediaPlayer::Error error)
-  {
-    debug_msg(DebugMedia,
-              "handling media error" << error << _player->errorString());
-    if (error == QMediaPlayer::ResourceError && _buffer) {
-      _buffer->seek(0);
-      _player->setMedia(QMediaContent(), _buffer);
-      _player->play();
-    }
-  }
+  void handleCommonError(QMediaPlayer::Error error);
 #endif  // QT_VERSION_MAJOR
 
  public:
   /// Basic constructor: creates media player
-  MediaPlayerProvider()
-      :
-#if (QT_VERSION_MAJOR < 6)
-        QObject(),
-#endif
-        MediaProvider(),
-        _player(new MediaPlayer())
-  {
 #if (QT_VERSION_MAJOR >= 6)
+  MediaPlayerProvider() : MediaProvider(), _player(new MediaPlayer())
+  {
     _player->setAudioOutput(audio_out);
-#else
+  }
+#else  // QT_VERSION_MAJOR
+  MediaPlayerProvider() : QObject(), MediaProvider(), _player(new MediaPlayer())
+  {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0))
     _player->setAudioRole(QAudio::VideoRole);
 #endif  // QT_VERSION >= 5.6
     connect(_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error),
             this, &MediaPlayerProvider::handleCommonError);
-#endif  // QT_VERSION_MAJOR
   }
+#endif  // QT_VERSION_MAJOR
 
   /// Constructor: Takes ownership of given player.
   /// If player is nullptr, a new MediaPlayer object is created.
+#if (QT_VERSION_MAJOR >= 6)
   MediaPlayerProvider(MediaPlayer *player, QObject *parent = nullptr)
-      :
-#if (QT_VERSION_MAJOR < 6)
-        QObject(parent),
-#endif
-        MediaProvider(),
-        _player(player)
+      : MediaProvider(), _player(player)
   {
-    if (!player) _player = new MediaPlayer();
-#if (QT_VERSION_MAJOR >= 6)
-    _player->setAudioOutput(audio_out);
-#else
+    if (!_player) _player = new MediaPlayer();
+    if (_player) _player->setAudioOutput(audio_out);
+  }
+#else   // QT_VERSION_MAJOR
+  MediaPlayerProvider(MediaPlayer *player, QObject *parent = nullptr)
+      : QObject(parent), MediaProvider(), _player(player)
+  {
+    if (!_player) _player = new MediaPlayer();
     connect(_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error),
             this, &MediaPlayerProvider::handleCommonError);
-#endif
   }
+#endif  // QT_VERSION_MAJOR
 
-  MediaPlayerProvider(const MediaPlayerProvider &other)
-      :
-#if (QT_VERSION_MAJOR < 6)
-        QObject(other.parent()),
-#endif
-        MediaProvider(),
-        _player(other._player)
-  {
 #if (QT_VERSION_MAJOR >= 6)
-    _player->setAudioOutput(audio_out);
-#else
+  MediaPlayerProvider(const MediaPlayerProvider &other)
+      : MediaProvider(), _player(other._player)
+  {
+    if (_player) _player->setAudioOutput(audio_out);
+  }
+#else   // QT_VERSION_MAJOR
+  MediaPlayerProvider(const MediaPlayerProvider &other)
+      : QObject(other.parent()), MediaProvider(), _player(other._player)
+  {
     connect(_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error),
             this, &MediaPlayerProvider::handleCommonError);
-#endif
   }
+#endif  // QT_VERSION_MAJOR
 
   /// Destructor: delete _player and _buffer
   ~MediaPlayerProvider()
@@ -254,32 +238,13 @@ class MediaPlayerProvider :
 
   Type type() const noexcept override { return PlayerType; }
 
-  void setSource(const QUrl &url) override
-  {
 #if (QT_VERSION_MAJOR >= 6)
-    _player->setSource(url);
+  void setSource(const QUrl &url) override { _player->setSource(url); }
 #else
-    auto playlist = _player->playlist();
-    if (!playlist)
-      playlist = new QMediaPlaylist(_player);
-    else
-      playlist->clear();
-    playlist->addMedia(url);
-    _player->setPlaylist(playlist);
+  void setSource(const QUrl &url) override;
 #endif
-  }
 
-  void setSourceData(std::shared_ptr<QByteArray> &data) override
-  {
-    debug_verbose(DebugMedia, "setting embedded media data" << this);
-    _buffer = new QBuffer(data.get());
-    _buffer->open(QBuffer::ReadOnly);
-#if (QT_VERSION_MAJOR >= 6)
-    _player->setSourceDevice(_buffer);
-#else
-    _player->setMedia(QMediaContent(), _buffer);
-#endif
-  }
+  void setSourceData(std::shared_ptr<QByteArray> &data) override;
 
   void setVideoOutput(QGraphicsVideoItem *out) override
   {
@@ -293,7 +258,7 @@ class MediaPlayerProvider :
   }
 
   void setVideoSink(QVideoSink *sink) override { _player->setVideoSink(sink); }
-#endif
+#endif  // QT_VERSION_MAJOR
 
   void play() override { _player->play(); }
 
@@ -312,29 +277,7 @@ class MediaPlayerProvider :
 
   bool isPlaying() const override { return _player->isPlaying(); }
 
-  void setMode(const MediaAnnotation::Mode mode) override
-  {
-    switch (mode) {
-      case MediaAnnotation::Once:
-      case MediaAnnotation::Open:
-        break;
-      case MediaAnnotation::Palindrome:
-        qWarning() << "Palindrome video: not implemented (yet)";
-        // TODO
-      case MediaAnnotation::Repeat:
-      default:
-#if (QT_VERSION_MAJOR >= 6)
-        _player->setLoops(QMediaPlayer::Infinite);
-        QObject::connect(_player, &MediaPlayer::mediaStatusChanged, _player,
-                         &MediaPlayer::repeatIfFinished);
-#else
-        if (_player->playlist())
-          _player->playlist()->setPlaybackMode(
-              QMediaPlaylist::CurrentItemInLoop);
-#endif
-        break;
-    }
-  }
+  void setMode(const MediaAnnotation::Mode mode) override;
 
   /// get media player
   MediaPlayer *player() const noexcept { return _player; }
@@ -362,10 +305,11 @@ class MediaPlayerProvider :
   {
     if (_player) _player->setVolume(100 * volume);
   }
-#endif
+#endif  // QT_VERSION_MAJOR
 };
 
 #if (QT_VERSION_MAJOR >= 6) && defined(USE_WEBCAMS)
+
 /**
  * @brief MediaCaptureProvider: Implements MediaProvider using a media capture
  * session
@@ -393,7 +337,7 @@ class MediaCaptureProvider : public MediaProvider
       : MediaProvider(), _session(session)
   {
     if (!_session) _session = new QMediaCaptureSession();
-    session->setAudioOutput(audio_out);
+    if (_session) _session->setAudioOutput(audio_out);
   }
 
   /// Destructor: delete camera and session
@@ -419,25 +363,14 @@ class MediaCaptureProvider : public MediaProvider
 
   void setVideoSink(QVideoSink *sink) override { _session->setVideoSink(sink); }
 
-  void setSource(const QUrl &url) override
-  {
-    for (const auto &cam : QMediaDevices::videoInputs()) {
-      if (cam.id() == url.path()) {
-        QCamera *camera = new QCamera(cam);
-        if (camera) {
-          _session->setCamera(camera);
-          camera->start();
-        }
-        return;
-      }
-    }
-  }
+  void setSource(const QUrl &url) override;
 
   virtual std::unique_ptr<MediaProvider> clone() const override
   {
     return std::make_unique<MediaCaptureProvider>(*this);
   }
 };
-#endif
+
+#endif  // USE_WEBCAMS and QT_VERSION_MAJOR
 
 #endif  // MEDIAPROVIDER_H

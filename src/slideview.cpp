@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QWidget>
+#include <utility>
 
 #include "src/drawing/dragtool.h"
 #include "src/drawing/pixmapgraphicsitem.h"
@@ -43,7 +44,6 @@ SlideView::SlideView(SlideScene *scene, const PixCache *cache, QWidget *parent)
           Qt::QueuedConnection);
   connect(this, &SlideView::getPixmapBlocking, cache, &PixCache::getPixmap,
           Qt::BlockingQueuedConnection);
-  emit resizeCache(size());
 }
 
 QSize SlideView::sizeHint() const noexcept
@@ -112,7 +112,7 @@ void SlideView::resizeEvent(QResizeEvent *event)
   SlideScene *slidescene = static_cast<SlideScene *>(scene());
   const int page = slidescene->getPage();
   pageChanged(page, slidescene);
-  for (const auto &media : slidescene->getMedia())
+  for (const auto &media : std::as_const(slidescene->getMedia()))
 #if __cplusplus >= 202002L
     if (media.pages.contains(page))
 #else
@@ -280,7 +280,7 @@ void SlideView::requestScaledPage(const qreal zoom)
 }
 
 void SlideView::showMagnifier(QPainter *painter,
-                              std::shared_ptr<const PointingTool> tool) noexcept
+                              std::shared_ptr<PointingTool> tool) noexcept
 {
   painter->setRenderHints(QPainter::SmoothPixmapTransform |
                           QPainter::Antialiasing);
@@ -323,7 +323,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
       if (!*basic_tool) continue;
       if (basic_tool.key() & Tool::AnyPointingTool) {
         if (!(*basic_tool)->visible()) continue;
-        auto tool = std::static_pointer_cast<const PointingTool>(*basic_tool);
+        auto tool = std::static_pointer_cast<PointingTool>(*basic_tool);
         if (tool->pos().isEmpty() || tool->scene() != scene()) continue;
         debug_verbose(DebugDrawing, "drawing tool" << tool->tool()
                                                    << tool->size()
@@ -383,7 +383,7 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
 }
 
 void SlideView::showEraser(QPainter *painter,
-                           std::shared_ptr<const PointingTool> tool) noexcept
+                           std::shared_ptr<PointingTool> tool) noexcept
 {
   painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
   painter->setPen(QPen(tool->brush(), tool->scale()));
@@ -393,7 +393,7 @@ void SlideView::showEraser(QPainter *painter,
 }
 
 void SlideView::showPointer(QPainter *painter,
-                            std::shared_ptr<const PointingTool> tool) noexcept
+                            std::shared_ptr<PointingTool> tool) noexcept
 {
   painter->setCompositionMode(QPainter::CompositionMode_Darken);
   painter->setPen(Qt::PenStyle::NoPen);
@@ -406,7 +406,7 @@ void SlideView::showPointer(QPainter *painter,
 }
 
 void SlideView::showTorch(QPainter *painter,
-                          std::shared_ptr<const PointingTool> tool) noexcept
+                          std::shared_ptr<PointingTool> tool) noexcept
 {
   painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
   painter->setPen(Qt::PenStyle::NoPen);

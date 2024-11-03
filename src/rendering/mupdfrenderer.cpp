@@ -82,6 +82,8 @@ fz_pixmap *MuPdfRenderer::renderFzPixmap(const int page, const qreal resolution,
     fz_drop_context(ctx);
     return nullptr;
   }
+  debug_msg(DebugRendering, "Rendered using MuPDF:" << pixmap->w << pixmap->h
+                                                    << page << resolution);
   return pixmap;
 }
 
@@ -153,7 +155,7 @@ const PngPixmap *MuPdfRenderer::renderPng(const int page,
   fz_always(ctx) fz_drop_pixmap(ctx, pixmap);
   fz_catch(ctx)
   {
-    qWarning() << "Fitz falied to allocate buffer:" << fz_caught_message(ctx);
+    qWarning() << "Fitz failed to allocate buffer:" << fz_caught_message(ctx);
     fz_drop_buffer(ctx, buffer);
     fz_drop_context(ctx);
     return nullptr;

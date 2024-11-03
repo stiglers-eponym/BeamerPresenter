@@ -3,8 +3,9 @@
 
 #include "src/media/mediaitem.h"
 
+#include <QtDebug>
+
 #include "src/config.h"
-#include "src/log.h"
 #include "src/media/mediaannotation.h"
 
 void MediaItem::createProvider()

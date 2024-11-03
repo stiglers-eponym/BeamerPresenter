@@ -31,7 +31,7 @@ void ToolWidgetButton::selectTool()
   }
 }
 
-void ToolWidgetButton::receiveNewTool(std::shared_ptr<const Tool> newtool)
+void ToolWidgetButton::receiveNewTool(std::shared_ptr<Tool> newtool)
 {
   if (!newtool) return;
   if (newtool->device() & device) {

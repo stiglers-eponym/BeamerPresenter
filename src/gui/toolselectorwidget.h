@@ -55,18 +55,18 @@ class ToolSelectorWidget : public QWidget
 
  signals:
   /// Notify master/scene that tool properties have been updated.
-  void sendToolProperties(const tool_variant &properties) const;
+  void sendToolProperties(const tool_variant &properties);
 
   /// Send action status to action buttons.
   void sendStatus(const Action action, const int status);
 
   /// Send a new tool (copy of the tool of a button) to master.
   /// Ownership of tool is transfered to receiver (master).
-  void sendTool(std::shared_ptr<Tool> tool) const;
+  void sendTool(std::shared_ptr<Tool> tool);
 
   /// Notify master that a tool has been updated.
   /// Ownership of tool does not change.
-  void updatedTool(std::shared_ptr<const Tool> tool) const;
+  void updatedTool(std::shared_ptr<Tool> tool);
 
   /// Child buttons should update icons, called after resizing.
   void updateIcons();

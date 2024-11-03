@@ -45,6 +45,8 @@ int main(int argc, char *argv[])
   qRegisterMetaType<const PngPixmap *>("const PngPixmap*");
   qRegisterMetaType<Tool *>("Tool*");
   qRegisterMetaType<std::shared_ptr<Tool>>("std::shared_ptr<Tool>");
+  qRegisterMetaType<std::shared_ptr<PointingTool>>(
+      "std::shared_ptr<PointingTool>");
 
   // Set up the application.
   MasterApp app(argc, argv);

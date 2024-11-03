@@ -17,7 +17,6 @@
 #include "src/config.h"
 #include "src/enumerates.h"
 #include "src/gui/toolpropertybutton.h"
-#include "src/log.h"
 #include "src/preferences.h"
 #include "src/rendering/pixcache.h"
 
@@ -36,10 +35,6 @@ class QMainWindow;
 class QXmlStreamReader;
 class QXmlStreamWriter;
 class ContainerBaseClass;
-
-/// Regular expression matching exactly 2 non-digit characters at the end of a
-/// string
-static const QRegularExpression regexpr_2nondigits{"[^0-9]{2,2}$"};
 
 /**
  * @brief Central management of the program.
@@ -128,7 +123,7 @@ class Master : public QObject
 
  public:
   /// Constructor: initializes times.
-  Master();
+  Master() {}
 
   /// Destructor: delete cache, scenes, documents, and windows.
   /// This should delete everything.
@@ -216,9 +211,11 @@ class Master : public QObject
   /// Load XML from buffer: only initialize PDF documents, don't load drawings.
   bool loadXmlInit(QBuffer *buffer, const QString &abs_path);
   /// Load drawings and times from buffer.
-  bool loadXmlDrawings(QBuffer *buffer, const bool clear_drawings);
+  bool loadXmlDrawings(QBuffer *buffer, const bool clear_drawings,
+                       const QString &abs_path);
   /// Read header (beamerpresenter tag) from XML
-  bool readXmlHeader(QXmlStreamReader &reader, const bool read_notes);
+  bool readXmlHeader(QXmlStreamReader &reader, const bool read_notes,
+                     const QString &abs_path);
   /// Read page tag from XML, only find required PDF documents
   std::shared_ptr<PdfMaster> readXmlPageBg(QXmlStreamReader &reader,
                                            std::shared_ptr<PdfMaster> pdf,
@@ -226,7 +223,8 @@ class Master : public QObject
   /// Read page tag from XML
   std::shared_ptr<PdfMaster> readXmlPage(QXmlStreamReader &reader,
                                          std::shared_ptr<PdfMaster> pdf,
-                                         int &page, const bool clear_drawings);
+                                         int &page, const QString &abs_path,
+                                         const bool clear_drawings);
   /// Read overlay information for main PDF file from JSON file for PdfPc,
   /// useful for slides created with Polylux (Typst).
   void loadPdfpcJSON(const QString &filename);
@@ -265,7 +263,7 @@ class Master : public QObject
   void handleAction(const Action action);
 
   /// Set currently used tool. This takes ownership of tool.
-  void setTool(std::shared_ptr<Tool> tool) const noexcept;
+  void setTool(std::shared_ptr<Tool> tool);
 
   /// finish navigation event: called after page change or after slide
   /// transition.
@@ -276,17 +274,17 @@ class Master : public QObject
 
  signals:
   /// Send out new tool to SlideScenes (changes selected items).
-  void sendNewToolScene(std::shared_ptr<const Tool> tool) const;
+  void sendNewToolScene(std::shared_ptr<Tool> tool);
   /// Send out new tool only to tool buttons to update icons.
   /// This signal must always be sent when a tool changes,
   /// which is currently connected to a device.
-  void sendNewToolSoft(std::shared_ptr<const Tool> tool) const;
+  void sendNewToolSoft(std::shared_ptr<Tool> tool);
   /// Send out updated tool properties.
-  void sendToolProperties(const tool_variant &properties) const;
+  void sendToolProperties(const tool_variant &properties);
   /// Send out action.
-  void sendAction(const Action action) const;
+  void sendAction(const Action action);
   /// Set status for an action (e.g. timer paused or running).
-  void sendActionStatus(const Action action, const int status) const;
+  void sendActionStatus(const Action action, const int status);
   /// Set memory of each PixCache object to scale*(number of pixels)
   void sendScaledMemory(const float scale);
   /// Clear cache of all PixCache objects
@@ -296,23 +294,23 @@ class Master : public QObject
 
   /// Prepare navigation: Scenes update geometry, such that the layout can
   /// be recalculated.
-  void prepareNavigationSignal(const int slide, const int page) const;
+  void prepareNavigationSignal(const int slide, const int page);
 
   /// Send out navigation signal (after updating preferences()->page).
   /// This should only be used in queued connection.
-  void navigationSignal(const int slide, const int page) const;
+  void navigationSignal(const int slide, const int page);
 
   /// Set end time (in ms) for page.
   void setTimeForPage(const int page, const quint32 time);
   /// Get end time (in ms) for page. time is set to UINT32_MAX if no end time is
   /// defined.
-  void getTimeForPage(const int page, quint32 &time) const;
+  void getTimeForPage(const int page, quint32 &time);
   /// Tell NotesWidget to write notes to writer.
   void writeNotes(QXmlStreamWriter &writer);
   /// Tell NotesWidget to read notes from reader.
   void readNotes(QXmlStreamReader &reader);
   /// Notify TimerWidget of changes in total time.
-  void setTotalTime(const QTime time) const;
+  void setTotalTime(const QTime time);
   /// Tell PdfMaster to save drawings.
   void saveDrawings(const QString filename);
 };

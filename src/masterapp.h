@@ -9,6 +9,7 @@
 #include <QIcon>
 #include <QTabletEvent>
 #include <memory>
+#include <utility>
 
 #include "src/config.h"
 #include "src/drawing/pointingtool.h"
