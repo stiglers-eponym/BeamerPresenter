@@ -41,9 +41,10 @@ bool Preferences::pageExists(const int page) const noexcept
 std::shared_ptr<Tool> createTool(const QJsonObject &obj,
                                  const int default_device)
 {
-  const Tool::BasicTool base_tool =
-      string_to_tool.value(obj.value("tool").toString(), Tool::InvalidTool);
+  const Tool::BasicTool base_tool = get_string_to_tool().value(
+      obj.value("tool").toString(), Tool::InvalidTool);
   const QJsonValue dev_obj = obj.value("device");
+  const auto &string_to_input_device = get_string_to_input_device();
   int device = 0;
   if (dev_obj.isDouble())
     device = dev_obj.toInt();
@@ -65,13 +66,13 @@ std::shared_ptr<Tool> createTool(const QJsonObject &obj,
       const float width = obj.value("width").toDouble(
           base_tool == DrawTool::Highlighter ? 20. : 2.);
       if (width <= 0.) return nullptr;
-      const Qt::PenStyle pen_style = pen_style_codes.key(
+      const Qt::PenStyle pen_style = get_pen_style_codes().key(
           obj.value("style").toString().toStdString(), Qt::SolidLine);
       const QColor brush_color(obj.value("fill").toString());
-      const Qt::BrushStyle brush_style = brush_style_codes.key(
+      const Qt::BrushStyle brush_style = get_brush_style_codes().key(
           obj.value("brush").toString().toStdString(),
           brush_color.isValid() ? Qt::SolidPattern : Qt::NoBrush);
-      const DrawTool::Shape shape = shape_codes.key(
+      const DrawTool::Shape shape = get_shape_codes().key(
           obj.value("shape").toString().toStdString(), DrawTool::Freehand);
       debug_msg(DebugSettings,
                 "creating pen/highlighter" << base_tool << color << width);
@@ -80,7 +81,7 @@ std::shared_ptr<Tool> createTool(const QJsonObject &obj,
               ? QPainter::CompositionMode_Darken
               : QPainter::CompositionMode_SourceOver;
       if (obj.contains("composition"))
-        composition = composition_mode_codes.key(
+        composition = get_composition_mode_codes().key(
             obj.value("composition").toString().toStdString(), composition);
       tool = new DrawTool(
           base_tool, device,
@@ -165,7 +166,7 @@ std::shared_ptr<Tool> createTool(const QJsonObject &obj,
 void toolToJson(std::shared_ptr<const Tool> tool, QJsonObject &obj)
 {
   if (!tool) return;
-  obj.insert("tool", string_to_tool.key(tool->tool()));
+  obj.insert("tool", get_string_to_tool().key(tool->tool()));
   obj.insert("device", tool->device());
   if (tool->tool() & Tool::AnyDrawTool) {
     const auto drawtool = std::static_pointer_cast<const DrawTool>(tool);
@@ -174,17 +175,19 @@ void toolToJson(std::shared_ptr<const Tool> tool, QJsonObject &obj)
     if (drawtool->brush().style() != Qt::NoBrush) {
       obj.insert("fill", drawtool->brush().color().name());
       if (drawtool->brush().style() != Qt::SolidPattern)
-        obj.insert("brush",
-                   brush_style_codes.value(drawtool->brush().style()).c_str());
+        obj.insert(
+            "brush",
+            get_brush_style_codes().value(drawtool->brush().style()).c_str());
     }
-    obj.insert("style", pen_style_codes.value(drawtool->pen().style()).c_str());
+    obj.insert("style",
+               get_pen_style_codes().value(drawtool->pen().style()).c_str());
     obj.insert("shape",
-               shape_codes.value(drawtool->shape(), "freehand").c_str());
+               get_shape_codes().value(drawtool->shape(), "freehand").c_str());
     if (drawtool->compositionMode() != QPainter::CompositionMode_SourceOver)
-      obj.insert(
-          "composition",
-          composition_mode_codes.value(drawtool->compositionMode(), "unknown")
-              .c_str());
+      obj.insert("composition",
+                 get_composition_mode_codes()
+                     .value(drawtool->compositionMode(), "unknown")
+                     .c_str());
   } else if (tool->tool() & Tool::AnyPointingTool) {
     obj.insert("size",
                std::static_pointer_cast<const PointingTool>(tool)->size());
@@ -245,7 +248,8 @@ void Preferences::loadSettings()
     // Paths to required files / directories
     QString fallback_root = QCoreApplication::applicationDirPath();
     debug_msg(DebugSettings, "fallback root:" << fallback_root);
-    if (fallback_root.contains(UNIX_LIKE)) fallback_root.remove(UNIX_LIKE);
+    const QRegularExpression unix_like(UNIX_LIKE);
+    if (fallback_root.contains(unix_like)) fallback_root.remove(unix_like);
     gui_config_file =
         settings.value("gui config", DEFAULT_GUI_CONFIG_PATH).toString();
     if (!QFileInfo::exists(gui_config_file)) {
@@ -314,8 +318,8 @@ void Preferences::loadSettings()
   if (ok) history_length_visible_slides = value;
   value = settings.value("history length hidden").toUInt(&ok);
   if (ok) history_length_hidden_slides = value;
-  overlay_mode = string_to_overlay_mode.value(settings.value("mode").toString(),
-                                              OverlayDrawingMode::Cumulative);
+  overlay_mode = get_string_to_overlay_mode().value(
+      settings.value("mode").toString(), OverlayDrawingMode::Cumulative);
   qreal num = settings.value("line sensitifity").toDouble(&ok);
   if (ok && 0 < num && num < 0.1) line_sensitivity = num;
   num = settings.value("snap angle").toDouble(&ok);
@@ -421,6 +425,7 @@ void Preferences::loadSettings()
   QList<Action> actions;
   if (!allKeys.isEmpty()) {
     current_tools.clear();
+    const auto &string_to_input_device = get_string_to_input_device();
     QList<std::shared_ptr<Tool>> tools;
     for (const auto &dev : std::as_const(allKeys))
       parseActionsTools(settings.value(dev), actions, tools,
@@ -503,8 +508,8 @@ void Preferences::parseActionsTools(const QVariant &input,
     Action action;
     for (const auto &action_str :
          static_cast<const QStringList>(input.toStringList())) {
-      action = string_to_action_map.value(action_str.toLower(),
-                                          Action::InvalidAction);
+      action = get_string_to_action().value(action_str.toLower(),
+                                            Action::InvalidAction);
       if (action == InvalidAction)
         qWarning() << "Unknown action in config" << action_str
                    << "as part of input" << input;
@@ -515,7 +520,7 @@ void Preferences::parseActionsTools(const QVariant &input,
   }
   for (const auto &value : std::as_const(array)) {
     if (value.isString()) {
-      const Action action = string_to_action_map.value(
+      const Action action = get_string_to_action().value(
           value.toString().toLower(), Action::InvalidAction);
       if (action == InvalidAction)
         qWarning() << "Unknown action in config:" << value << "as part of input"
@@ -629,7 +634,7 @@ void Preferences::addKeyAction(const QKeySequence sequence, const Action action)
   if (!keycode.isEmpty()) {
     settings.beginGroup("keys");
     QStringList list = settings.value(keycode).toStringList();
-    const QString &string = string_to_action_map.key(action);
+    const QString &string = get_string_to_action().key(action);
     if (!list.contains(string)) {
       list.append(string);
       settings.setValue(keycode, list);
@@ -646,7 +651,7 @@ void Preferences::removeKeyAction(const QKeySequence sequence,
   const QString keycode = sequence.toString();
   if (!keycode.isEmpty() && settings.contains(keycode)) {
     QStringList list = settings.value(keycode).toStringList();
-    list.removeAll(string_to_action_map.key(action));
+    list.removeAll(get_string_to_action().key(action));
     if (list.isEmpty())
       settings.remove(keycode);
     else
@@ -871,7 +876,7 @@ void Preferences::setRenderingArguments(const QString &string)
 
 void Preferences::setOverlayMode(const QString &string)
 {
-  const OverlayDrawingMode mode = string_to_overlay_mode.value(
+  const OverlayDrawingMode mode = get_string_to_overlay_mode().value(
       string, OverlayDrawingMode::InvalidOverlayMode);
   if (mode == OverlayDrawingMode::InvalidOverlayMode) return;
   overlay_mode = mode;

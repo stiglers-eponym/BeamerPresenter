@@ -574,7 +574,7 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
         writer.writeAttribute("width", path->stringWidth());
         if (tool.pen().style() != Qt::SolidLine)
           writer.writeAttribute(
-              "style", pen_style_codes.value(tool.pen().style()).c_str(),
+              "style", get_pen_style_codes().value(tool.pen().style()).c_str(),
               "solid");
         if (tool.brush().style() != Qt::NoBrush) {
           // Compare brush and stroke color.
@@ -595,16 +595,16 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
             writer.writeAttribute("brushcolor", color_to_rgba(fill).toLower());
           }
           if (tool.brush().style() != Qt::SolidPattern)
-            writer.writeAttribute(
-                "brushstyle",
-                brush_style_codes.value(tool.brush().style(), "unknown")
-                    .c_str());
+            writer.writeAttribute("brushstyle",
+                                  get_brush_style_codes()
+                                      .value(tool.brush().style(), "unknown")
+                                      .c_str());
         }
         if (tool.compositionMode() != QPainter::CompositionMode_SourceOver)
-          writer.writeAttribute(
-              "composition",
-              composition_mode_codes.value(tool.compositionMode(), "unknown")
-                  .c_str());
+          writer.writeAttribute("composition",
+                                get_composition_mode_codes()
+                                    .value(tool.compositionMode(), "unknown")
+                                    .c_str());
         writer.writeCharacters(path->stringCoordinates());
         writer.writeEndElement();
         break;
@@ -616,23 +616,23 @@ void PathContainer::writeXml(QXmlStreamWriter &writer) const
 AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
 {
   const auto attr = reader.attributes();
-  Tool::BasicTool basic_tool =
-      string_to_tool.value(attr.value("tool").toString(), Tool::InvalidTool);
+  Tool::BasicTool basic_tool = get_string_to_tool().value(
+      attr.value("tool").toString(), Tool::InvalidTool);
   if (!(basic_tool & Tool::AnyDrawTool)) return nullptr;
   const QString width_str = attr.value("width").toString();
   if (basic_tool == Tool::Pen && !width_str.contains(' '))
     basic_tool = Tool::FixedWidthPen;
   QPen pen(rgba_to_color(attr.value("color").toString()),
            basic_tool == Tool::Pen ? 1. : width_str.toDouble(),
-           pen_style_codes.key(attr.value("style").toString().toStdString(),
-                               Qt::SolidLine),
+           get_pen_style_codes().key(
+               attr.value("style").toString().toStdString(), Qt::SolidLine),
            Qt::RoundCap, Qt::RoundJoin);
   if (pen.widthF() <= 0) pen.setWidthF(1.);
   // "fill" is the Xournal++ way of storing filling colors. However, it only
   // allows one to add transparency to the stroke color.
   int fill_xopp = attr.value("fill").toInt();
   // "brushcolor" is a BeamerPresenter extension of the Xournal++ file format
-  Qt::BrushStyle brush_style = brush_style_codes.key(
+  Qt::BrushStyle brush_style = get_brush_style_codes().key(
       attr.value("brushstyle").toString().toStdString(), Qt::SolidPattern);
   QColor fill_color = rgba_to_color(attr.value("brushcolor").toString());
   if (!fill_color.isValid()) {
@@ -647,9 +647,10 @@ AbstractGraphicsPath *loadPath(QXmlStreamReader &reader)
       basic_tool == Tool::Highlighter ? QPainter::CompositionMode_Darken
                                       : QPainter::CompositionMode_SourceOver);
   if (attr.hasAttribute("composition")) {
-    const QPainter::CompositionMode composition = composition_mode_codes.key(
-        attr.value("composition").toString().toStdString(),
-        tool.compositionMode());
+    const QPainter::CompositionMode composition =
+        get_composition_mode_codes().key(
+            attr.value("composition").toString().toStdString(),
+            tool.compositionMode());
     tool.setCompositionMode(composition);
   }
   if (basic_tool == Tool::Pen)
@@ -732,7 +733,7 @@ void PathContainer::loadDrawings(QXmlStreamReader &reader,
                << ", expected 'layer'";
     return;
   }
-  const PagePart current_layer = page_part_names.key(
+  const PagePart current_layer = get_page_part_names().key(
       reader.attributes().value("pagePart").toString(), UnknownPagePart);
   while (reader.readNextStartElement()) {
     item = nullptr;

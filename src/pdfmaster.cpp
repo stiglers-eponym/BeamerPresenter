@@ -305,7 +305,7 @@ void PdfMaster::writePages(QXmlStreamWriter &writer,
     for (auto it = container_lst.cbegin(); it != container_lst.cend(); ++it) {
       writer.writeStartElement("layer");
       writer.writeAttribute("pagePart",
-                            page_part_names.value(it.key(), "unknown"));
+                            get_page_part_names().value(it.key(), "unknown"));
       (*it)->writeXml(writer);
       writer.writeEndElement();  // "layer" element
     }

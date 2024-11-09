@@ -61,8 +61,7 @@ void ShapeRecognizer::calc_higher_moments() noexcept
 {
   if (sxxxx > 0) return;
   if (path->type() == FullGraphicsPath::Type) {
-    const FullGraphicsPath *fullpath =
-        static_cast<const FullGraphicsPath *>(path);
+    auto fullpath = static_cast<const FullGraphicsPath *>(path);
     auto pit = fullpath->pressures.cbegin();
     const auto pit_end = fullpath->pressures.cend();
     auto cit = fullpath->coordinates.cbegin();

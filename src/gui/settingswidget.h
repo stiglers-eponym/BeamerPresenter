@@ -12,7 +12,7 @@
 class QTextEdit;
 
 /**
- * @brief Graphical interface to writable_preferences()
+ * @brief Graphical interface to WritableGlobalPreferences::writable()
  *
  * This must always run in the same thread as preferences(). It contains
  * 4 tabs: a manual, general settings, shortcuts and rendering settings.

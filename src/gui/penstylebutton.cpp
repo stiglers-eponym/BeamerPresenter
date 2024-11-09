@@ -10,6 +10,7 @@
 
 PenStyleButton::PenStyleButton(QWidget *parent) : ToolPropertyButton(parent)
 {
+  const auto &pen_style_codes = get_pen_style_codes();
   for (auto it = pen_style_codes.keyBegin(); it != pen_style_codes.keyEnd();
        ++it) {
     QIcon icon(new PenIconEngine(2.5, *it));

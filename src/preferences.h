@@ -359,29 +359,72 @@ class Preferences : public QObject
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Preferences::GlobalFlags);
 
-/// Globally shared pointer to global preferences.
-/// Should only be accessed using the functions
-/// preferences() or writable_preferences().
-inline Preferences *__global_preferences = nullptr;
-
-/// Get writable globally shared preferences object.
-/// Init globally accessible preferences on first call.
-inline Preferences *writable_preferences() noexcept
+/**
+ * @brief Class with only static methods providing access to global Preferences
+ * instance
+ *
+ * This class provides access to a global Preferences instance and makes
+ * sure that only main() can initialize this global variable.
+ * The global variable can be accessed using GlobalPreferences::readonly().
+ * Writable preferences are accessible using
+ * WritableGlobalPreferences::writable().
+ *
+ * Objects of this class are not allowed, it provides only static methods.
+ */
+class GlobalPreferences
 {
-  return __global_preferences;
-}
+  friend int main(int argc, char *argv[]);
 
-/// Get read-only globally shared preferences object.
-/// This is the usual way of accessing preferences.
-inline const Preferences *preferences() noexcept
+ private:
+  inline static Preferences *_instance = nullptr;
+  inline static void initialize(QObject *parent = nullptr)
+  {
+    _instance = new Preferences(parent);
+  }
+  inline static void initialize(const QString &file, QObject *parent = nullptr)
+  {
+    _instance = new Preferences(file, parent);
+  }
+
+ protected:
+  inline static Preferences *writable() noexcept { return _instance; }
+
+ public:
+  GlobalPreferences() = delete;
+  inline static const Preferences *readonly() noexcept { return _instance; }
+};
+
+/**
+ * @brief Variant of GlobalPreferences providing non-const access to global
+ * Preferences instance.
+ *
+ * Friend classes of this class have access to the global Preferences
+ * instance without the const restriction. Instances of friend classes
+ * should in the same thread.
+ *
+ * Objects of this class are not allowed, it provides only static methods.
+ */
+class WritableGlobalPreferences : public GlobalPreferences
 {
-  return __global_preferences;
-}
+  friend class SettingsWidget;
+  friend class KeyInputLabel;
+  friend class TimerWidget;
+  friend class Master;
+
+ public:
+  WritableGlobalPreferences() = delete;
+};
+
+/// Alias for GlobalPreferences::readonly
+constexpr auto preferences = &GlobalPreferences::readonly;
 
 /// Get global master object.
 /// Only a single master object should be used. (Using multiple master
 /// objects is not strictly forbitten, but does not make much sense.)
-inline Master *master() noexcept { return __global_preferences->master; }
+inline Master *master() noexcept
+{
+  return GlobalPreferences::readonly()->master;
+}
 
 /// Create tool from JSON formatted input.
 std::shared_ptr<Tool> createTool(const QJsonObject &obj,
@@ -390,8 +433,8 @@ std::shared_ptr<Tool> createTool(const QJsonObject &obj,
 /// Write tool properties to JSON object.
 void toolToJson(std::shared_ptr<const Tool> tool, QJsonObject &obj);
 
-/// Static regular expression required to adapt paths.
-static const QRegularExpression UNIX_LIKE(
-    R"(\/(usr|ucrt64|mingw32|mingw64|clang32|clang64|clangamd64)\/bin$)");
+/// Static string to be used in regular expressions required to adapt paths.
+constexpr char UNIX_LIKE[] =
+    R"(\/(usr|ucrt64|mingw32|mingw64|clang32|clang64|clangamd64)\/bin$)";
 
 #endif  // PREFERENCES_H

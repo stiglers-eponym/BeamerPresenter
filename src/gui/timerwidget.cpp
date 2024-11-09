@@ -110,11 +110,11 @@ void TimerWidget::changePassed()
           .msecsSinceStartOfDay();
   debug_msg(DebugWidgets, "new msecs passed:" << new_msecs_passed);
   if (preferences()->msecs_passed == UINT_LEAST32_MAX)
-    writable_preferences()->target_time =
+    WritableGlobalPreferences::writable()->target_time =
         QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total -
                                                  new_msecs_passed);
   else
-    writable_preferences()->msecs_passed = new_msecs_passed;
+    WritableGlobalPreferences::writable()->msecs_passed = new_msecs_passed;
   if (preferences()->msecs_total > 0 &&
       new_msecs_passed >= preferences()->msecs_total)
     _flags |= Timeout;
@@ -136,8 +136,9 @@ void TimerWidget::setTotalTime(const QTime time) noexcept
   if (time.isValid()) {
     const quint32 msecs_total = time.msecsSinceStartOfDay();
     if (preferences()->msecs_passed == UINT_LEAST32_MAX) {
-      writable_preferences()->target_time = preferences()->target_time.addMSecs(
-          msecs_total - preferences()->msecs_total);
+      WritableGlobalPreferences::writable()->target_time =
+          preferences()->target_time.addMSecs(msecs_total -
+                                              preferences()->msecs_total);
       if (msecs_total > 0 &&
           QDateTime::currentDateTimeUtc() >= preferences()->target_time)
         _flags |= Timeout;
@@ -150,7 +151,7 @@ void TimerWidget::setTotalTime(const QTime time) noexcept
         _flags &= ~Timeout;
     }
     updateTimeout();
-    writable_preferences()->msecs_total = msecs_total;
+    WritableGlobalPreferences::writable()->msecs_total = msecs_total;
     updateFullText();
   }
 }
@@ -161,10 +162,10 @@ void TimerWidget::startTimer() noexcept
   timer_palette.setColor(QPalette::Text, palette().color(QPalette::Text));
   passed->setPalette(timer_palette);
   if (preferences()->msecs_passed != UINT_LEAST32_MAX) {
-    writable_preferences()->target_time =
+    WritableGlobalPreferences::writable()->target_time =
         QDateTime::currentDateTimeUtc().addMSecs(preferences()->msecs_total -
                                                  preferences()->msecs_passed);
-    writable_preferences()->msecs_passed = UINT_LEAST32_MAX;
+    WritableGlobalPreferences::writable()->msecs_passed = UINT_LEAST32_MAX;
   }
   timer_id = QWidget::startTimer(1000);
   emit updateStatus(StartStopTimer, 1);
@@ -180,7 +181,7 @@ void TimerWidget::stopTimer() noexcept
   palette.setColor(QPalette::Text, Qt::gray);
   passed->setPalette(palette);
   if (preferences()->msecs_passed == UINT_LEAST32_MAX) {
-    writable_preferences()->msecs_passed =
+    WritableGlobalPreferences::writable()->msecs_passed =
         preferences()->msecs_total -
         QDateTime::currentDateTimeUtc().msecsTo(preferences()->target_time);
     updateFullText();
@@ -205,11 +206,11 @@ void TimerWidget::handleAction(const Action action) noexcept
       break;
     case ResetTimePassed:
       if (preferences()->msecs_passed == UINT_LEAST32_MAX)
-        writable_preferences()->target_time =
+        WritableGlobalPreferences::writable()->target_time =
             QDateTime::currentDateTimeUtc().addMSecs(
                 preferences()->msecs_total);
       else
-        writable_preferences()->msecs_passed = 0;
+        WritableGlobalPreferences::writable()->msecs_passed = 0;
       _flags &= ~Timeout;
       updateTimeout();
       updateFullText();

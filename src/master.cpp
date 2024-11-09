@@ -124,7 +124,8 @@ Master::Status Master::readGuiConfig(const QString &filename)
   if (windows.isEmpty()) return NoWindowsCreated;
 
   initializePageIndex();
-  writable_preferences()->document = documents.first()->getDocument();
+  WritableGlobalPreferences::writable()->document =
+      documents.first()->getDocument();
   const auto &scenes = documents.first()->getScenes();
   if (scenes.empty()) return NoScenesCreated;
   connect(scenes.first(), &SlideScene::finishTransition, this,
@@ -312,6 +313,7 @@ QWidget *Master::createWidget(
       ToolWidget *toolwidget = new ToolWidget(parent, direction);
       widget = toolwidget;
       QList<int> devices;
+      const auto &string_to_input_device = get_string_to_input_device();
       auto collect_devices = [&](const QString &name) -> void {
         if (!object.contains(name)) return;
         devices.clear();
@@ -480,7 +482,8 @@ SlideView *Master::createSlide(const QJsonObject &object,
         preferences()->page_part_threshold * reference.height())
       page_part = FullPage;
   }
-  if (is_master) writable_preferences()->default_page_part = page_part;
+  if (is_master)
+    WritableGlobalPreferences::writable()->default_page_part = page_part;
   if (page_part == FullPage)
     pdf->flags() |= PdfMaster::FullPageUsed;
   else if (page_part == LeftHalf)
@@ -631,7 +634,8 @@ std::shared_ptr<PdfMaster> Master::openFile(
           known_files[it.key()] = doc;
           known_files[*it] = doc;
           known_files[abs_alias_path] = doc;
-          writable_preferences()->file_alias[it.key()] = doc->getFilename();
+          WritableGlobalPreferences::writable()->file_alias[it.key()] =
+              doc->getFilename();
           break;
         }
       }
@@ -693,10 +697,11 @@ std::shared_ptr<PdfMaster> Master::createPdfMaster(QString abs_path)
                      tr("Loaded PDF files with different numbers of pages. "
                         "You should expect errors."));
     qCritical() << tr("Loaded PDF files with different numbers of pages.");
-    writable_preferences()->number_of_pages =
+    WritableGlobalPreferences::writable()->number_of_pages =
         std::max(preferences()->number_of_pages, pdf->numberOfPages());
   } else
-    writable_preferences()->number_of_pages = pdf->numberOfPages();
+    WritableGlobalPreferences::writable()->number_of_pages =
+        pdf->numberOfPages();
 
   documents.append(pdf);
   return pdf;
@@ -895,7 +900,7 @@ void Master::handleAction(const Action action)
         changed |= doc->loadDocument();
       if (changed) {
         initializePageIndex();
-        writable_preferences()->number_of_pages =
+        WritableGlobalPreferences::writable()->number_of_pages =
             documents.first()->numberOfPages();
         distributeMemory();
         emit clearCache();
@@ -914,12 +919,14 @@ void Master::handleAction(const Action action)
       break;
     case Mute:
       debug_msg(DebugMedia, "muting application");
-      writable_preferences()->global_flags |= Preferences::MuteApplication;
+      WritableGlobalPreferences::writable()->global_flags |=
+          Preferences::MuteApplication;
       emit sendAction(action);
       break;
     case Unmute:
       debug_msg(DebugMedia, "unmuting application");
-      writable_preferences()->global_flags &= ~Preferences::MuteApplication;
+      WritableGlobalPreferences::writable()->global_flags &=
+          ~Preferences::MuteApplication;
       emit sendAction(action);
       break;
     case InsertSlide: {
@@ -996,7 +1003,7 @@ bool Master::askCloseConfirmation() noexcept
 
 void Master::leaveSlide(const int slide) const
 {
-  writable_preferences()->previous_page = preferences()->page;
+  WritableGlobalPreferences::writable()->previous_page = preferences()->page;
   bool flexible_page_numbers = false;
   for (const auto &doc : std::as_const(documents)) {
     doc->clearHistory({slide, FullPage},
@@ -1055,8 +1062,8 @@ void Master::navigateToSlide(const int slide)
   for (const auto window : std::as_const(windows)) window->updateGeometry();
   // Get duration of the slide: But only take a nontrivial value if
   // the new page is (old page + 1).
-  writable_preferences()->slide = slide;
-  writable_preferences()->page = page;
+  WritableGlobalPreferences::writable()->slide = slide;
+  WritableGlobalPreferences::writable()->page = page;
   emit navigationSignal(slide, page);
 }
 
@@ -1088,7 +1095,7 @@ void Master::setTool(std::shared_ptr<Tool> tool)
   if (!tool || !tool->device()) return;
   debug_msg(DebugDrawing | DebugKeyInput,
             "Set tool" << tool->tool() << tool->device());
-  writable_preferences()->setCurrentTool(tool);
+  WritableGlobalPreferences::writable()->setCurrentTool(tool);
   emit sendNewToolScene(tool);
   emit sendNewToolSoft(tool);
 
@@ -1253,6 +1260,35 @@ bool Master::writeXml(QBuffer &buffer, const bool save_bp_specific)
   return true;
 }
 
+/**
+ * @brief getAbsFile
+ * @param file path to a file (not a directory!)
+ * @param refering_file file from which first file path was read
+ * @return absolute file info
+ *
+ * Get absolute file path to file. If file is a relative path that does not
+ * point to an existing file, try the path relative to the directory containing
+ * refering_file.
+ */
+QFileInfo getAbsFile(const QString &file, const QString &refering_file)
+{
+  if (file.isEmpty()) return QFileInfo();
+  QFileInfo finfo = QFileInfo(file);
+  if (finfo.isAbsolute())
+    return finfo;
+  else if (finfo.isFile()) {
+    finfo.makeAbsolute();
+    return finfo;
+  } else {
+    auto alt_finfo = QFileInfo(QFileInfo(refering_file).absoluteDir(), file);
+    if (alt_finfo.isFile()) {
+      alt_finfo.makeAbsolute();
+      return alt_finfo;
+    } else
+      return finfo;
+  }
+}
+
 bool Master::loadBprDrawings(const QString &filename, const bool clear_drawings)
 {
   QBuffer *buffer = loadZipToBuffer(filename);
@@ -1357,10 +1393,7 @@ std::shared_ptr<PdfMaster> Master::readXmlPageBg(QXmlStreamReader &reader,
     if (reader.name().toUtf8() == "background") {
       const auto filename = reader.attributes().value("filename");
       if (!filename.isEmpty()) {
-        QFileInfo finfo(filename.toString());
-        if (finfo.isRelative() && !finfo.isFile())
-          finfo = QFileInfo(QFileInfo(drawings_path).absoluteDir(),
-                            filename.toString());
+        const auto finfo = getAbsFile(filename.toString(), drawings_path);
         const QString abs_filename = finfo.absoluteFilePath();
         if (!pdf || (abs_filename != pdf->getFilename() &&
                      filename != pdf->getFilename())) {
@@ -1421,12 +1454,9 @@ std::shared_ptr<PdfMaster> Master::readXmlPage(QXmlStreamReader &reader,
         page = nextEmptyPage();
       else {
         // Read file name
-        const auto filename = attr.value("filename");
-        if (!filename.isEmpty()) {
-          QFileInfo finfo(filename.toString());
-          if (finfo.isRelative() && !finfo.isFile())
-            finfo = QFileInfo(QFileInfo(abs_path).absoluteDir(),
-                              filename.toString());
+        const QString filename = attr.value("filename").toString();
+        const auto finfo = getAbsFile(filename, abs_path);
+        if (finfo.isFile()) {
           const QString abs_filename = finfo.absoluteFilePath();
           if (!pdf || (abs_filename != pdf->getFilename() &&
                        filename != pdf->getFilename())) {
@@ -1478,7 +1508,8 @@ bool Master::readXmlHeader(QXmlStreamReader &reader, const bool read_notes,
     // If may happen that this is called before a timer widget is created.
     // Then setTotalTime(time) will do nothing and preferences()->msecs_total
     // must be set directly.
-    writable_preferences()->msecs_total = time.msecsSinceStartOfDay();
+    WritableGlobalPreferences::writable()->msecs_total =
+        time.msecsSinceStartOfDay();
   }
   while (reader.readNextStartElement()) {
     if (read_notes && reader.name().toUtf8() == "speakernotes")
@@ -1489,18 +1520,14 @@ bool Master::readXmlHeader(QXmlStreamReader &reader, const bool read_notes,
         if (reader.name().toUtf8() == "file") {
           const QXmlStreamAttributes &attr = reader.attributes();
           const QString alias = attr.value("alias").toString();
-          QString path = attr.value("path").toString();
-          if (!path.isEmpty()) {
-            QFileInfo finfo(path);
-            if (finfo.isRelative() && !finfo.isFile())
-              path = QFileInfo(QFileInfo(abs_path).absoluteDir(), path)
-                         .absoluteFilePath();
-          }
+          const QString path = attr.value("path").toString();
+          const auto finfo = getAbsFile(path, abs_path);
           const QString old_alias = preferences()->file_alias.value(alias);
-          if (!alias.isEmpty() && !path.isEmpty() &&
+          if (!alias.isEmpty() && finfo.isFile() &&
               (old_alias.isEmpty() ||
                !old_alias.endsWith(".pdf", Qt::CaseInsensitive)))
-            writable_preferences()->file_alias[alias] = path;
+            WritableGlobalPreferences::writable()->file_alias[alias] =
+                finfo.absoluteFilePath();
         }
         if (!reader.isEndElement()) reader.skipCurrentElement();
       }

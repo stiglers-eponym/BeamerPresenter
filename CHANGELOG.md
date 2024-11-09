@@ -1,4 +1,19 @@
 # Changelog
+## 0.2.6 (upcoming)
+### new features
+* flexible mapping of page numbers to slides allows adding empty slides and removing slides
+* zoom into view using buttons or touchscreen
+* new tool: drag view
+* read overlays from JSON file created for pdfpc, intended for usage with Polylux
+* allow manually setting view aspect ratio, effectively changing the default zoom
+### improvements
+* saving drawings: each page part gets own layer (only relevant for documents containing presentation and nodes side-by-side)
+* loading drawings: improved handling of relative paths
+### bug fixes
+* laser pointers remaining visible
+### internal
+* replace encoding of flags in bits of page number integers by structs
+
 ## 0.2.5
 * embedded videos: play media files embedded in the PDF file (experimental)
 * bug fixes (includes crash on multi-touch)

@@ -33,6 +33,7 @@ DrawToolDetails::DrawToolDetails(Tool::BasicTool basic_tool, QWidget *parent,
   QFormLayout *layout = new QFormLayout(this);
 
   // Shape selection
+  const auto &shape_codes = get_shape_codes();
   for (auto it = shape_codes.cbegin(); it != shape_codes.cend(); ++it)
     shape_box->addItem(DrawTool::tr(it->c_str()),
                        QVariant::fromValue(it.key()));
@@ -277,6 +278,7 @@ ToolDialog::ToolDialog(QWidget *parent)
   QFormLayout *layout = new QFormLayout();
 
   // Basic tool
+  const auto &string_to_tool = get_string_to_tool();
   for (auto it = string_to_tool.cbegin(); it != string_to_tool.cend(); ++it)
     tool_box->addItem(Tool::tr(it.key().toLatin1().constData()),
                       QVariant::fromValue(*it));
@@ -302,6 +304,7 @@ ToolDialog::ToolDialog(QWidget *parent)
     QGridLayout *device_layout = new QGridLayout();
     device_layout->setSpacing(0);
     int i = 0;
+    const auto &string_to_input_device = get_string_to_input_device();
     for (auto it = string_to_input_device.cbegin();
          it != string_to_input_device.cend(); ++it) {
       QCheckBox *button =

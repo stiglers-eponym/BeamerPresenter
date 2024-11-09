@@ -34,7 +34,7 @@ void ToolButton::setTool(std::shared_ptr<Tool> newtool)
   tool = newtool;
   QIcon icon(new ToolIconEngine(tool));
   if (icon.isNull())
-    setText(string_to_tool.key(tool->tool()));
+    setText(get_string_to_tool().key(tool->tool()));
   else
     setIcon(icon);
   setToolTip(Tool::tr(tool_to_description(tool->tool())));

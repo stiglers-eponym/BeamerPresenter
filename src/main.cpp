@@ -51,7 +51,10 @@ int main(int argc, char *argv[])
   // Set up the application.
   MasterApp app(argc, argv);
   QString fallback_root = QCoreApplication::applicationDirPath();
-  if (fallback_root.contains(UNIX_LIKE)) fallback_root.remove(UNIX_LIKE);
+  {
+    const QRegularExpression unix_like(UNIX_LIKE);
+    if (fallback_root.contains(unix_like)) fallback_root.remove(unix_like);
+  }
   app.initialize(fallback_root);
 
   // Set up command line argument parser.
@@ -122,15 +125,15 @@ int main(int argc, char *argv[])
     // parser.value("c") should be the name of a configuration file.
     // If that does not exist or cannot be read, the program can start
     // anyway, if a valid gui config file is defined in parser.value("g").
-    __global_preferences = new Preferences(parser.value("c"));
+    GlobalPreferences::initialize(parser.value("c"));
   else
-    __global_preferences = new Preferences();
-  __global_preferences->master = new Master();
+    GlobalPreferences::initialize();
+  WritableGlobalPreferences::writable()->master = new Master();
 #ifdef QT_DEBUG
-  writable_preferences()->loadDebugFromParser(parser);
+  WritableGlobalPreferences::writable()->loadDebugFromParser(parser);
 #endif
-  writable_preferences()->loadSettings();
-  writable_preferences()->loadFromParser(parser);
+  WritableGlobalPreferences::writable()->loadSettings();
+  WritableGlobalPreferences::writable()->loadFromParser(parser);
 
   QString gui_config_file = parser.value("g").isEmpty()
                                 ? preferences()->gui_config_file

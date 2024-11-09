@@ -87,8 +87,8 @@ void SettingsWidget::initShortcuts()
 
   KeyInputLabel *input_shortcut;
   QMap<Action, QString> action_to_string;
-  for (auto it = string_to_action_map.cbegin();
-       it != string_to_action_map.cend(); ++it)
+  for (auto it = get_string_to_action().cbegin();
+       it != get_string_to_action().cend(); ++it)
     action_to_string[*it] = it.key();
   const auto &key_actions = preferences()->key_actions;
   for (auto it = key_actions.cbegin(); it != key_actions.cend(); ++it) {
@@ -99,6 +99,7 @@ void SettingsWidget::initShortcuts()
     layout->addRow(label, input_shortcut);
   }
   QMap<Tool::BasicTool, QString> tool_to_string;
+  const auto &string_to_tool = get_string_to_tool();
   for (auto it = string_to_tool.cbegin(); it != string_to_tool.cend(); ++it)
     tool_to_string[*it] = it.key();
   const auto &key_tools = preferences()->key_tools;
@@ -141,11 +142,11 @@ void SettingsWidget::initRendering()
   memory_box->setMaximum(4096.);
   memory_box->setValue(preferences()->max_memory / 1048596);
 #if (QT_VERSION_MAJOR >= 6)
-  connect(memory_box, &QDoubleSpinBox::valueChanged, writable_preferences(),
-          &Preferences::setMemory);
+  connect(memory_box, &QDoubleSpinBox::valueChanged,
+          WritableGlobalPreferences::writable(), &Preferences::setMemory);
 #else
   connect(memory_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-          writable_preferences(), &Preferences::setMemory);
+          WritableGlobalPreferences::writable(), &Preferences::setMemory);
 #endif
   layout->addRow(tr("cache memory (MiB)"), memory_box);
 
@@ -154,11 +155,11 @@ void SettingsWidget::initRendering()
   spin_box->setMaximum(10000);
   spin_box->setValue(preferences()->max_cache_pages);
 #if (QT_VERSION_MAJOR >= 6)
-  connect(spin_box, &QSpinBox::valueChanged, writable_preferences(),
-          &Preferences::setCacheSize);
+  connect(spin_box, &QSpinBox::valueChanged,
+          WritableGlobalPreferences::writable(), &Preferences::setCacheSize);
 #else
   connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged),
-          writable_preferences(), &Preferences::setCacheSize);
+          WritableGlobalPreferences::writable(), &Preferences::setCacheSize);
 #endif
   layout->addRow(tr("max. slides in cache"), spin_box);
 
@@ -198,19 +199,21 @@ void SettingsWidget::initRendering()
 #endif
 #endif  // USE_EXTERNAL_RENDERER
   connect(select_renderer, &QComboBox::currentTextChanged,
-          writable_preferences(), &Preferences::setRenderer);
+          WritableGlobalPreferences::writable(), &Preferences::setRenderer);
   layout->addRow(tr("Renderer (requires restart)"), select_renderer);
 
 #ifdef USE_EXTERNAL_RENDERER
   QLineEdit *line_edit = new QLineEdit(rendering);
   line_edit->setText(preferences()->rendering_command);
-  connect(line_edit, &QLineEdit::textChanged, writable_preferences(),
+  connect(line_edit, &QLineEdit::textChanged,
+          WritableGlobalPreferences::writable(),
           &Preferences::setRenderingCommand);
   layout->addRow(tr("rendering command"), line_edit);
 
   line_edit = new QLineEdit(rendering);
   line_edit->setText(preferences()->rendering_arguments.join(","));
-  connect(line_edit, &QLineEdit::textChanged, writable_preferences(),
+  connect(line_edit, &QLineEdit::textChanged,
+          WritableGlobalPreferences::writable(),
           &Preferences::setRenderingArguments);
   layout->addRow(tr("rendering arguments"), line_edit);
 #endif  // USE_EXTERNAL_RENDERER
@@ -232,11 +235,13 @@ void SettingsWidget::initRendering()
   page_part_box->setMaximum(20.);
   page_part_box->setValue(preferences()->page_part_threshold);
 #if (QT_VERSION_MAJOR >= 6)
-  connect(page_part_box, &QDoubleSpinBox::valueChanged, writable_preferences(),
+  connect(page_part_box, &QDoubleSpinBox::valueChanged,
+          WritableGlobalPreferences::writable(),
           &Preferences::setPagePartThreshold);
 #else
   connect(page_part_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-          writable_preferences(), &Preferences::setPagePartThreshold);
+          WritableGlobalPreferences::writable(),
+          &Preferences::setPagePartThreshold);
 #endif
   layout->addRow(tr("page part threshold"), page_part_box);
 
@@ -289,11 +294,13 @@ void SettingsWidget::initMisc()
   QSpinBox *spin_box = new QSpinBox(misc);
   spin_box->setValue(preferences()->history_length_visible_slides);
 #if (QT_VERSION_MAJOR >= 6)
-  connect(spin_box, &QSpinBox::valueChanged, writable_preferences(),
+  connect(spin_box, &QSpinBox::valueChanged,
+          WritableGlobalPreferences::writable(),
           &Preferences::setHistoryVisibleSlide);
 #else
   connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged),
-          writable_preferences(), &Preferences::setHistoryVisibleSlide);
+          WritableGlobalPreferences::writable(),
+          &Preferences::setHistoryVisibleSlide);
 #endif
   spin_box->setMinimum(0);
   spin_box->setMaximum(1000);
@@ -302,11 +309,13 @@ void SettingsWidget::initMisc()
   spin_box = new QSpinBox(misc);
   spin_box->setValue(preferences()->history_length_hidden_slides);
 #if (QT_VERSION_MAJOR >= 6)
-  connect(spin_box, &QSpinBox::valueChanged, writable_preferences(),
+  connect(spin_box, &QSpinBox::valueChanged,
+          WritableGlobalPreferences::writable(),
           &Preferences::setHistoryHiddenSlide);
 #else
   connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged),
-          writable_preferences(), &Preferences::setHistoryHiddenSlide);
+          WritableGlobalPreferences::writable(),
+          &Preferences::setHistoryHiddenSlide);
 #endif
   spin_box->setMinimum(0);
   spin_box->setMaximum(1000);
@@ -324,10 +333,11 @@ void SettingsWidget::initMisc()
   QCheckBox *box = new QCheckBox(tr("log slide changes"), misc);
   box->setChecked(preferences()->global_flags & Preferences::LogSlideChanges);
 #if (QT_VERSION_MAJOR >= 6)
-  connect(box, &QCheckBox::clicked, writable_preferences(),
+  connect(box, &QCheckBox::clicked, WritableGlobalPreferences::writable(),
           &Preferences::setLogSlideChanges);
 #else
-  connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(),
+  connect(box, QOverload<bool>::of(&QCheckBox::clicked),
+          WritableGlobalPreferences::writable(),
           &Preferences::setLogSlideChanges);
 #endif
   layout->addRow(box);
@@ -344,10 +354,11 @@ void SettingsWidget::initMisc()
   box = new QCheckBox(tr("automatic slide changes"), misc);
   box->setChecked(preferences()->global_flags & Preferences::AutoSlideChanges);
 #if (QT_VERSION_MAJOR >= 6)
-  connect(box, &QCheckBox::clicked, writable_preferences(),
+  connect(box, &QCheckBox::clicked, WritableGlobalPreferences::writable(),
           &Preferences::setAutoSlideChanges);
 #else
-  connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(),
+  connect(box, QOverload<bool>::of(&QCheckBox::clicked),
+          WritableGlobalPreferences::writable(),
           &Preferences::setAutoSlideChanges);
 #endif
   layout->addRow(box);
@@ -356,10 +367,11 @@ void SettingsWidget::initMisc()
   box = new QCheckBox(tr("open external links"), misc);
   box->setChecked(preferences()->global_flags & Preferences::OpenExternalLinks);
 #if (QT_VERSION_MAJOR >= 6)
-  connect(box, &QCheckBox::clicked, writable_preferences(),
+  connect(box, &QCheckBox::clicked, WritableGlobalPreferences::writable(),
           &Preferences::setExternalLinks);
 #else
-  connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(),
+  connect(box, QOverload<bool>::of(&QCheckBox::clicked),
+          WritableGlobalPreferences::writable(),
           &Preferences::setExternalLinks);
 #endif
   layout->addRow(box);
@@ -369,10 +381,11 @@ void SettingsWidget::initMisc()
   box->setChecked(preferences()->global_flags &
                   Preferences::FinalizeDrawnPaths);
 #if (QT_VERSION_MAJOR >= 6)
-  connect(box, &QCheckBox::clicked, writable_preferences(),
+  connect(box, &QCheckBox::clicked, WritableGlobalPreferences::writable(),
           &Preferences::setFinalizePaths);
 #else
-  connect(box, QOverload<bool>::of(&QCheckBox::clicked), writable_preferences(),
+  connect(box, QOverload<bool>::of(&QCheckBox::clicked),
+          WritableGlobalPreferences::writable(),
           &Preferences::setFinalizePaths);
 #endif
   layout->addRow(box);
@@ -402,13 +415,13 @@ void SettingsWidget::initMisc()
   layout->addRow(explanation_label);
 
   QComboBox *combo_box = new QComboBox(misc);
-  for (auto it = string_to_overlay_mode.cbegin();
-       it != string_to_overlay_mode.cend(); ++it)
+  for (auto it = get_string_to_overlay_mode().cbegin();
+       it != get_string_to_overlay_mode().cend(); ++it)
     combo_box->addItem(it.key());
   combo_box->setCurrentText(
-      string_to_overlay_mode.key(preferences()->overlay_mode));
-  connect(combo_box, &QComboBox::currentTextChanged, writable_preferences(),
-          &Preferences::setOverlayMode);
+      get_string_to_overlay_mode().key(preferences()->overlay_mode));
+  connect(combo_box, &QComboBox::currentTextChanged,
+          WritableGlobalPreferences::writable(), &Preferences::setOverlayMode);
   layout->addRow(tr("drawing mode for overlays"), combo_box);
 
   misc->setLayout(layout);
@@ -422,8 +435,8 @@ void SettingsWidget::appendShortcut()
 #endif
   select_menu->addItem(tr("tool..."),
                        QVariant::fromValue(Action::InvalidAction));
-  for (auto it = string_to_action_map.cbegin();
-       it != string_to_action_map.cend(); ++it)
+  for (auto it = get_string_to_action().cbegin();
+       it != get_string_to_action().cend(); ++it)
     select_menu->addItem(tr(it.key().toLatin1().constData()),
                          QVariant::fromValue(*it));
   select_menu->setCurrentText("");
@@ -448,7 +461,8 @@ void SettingsWidget::setGuiConfigFile()
   const QString newfile = QFileDialog::getOpenFileName(
       this, tr("Select new GUI configuration file"),
       preferences()->gui_config_file, tr("JSON files (*.json);;all files (*)"));
-  if (!newfile.isNull() && writable_preferences()->setGuiConfigFile(newfile))
+  if (!newfile.isNull() &&
+      WritableGlobalPreferences::writable()->setGuiConfigFile(newfile))
     setTabText(1, tr("misc (restart required)"));
 }
 

@@ -116,3 +116,56 @@ const char* tool_to_description(const Tool::BasicTool tool) noexcept
       return "";
   };
 }
+
+const QMap<QString, Tool::BasicTool> get_string_to_tool() noexcept
+{
+  /// convert string (from configuration files or saved file) to tool
+  static const QMap<QString, Tool::BasicTool> string_to_tool{
+      {QT_TRANSLATE_NOOP("Tool", "none"), Tool::NoTool},
+      {QT_TRANSLATE_NOOP("Tool", "pen"), Tool::Pen},
+      {QT_TRANSLATE_NOOP("Tool", "fixed width pen"), Tool::FixedWidthPen},
+      {QT_TRANSLATE_NOOP("Tool", "eraser"), Tool::Eraser},
+      {QT_TRANSLATE_NOOP("Tool", "highlighter"), Tool::Highlighter},
+      {QT_TRANSLATE_NOOP("Tool", "pointer"), Tool::Pointer},
+      {QT_TRANSLATE_NOOP("Tool", "torch"), Tool::Torch},
+      {QT_TRANSLATE_NOOP("Tool", "magnifier"), Tool::Magnifier},
+      {QT_TRANSLATE_NOOP("Tool", "text"), Tool::TextInputTool},
+      {QT_TRANSLATE_NOOP("Tool", "drag view"), Tool::DragViewTool},
+      {QT_TRANSLATE_NOOP("Tool", "click select"), Tool::BasicSelectionTool},
+      {QT_TRANSLATE_NOOP("Tool", "rectangle select"), Tool::RectSelectionTool},
+      {QT_TRANSLATE_NOOP("Tool", "freehand select"),
+       Tool::FreehandSelectionTool},
+  };
+  return string_to_tool;
+}
+
+const QMap<std::string, int>& get_string_to_input_device() noexcept
+{
+  /// convert string (from configuration file) to InputDevice
+  static const QMap<std::string, int> string_to_input_device{
+      {QT_TRANSLATE_NOOP("Tool", "touch"), Tool::TouchInput},
+      {QT_TRANSLATE_NOOP("Tool", "tablet pen"), Tool::TabletPen},
+      {QT_TRANSLATE_NOOP("Tool", "tablet mod"), Tool::TabletMod},
+      {QT_TRANSLATE_NOOP("Tool", "tablet"),
+       Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther |
+           Tool::TabletMod},
+      {QT_TRANSLATE_NOOP("Tool", "tablet eraser"), Tool::TabletEraser},
+      {QT_TRANSLATE_NOOP("Tool", "tablet hover"), Tool::TabletHover},
+      {QT_TRANSLATE_NOOP("Tool", "tablet cursor"), Tool::TabletCursor},
+      {QT_TRANSLATE_NOOP("Tool", "tablet mod"), Tool::TabletMod},
+      {QT_TRANSLATE_NOOP("Tool", "tablet other"), Tool::TabletOther},
+      {QT_TRANSLATE_NOOP("Tool", "tablet all"),
+       Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther |
+           Tool::TabletEraser | Tool::TabletMod},
+      {QT_TRANSLATE_NOOP("Tool", "all"), Tool::AnyNormalDevice},
+      {QT_TRANSLATE_NOOP("Tool", "all+"), Tool::AnyPointingDevice},
+      {QT_TRANSLATE_NOOP("Tool", "all++"), Tool::AnyDevice},
+      {QT_TRANSLATE_NOOP("Tool", "left button"), Tool::MouseLeftButton},
+      {QT_TRANSLATE_NOOP("Tool", "mouse"), Tool::MouseLeftButton},
+      {QT_TRANSLATE_NOOP("Tool", "right button"), Tool::MouseRightButton},
+      {QT_TRANSLATE_NOOP("Tool", "middle button"), Tool::MouseMiddleButton},
+      {QT_TRANSLATE_NOOP("Tool", "no button"), Tool::MouseNoButton},
+      {QT_TRANSLATE_NOOP("Tool", "double-click"), Tool::MouseDoubleClick},
+  };
+  return string_to_input_device;
+}

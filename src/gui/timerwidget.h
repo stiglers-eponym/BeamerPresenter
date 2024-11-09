@@ -19,14 +19,6 @@ class QLabel;
 class QTimerEvent;
 class QTime;
 
-/// Map time (in ms) left for a slide to color.
-/// This is the default colormap for timer.
-static const QMap<qint32, QRgb> default_timer_colormap{
-    {-300000, qRgb(255, 0, 0)},    {-90000, qRgb(255, 255, 0)},
-    {0, qRgb(0, 255, 0)},          {90000, qRgb(0, 255, 255)},
-    {300000, qRgb(255, 255, 255)},
-};
-
 /**
  * @brief Editable timer for presentation and target time.
  *
@@ -64,7 +56,11 @@ class TimerWidget : public QWidget
   QLabel *label;
   /// map relative times (in ms) to colors to indicate progress
   /// relative to a plan
-  QMap<qint32, QRgb> colormap = default_timer_colormap;
+  QMap<qint32, QRgb> colormap = {
+      {0, qRgb(0, 255, 0)},
+      {90000, qRgb(0, 255, 255)},
+      {300000, qRgb(255, 255, 255)},
+  };
   /// target time of current page (planned). This is used to adjust
   /// the color of passed.
   quint32 page_target_time = UINT32_MAX;
@@ -146,7 +142,7 @@ class TimerWidget : public QWidget
   /// Set timer for page (sent to PdfMaster).
   void setTimeForPage(const int page, const quint32 time);
   /// Ask to adjust time as per-page time for given page (sent to PdfMaster).
-  void getTimeForPage(const int page, quint32 &time) const;
+  void getTimeForPage(const int page, quint32 &time);
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(TimerWidget::TimerFlags);

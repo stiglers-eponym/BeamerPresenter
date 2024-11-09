@@ -10,6 +10,7 @@
 #include <QJsonValue>
 #include <QResizeEvent>
 #include <QSize>
+#include <QtDebug>
 
 #include "src/drawing/tool.h"
 #include "src/gui/actionbutton.h"
@@ -19,7 +20,6 @@
 #include "src/gui/shapeselectionbutton.h"
 #include "src/gui/toolselectorbutton.h"
 #include "src/gui/widthselectionbutton.h"
-#include "src/log.h"
 #include "src/master.h"
 #include "src/names.h"
 
@@ -45,7 +45,8 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
       switch (row[column_index].type()) {
         case QJsonValue::String: {
           const QString &name = row[column_index].toString();
-          const Action action = string_to_action_map.value(name, InvalidAction);
+          const Action action =
+              get_string_to_action().value(name, InvalidAction);
           if (action == InvalidAction)
             initializeToolPropertyButton(name, {}, row_index, column_index);
           else {
@@ -63,9 +64,9 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
           ActionButton *button = new ActionButton(this);
           connect(this, &ToolSelectorWidget::updateIcons, button,
                   &ActionButton::updateIcon, Qt::QueuedConnection);
-          for (const auto &entry : array)
+          for (const auto &entry : std::as_const(array))
             button->addAction(
-                string_to_action_map.value(entry.toString(), InvalidAction));
+                get_string_to_action().value(entry.toString(), InvalidAction));
           if (button->icon().isNull())
             button->setText(array.first().toString());
           grid_layout->addWidget(button, row_index, column_index);

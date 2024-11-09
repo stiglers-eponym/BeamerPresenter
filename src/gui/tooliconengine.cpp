@@ -15,7 +15,7 @@
 ToolIconEngine::ToolIconEngine(std::shared_ptr<const Tool> tool)
 {
   if (!tool) return;
-  QString iconname = string_to_tool.key(tool->tool());
+  QString iconname = get_string_to_tool().key(tool->tool());
   iconname.replace(' ', '-');
   QColor bg_full_color;
   if (tool->tool() & Tool::AnyDrawTool) {
@@ -25,7 +25,7 @@ ToolIconEngine::ToolIconEngine(std::shared_ptr<const Tool> tool)
           drawtool->shape() != DrawTool::Recognize)
         iconname = "pen";
       iconname += "-";
-      iconname += shape_codes.value(drawtool->shape()).c_str();
+      iconname += get_shape_codes().value(drawtool->shape()).c_str();
     }
     if (drawtool->brush().style() != Qt::NoBrush &&
         drawtool->shape() != DrawTool::Arrow &&

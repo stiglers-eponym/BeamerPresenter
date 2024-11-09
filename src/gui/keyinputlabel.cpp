@@ -49,7 +49,7 @@ KeyInputLabel::KeyInputLabel(const QKeySequence init,
 
 KeyInputLabel::~KeyInputLabel()
 {
-  if (tool) writable_preferences()->removeKeyTool(tool, false);
+  if (tool) WritableGlobalPreferences::writable()->removeKeyTool(tool, false);
 }
 
 void KeyInputLabel::keyPressEvent(QKeyEvent *event)
@@ -63,19 +63,22 @@ void KeyInputLabel::keyPressEvent(QKeyEvent *event)
   event->accept();
   if (new_keys == Qt::Key_Delete) {
     if (action != InvalidAction)
-      writable_preferences()->removeKeyAction(keys, action);
-    if (tool) writable_preferences()->replaceKeyToolShortcut(keys, 0, tool);
+      WritableGlobalPreferences::writable()->removeKeyAction(keys, action);
+    if (tool)
+      WritableGlobalPreferences::writable()->replaceKeyToolShortcut(keys, 0,
+                                                                    tool);
     setText("");
     keys = 0;
     return;
   }
   setText(new_keys.toString());
   if (action != InvalidAction) {
-    writable_preferences()->removeKeyAction(keys, action);
-    writable_preferences()->addKeyAction(new_keys, action);
+    WritableGlobalPreferences::writable()->removeKeyAction(keys, action);
+    WritableGlobalPreferences::writable()->addKeyAction(new_keys, action);
   }
   if (tool)
-    writable_preferences()->replaceKeyToolShortcut(keys, new_keys, tool);
+    WritableGlobalPreferences::writable()->replaceKeyToolShortcut(
+        keys, new_keys, tool);
   keys = new_keys;
 }
 
@@ -89,32 +92,34 @@ void KeyInputLabel::changeAction(const QString &text) noexcept
       // Invalid input detected. Reset input field.
       if (action != InvalidAction)
         emit sendName(SettingsWidget::tr(
-            string_to_action_map.key(action).toLatin1().constData()));
+            get_string_to_action().key(action).toLatin1().constData()));
       else if (tool)
-        emit sendName(
-            Tool::tr(string_to_tool.key(tool->tool()).toLatin1().constData()));
+        emit sendName(Tool::tr(
+            get_string_to_tool().key(tool->tool()).toLatin1().constData()));
       else
         emit sendName("");
       return;
     }
     if (action != InvalidAction)
-      writable_preferences()->removeKeyAction(keys, action);
+      WritableGlobalPreferences::writable()->removeKeyAction(keys, action);
     std::shared_ptr<Tool> newtool = ToolDialog::selectTool(tool);
     if (newtool) {
-      if (tool) writable_preferences()->removeKeyTool(tool, true);
+      if (tool)
+        WritableGlobalPreferences::writable()->removeKeyTool(tool, true);
       tool = newtool;
       action = InvalidAction;
-      writable_preferences()->replaceKeyToolShortcut(0, keys, tool);
-      emit sendName(
-          Tool::tr(string_to_tool.key(tool->tool()).toLatin1().constData()));
+      WritableGlobalPreferences::writable()->replaceKeyToolShortcut(0, keys,
+                                                                    tool);
+      emit sendName(Tool::tr(
+          get_string_to_tool().key(tool->tool()).toLatin1().constData()));
     }
   } else {
     if (action != InvalidAction)
-      writable_preferences()->removeKeyAction(keys, action);
+      WritableGlobalPreferences::writable()->removeKeyAction(keys, action);
     action = newaction;
-    writable_preferences()->addKeyAction(keys, action);
+    WritableGlobalPreferences::writable()->addKeyAction(keys, action);
     if (tool) {
-      writable_preferences()->removeKeyTool(tool, true);
+      WritableGlobalPreferences::writable()->removeKeyTool(tool, true);
       tool = nullptr;
     }
   }

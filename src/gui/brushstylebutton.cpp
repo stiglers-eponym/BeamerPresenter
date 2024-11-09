@@ -10,6 +10,7 @@
 
 BrushStyleButton::BrushStyleButton(QWidget *parent) : ToolPropertyButton(parent)
 {
+  const auto &brush_style_codes = get_brush_style_codes();
   for (auto it = brush_style_codes.keyBegin(); it != brush_style_codes.keyEnd();
        ++it) {
     QIcon icon(new BrushIconEngine(*it));
