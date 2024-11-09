@@ -1384,8 +1384,8 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <translation>Ansicht verschieben</translation>
     </message>
     <message>
-        <source>drag/move the view. When active, double-click and touch gestures can be used to zoom in.</source>
-        <translation>Ansicht verschieben. Doppelklick und Touchscreen-Gesten können zum vergrößern verwendet werden, solange das Werkzeug aktiv ist.</translation>
+        <source>drag/move the view. When active, double-click, scrolling while pressing the left mouse button, and touch gestures can be used to zoom.</source>
+        <translation>Ansicht verschieben. Doppelklick oder scrollen mit gedrückter linker Maustaste oder Touchscreen-Gesten können zum vergrößern verwendet werden, solange das Werkzeug aktiv ist.</translation>
     </message>
 </context>
 <context>

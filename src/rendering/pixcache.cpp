@@ -517,6 +517,9 @@ void PixCache::requestPage(const int page, const qreal resolution,
   if (pix.isNull()) {
     qCritical() << tr("Rendering page failed for (page, resolution) =") << page
                 << resolution;
+    // Emit pageReady with null pixmap, because otherwise views keep waiting for
+    // page.
+    emit pageReady(pix, page);
     return;
   }
 

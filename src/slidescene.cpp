@@ -9,6 +9,7 @@
 #include <QDataStream>
 #include <QDesktopServices>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsSceneWheelEvent>
 #include <QGuiApplication>
 #include <QMimeData>
 #include <QParallelAnimationGroup>
@@ -17,7 +18,7 @@
 #include <QString>
 #include <QSvgGenerator>
 #include <QSvgRenderer>
-#include <QTabletEvent>
+#include <QTouchEvent>
 #include <QTransform>
 #include <QXmlStreamWriter>
 #include <algorithm>
@@ -202,6 +203,20 @@ bool SlideScene::event(QEvent *event)
       start_pos = mouseevent->buttonDownScenePos(mouseevent->button());
       break;
     }
+    case QEvent::GraphicsSceneWheel: {
+      const auto wheelevent = static_cast<QGraphicsSceneWheelEvent *>(event);
+      std::shared_ptr<Tool> tool =
+          preferences()->currentTool(wheelevent->buttons() << 1);
+      if (!tool) return false;
+      event->accept();
+      if (tool->tool() == Tool::DragViewTool) {
+        setZoom((1.0 + 0.002 * wheelevent->delta()) * zoom,
+                wheelevent->scenePos(), false);
+        slide_flags |= UnrenderedZoom;
+        return true;
+      }
+      break;
+    }
     case QEvent::GraphicsSceneMouseDoubleClick: {
       // Double click: These events are ignored, except if a text or drag tool
       // is used.
@@ -363,6 +378,9 @@ bool SlideScene::handleDragView(std::shared_ptr<DragTool> tool,
     debug_msg(DebugOtherInput, "Start drag view");
     tool->setReference(pos.constFirst());
   } else {
+    if ((slide_flags & UnrenderedZoom) &&
+        ((device & Tool::AnyEvent) == Tool::StopEvent))
+      setZoom(zoom);
     const QPointF delta = tool->dragTo(
         pos.constFirst(), (device & Tool::AnyEvent) == Tool::StopEvent);
     if (delta.isNull()) return false;
@@ -379,7 +397,8 @@ bool SlideScene::maybeStartSelectionEvent(const QPointF &pos,
 {
   debug_verbose(DebugFunctionCalls, pos << device << this);
   // Try to handle selection (if available)
-  if (!selection_bounding_rect.isVisible()) return false;
+  if (device == Tool::TabletHover || !selection_bounding_rect.isVisible())
+    return false;
 
   // 1. Check if the user clicked on some special point on the
   // bounding rect of the selection.

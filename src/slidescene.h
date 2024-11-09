@@ -11,7 +11,6 @@
 #include <QPainter>
 #include <QPointF>
 #include <QRectF>
-#include <QTabletEvent>
 #include <map>
 #include <memory>
 
@@ -77,6 +76,7 @@ class SlideScene : public QGraphicsScene
     ShowTransitions = 1 << 5,
     ShowDrawings = 1 << 6,
     ShowSearchResults = 1 << 7,
+    UnrenderedZoom = 1 << 8,
     Default = 0xff,
   };
   Q_DECLARE_FLAGS(SlideFlags, SlideFlag);
@@ -263,26 +263,24 @@ class SlideScene : public QGraphicsScene
 
   /// Handle tablet move event, mainly for drawing.
   /// Called from SlideView.
-  void tabletMove(const QPointF &pos, const QTabletEvent *event)
+  void tabletMove(const QPointF &pos, const int device, const qreal pressure)
   {
-    handleEvents(tablet_event_to_input_device(event) | Tool::UpdateEvent, {pos},
-                 QPointF(), event->pressure());
+    handleEvents(device | Tool::UpdateEvent, {pos}, QPointF(), pressure);
   }
 
   /// Handle tablet press event, mainly for drawing.
   /// Called from SlideView.
-  void tabletPress(const QPointF &pos, const QTabletEvent *event)
+  void tabletPress(const QPointF &pos, const int device, const qreal pressure)
   {
-    handleEvents(tablet_event_to_input_device(event) | Tool::StartEvent, {pos},
-                 QPointF(), event->pressure());
+    handleEvents(device | Tool::StartEvent, {pos}, QPointF(), pressure);
   }
 
   /// Handle tablet release event, mainly for drawing.
   /// Called from SlideView.
-  void tabletRelease(const QPointF &pos, const QTabletEvent *event)
+  void tabletRelease(const QPointF &pos, const int device,
+                     const qreal pressure = 0.)
   {
-    handleEvents(tablet_event_to_input_device(event) | Tool::StopEvent, {pos},
-                 QPointF(), event->pressure());
+    handleEvents(device | Tool::StopEvent, {pos}, QPointF(), pressure);
   }
 
   /// Update geometry in preparation of navigation event.
@@ -362,10 +360,6 @@ class SlideScene : public QGraphicsScene
   /// Handle selection start events (only called from handleEvents().
   void handleSelectionStartEvents(std::shared_ptr<SelectionTool> tool,
                                   const QPointF &pos);
-  /// Handle selection update events (only called from handleEvents().
-  void handleSelectionUpdateEvents(std::shared_ptr<SelectionTool> tool,
-                                   const QPointF &pos,
-                                   const QPointF &start_pos);
   /// Handle selection stop events (only called from handleEvents().
   void handleSelectionStopEvents(std::shared_ptr<SelectionTool> tool,
                                  const QPointF &pos, const QPointF &start_pos);

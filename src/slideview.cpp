@@ -192,7 +192,7 @@ bool SlideView::handleGestureEvent(QGestureEvent *event)
     }
   }
   const QPinchGesture *pinch =
-      static_cast<QPinchGesture *>(event->gesture(Qt::PinchGesture));
+      dynamic_cast<QPinchGesture *>(event->gesture(Qt::PinchGesture));
   if (pinch && tool && tool->tool() == Tool::DragViewTool) {
     auto *sscene = dynamic_cast<SlideScene *>(scene());
     if (sscene) {
@@ -213,48 +213,38 @@ bool SlideView::event(QEvent *event)
   switch (event->type()) {
     case QEvent::Gesture:
       return handleGestureEvent(static_cast<QGestureEvent *>(event));
-    /* Native gesture does not work like this.
-    case QEvent::NativeGesture:
-    {
-        QNativeGestureEvent *gevent = static_cast<QNativeGestureEvent*>(event);
-        debug_msg(DebugOtherInput, "Native gesture" << gevent);
-        return QGraphicsView::event(event);
-    }
-    */
-    case QEvent::TabletPress: {
-      auto tabletevent = static_cast<const QTabletEvent *>(event);
-#if (QT_VERSION_MAJOR >= 6)
-      static_cast<SlideScene *>(scene())->tabletPress(
-          mapToScene(tabletevent->position()), tabletevent);
-#else
-      static_cast<SlideScene *>(scene())->tabletPress(
-          mapToScene(tabletevent->posF()), tabletevent);
-#endif
-      event->accept();
-      setFocus();
-      return true;
-    }
-    case QEvent::TabletRelease: {
-      auto tabletevent = static_cast<const QTabletEvent *>(event);
-#if (QT_VERSION_MAJOR >= 6)
-      static_cast<SlideScene *>(scene())->tabletRelease(
-          mapToScene(tabletevent->position()), tabletevent);
-#else
-      static_cast<SlideScene *>(scene())->tabletRelease(
-          mapToScene(tabletevent->posF()), tabletevent);
-#endif
-      event->accept();
-      return true;
-    }
+    case QEvent::TabletPress:
+    case QEvent::TabletRelease:
     case QEvent::TabletMove: {
-      auto tabletevent = static_cast<const QTabletEvent *>(event);
+      const auto sscene = dynamic_cast<SlideScene *>(scene());
+      const auto tabletevent = dynamic_cast<const QTabletEvent *>(event);
+      if (!sscene || !tabletevent) return false;
+      const int device = tablet_event_to_input_device(tabletevent);
 #if (QT_VERSION_MAJOR >= 6)
-      static_cast<SlideScene *>(scene())->tabletMove(
-          mapToScene(tabletevent->position()), tabletevent);
+      const qint64 id = tabletevent->pointingDevice()->uniqueId().numericId();
+      const auto pos = mapToScene(tabletevent->position());
 #else
-      static_cast<SlideScene *>(scene())->tabletMove(
-          mapToScene(tabletevent->posF()), tabletevent);
+      const qint64 id = tabletevent->uniqueId();
+      const auto pos = mapToScene(tabletevent->posF());
 #endif
+      const int old_device = active_tablet_devices.value(id, -1);
+      if (id > 0 && old_device != device) {
+        if (old_device > 0) sscene->tabletRelease(pos, old_device, 0);
+        if (event->type() == QEvent::TabletRelease) {
+          active_tablet_devices.remove(id);
+          sscene->tabletRelease(pos, device, 0);
+        } else {
+          active_tablet_devices[id] = device;
+          sscene->tabletPress(pos, device, tabletevent->pressure());
+        }
+      } else if (event->type() == QEvent::TabletMove) {
+        sscene->tabletMove(pos, device, tabletevent->pressure());
+      } else if (event->type() == QEvent::TabletPress) {
+        sscene->tabletPress(pos, device, tabletevent->pressure());
+      } else {
+        if (id > 0) active_tablet_devices.remove(id);
+        sscene->tabletRelease(pos, device, tabletevent->pressure());
+      }
       event->accept();
       setFocus();
       return true;
@@ -262,6 +252,7 @@ bool SlideView::event(QEvent *event)
     default:
       return QGraphicsView::event(event);
   }
+  return false;
 }
 
 void SlideView::requestScaledPage(const qreal zoom)

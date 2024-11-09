@@ -1384,7 +1384,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>drag/move the view. When active, double-click and touch gestures can be used to zoom in.</source>
+        <source>drag/move the view. When active, double-click, scrolling while pressing the left mouse button, and touch gestures can be used to zoom.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

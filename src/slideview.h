@@ -52,6 +52,11 @@ class SlideView : public QGraphicsView
   /// Show slide transitions, multimedia, etc. (all not implemented yet).
   ViewFlags view_flags = {ShowAll ^ MediaControls};
 
+  /// Map unique ids of active tablet devices to BeamerPresenter device numbers.
+  /// This is required to clean up when the BeamerPresenter device changes, e.g.
+  /// because a button is pressed or released.
+  QMap<qint64, int> active_tablet_devices;
+
   /// Send request for rendering page with resolution increased by zoom relative
   /// to normal view.
   void requestScaledPage(const qreal zoom);

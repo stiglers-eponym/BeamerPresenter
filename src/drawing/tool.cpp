@@ -109,9 +109,11 @@ const char* tool_to_description(const Tool::BasicTool tool) noexcept
     case Tool::FreehandSelectionTool:
       return QT_TRANSLATE_NOOP("Tool", "select objects inside a drawn shape");
     case Tool::DragViewTool:
-      return QT_TRANSLATE_NOOP("Tool",
-                               "drag/move the view. When active, double-click "
-                               "and touch gestures can be used to zoom in.");
+      return QT_TRANSLATE_NOOP(
+          "Tool",
+          "drag/move the view. When active, double-click, "
+          "scrolling while pressing the left mouse button, "
+          "and touch gestures can be used to zoom.");
     default:
       return "";
   };
