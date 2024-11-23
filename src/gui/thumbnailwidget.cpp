@@ -107,16 +107,24 @@ void ThumbnailWidget::keyPressEvent(QKeyEvent *event)
 #endif
   {
     case Qt::Key_PageUp:
-      focusPage(preferences()->page - 1);
-      event->ignore();
-      break;
     case Qt::Key_PageDown:
-      focusPage(preferences()->page + 1);
+      // Page up and page down should be handle by Master,
+      // not by QScrollArea. Ignore these events here.
       event->ignore();
       break;
     default:
       QScrollArea::keyPressEvent(event);
   }
+}
+
+void ThumbnailWidget::focusInEvent(QFocusEvent *event)
+{
+  if (focused_button)
+    focused_button->giveFocus();
+  else if (current_page_button)
+    current_page_button->giveFocus();
+  else
+    focusPage(preferences()->page);
 }
 
 void ThumbnailWidget::handleAction(const Action action)
@@ -159,6 +167,8 @@ void ThumbnailWidget::initRenderingThread()
 void ThumbnailWidget::generate()
 {
   debug_msg(DebugWidgets, "(re-)generating thumbnail widget" << size());
+  focused_button = nullptr;
+  current_page_button = nullptr;
   if (!widget()) initialize();
 
   emit interruptThread();

@@ -14,6 +14,7 @@
 
 class QShowEvent;
 class QKeyEvent;
+class QFocusEvent;
 class QPixmap;
 class PdfDocument;
 class ThumbnailThread;
@@ -134,6 +135,9 @@ class ThumbnailWidget : public QScrollArea
 
   /// Move focus to row above/below (updown=-1/+1)
   void moveFocusUpDown(const qint8 updown);
+
+  /// Focus in event: make sure a thumbnail button is focussed.
+  void focusInEvent(QFocusEvent *event) override;
 
  signals:
   /// Tell render_thread to render page with resolution and associate it
