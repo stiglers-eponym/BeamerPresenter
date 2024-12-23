@@ -604,6 +604,10 @@
         <source> could not be opened</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Select target direcory</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PixCache</name>
@@ -1116,6 +1120,10 @@ Configure cache. Slides are rendered to compressed cache. These settings defined
     </message>
     <message>
         <source>pdfpc/JSON files (*.pdfpc *.json);;all files (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>export svg</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

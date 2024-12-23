@@ -83,6 +83,7 @@ const QMap<QString, Action> &get_string_to_action() noexcept
       {QT_TRANSLATE_NOOP("SettingsWidget", "zoom reset"), ZoomReset},
       {QT_TRANSLATE_NOOP("SettingsWidget", "save"), SaveDrawings},
       {QT_TRANSLATE_NOOP("SettingsWidget", "save as"), SaveDrawingsAs},
+      {QT_TRANSLATE_NOOP("SettingsWidget", "export svg"), ExportDrawingsSvg},
       {QT_TRANSLATE_NOOP("SettingsWidget", "open"), LoadDrawings},
       {QT_TRANSLATE_NOOP("SettingsWidget", "open unsafe"), LoadDrawingsNoClear},
       // Modify drawn items

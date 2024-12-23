@@ -189,6 +189,12 @@ class PdfMaster : public QObject
   /// Write page (part) to image, including drawings.
   QPixmap exportImage(const PPage ppage, const qreal resolution) const noexcept;
 
+  /// Export annotations to a page as SVG image.
+  void exportSvg(const PPage page, const QString filename) const;
+
+  /// Export all annotations on all pages as SVG images.
+  void exportAllSvg(QString dirname = "") const;
+
   /// Load drawings from XML reader, must be in element <layer>
   void readDrawingsFromStream(QXmlStreamReader &reader, const int page);
 

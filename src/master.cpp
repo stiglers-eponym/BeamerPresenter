@@ -892,6 +892,9 @@ void Master::handleAction(const Action action)
       navigateToSlide(preferences()->slide);
       break;
     }
+    case ExportDrawingsSvg:
+      for (auto pdf : documents) pdf->exportAllSvg();
+      break;
     case ReloadFiles: {
       // TODO: problems with slide labels, navigation, and videos after
       // reloading files
@@ -1363,6 +1366,7 @@ bool Master::loadXmlDrawings(QBuffer *buffer, const bool clear_drawings,
   }
 
   std::shared_ptr<PdfMaster> pdf(nullptr);
+  if (!documents.isEmpty()) pdf = documents.first();
   int page = 0;
   page_idx.clear();
   page_to_slide.clear();

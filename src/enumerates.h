@@ -190,6 +190,7 @@ enum Action {
   LoadDrawings,         ///< load drawings from file, always ask for file name
   LoadDrawingsNoClear,  ///< load drawings from file without clearing existing
                         ///< drawings (better don't use that!)
+  ExportDrawingsSvg,    ///< Export drawings to SVG images.
   // Modify drawn items
   CopyClipboard,          ///< copy selection to clipboard
   CutClipboard,           ///< cut selection to clipboard

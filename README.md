@@ -6,17 +6,15 @@ The modular user interface can show notes (text or separate PDF file), a timer, 
 This software uses the Qt framework and the PDF engine MuPDF or Poppler.
 
 ## Features (selection)
-* modular user interface: adapt for your presentation style and technical equipment (number of monitors, required extra information for the speaker, input devices, ...)
+* modular user interface: adapt to your presentation or lecture style and to your devices
+* draw in slides, insert empty slides, save drawings in a format compatible with [Xournal++](https://xournalpp.github.io), optimized for different input devices
+* highlighting tools (pointer, torch, magnifier) and option to zoom into slides
 * compressed cache for fast slide changes
 * videos and slide transitions
-* draw in slides, insert empty slides, save drawings in a format compatible with [Xournal++](https://xournalpp.github.io)
-* highlighting tools (pointer, torch, magnifier)
-* zoom into slides
-* rich text notes for the speaker
+* (optionally) rich text notes for the speaker
 * (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen
 * timer indicates progress relative to a predefined schedule by it's color
 * navigate using document outline, thumbnail slides, page numbers/labels and links
-
 
 ## Screenshots
 These screenshots show only a few examples how the speaker's screen can look. The audience sees only the presentation except if you specify something else.

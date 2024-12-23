@@ -57,8 +57,8 @@ class TimerWidget : public QWidget
   /// map relative times (in ms) to colors to indicate progress
   /// relative to a plan
   QMap<qint32, QRgb> colormap = {
-      {0, qRgb(0, 255, 0)},
-      {90000, qRgb(0, 255, 255)},
+      {-300000, qRgb(255, 0, 0)},    {-90000, qRgb(255, 255, 0)},
+      {0, qRgb(0, 255, 0)},          {90000, qRgb(0, 255, 255)},
       {300000, qRgb(255, 255, 255)},
   };
   /// target time of current page (planned). This is used to adjust

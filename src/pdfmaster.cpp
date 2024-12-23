@@ -13,6 +13,7 @@
 #include <QPainter>
 #include <QRegularExpression>
 #include <QStyleOptionGraphicsItem>
+#include <QSvgGenerator>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <algorithm>
@@ -505,4 +506,56 @@ int PdfMaster::overlaysShiftedPage(int page,
   }
   page = document->overlaysShifted(std::max(page, 0), shift_overlay);
   return page;
+}
+
+void PdfMaster::exportSvg(PPage ppage, const QString filename) const
+{
+  shiftToDrawings(ppage);
+  QSizeF size = document->pageSize(std::max(ppage.page, 0));
+  if (ppage.part == PagePart::LeftHalf || ppage.part == PagePart::RightHalf)
+    size.rwidth() /= 2;
+  const PathContainer *container = paths.value(ppage, nullptr);
+  QSvgGenerator generator;
+  generator.setFileName(filename);
+  if (ppage.part != PagePart::FullPage &&
+      ppage.part != PagePart::UnknownPagePart) {
+    const QString ppname = get_page_part_names().value(ppage.part, "");
+    generator.setTitle("annotations on page " + QString::number(ppage.page) +
+                       " " + ppname);
+  } else
+    generator.setTitle("annotations on page " + QString::number(ppage.page));
+  {  // scope only for memory handling
+    QRectF viewbox({0, 0}, size);
+    if (container) viewbox = viewbox.united(container->boundingBox());
+    QRect aviewbox = viewbox.toAlignedRect();
+    generator.setSize(aviewbox.size());
+    generator.setViewBox(aviewbox);
+  }
+  if (container) {
+    QPainter painter;
+    painter.begin(&generator);
+    const QStyleOptionGraphicsItem opt;
+    for (auto it = container->begin(); it != container->end(); ++it)
+      (*it)->paint(&painter, &opt);
+    painter.end();
+  }
+}
+
+void PdfMaster::exportAllSvg(QString dirname) const
+{
+  if (dirname.isEmpty())
+    dirname = QFileDialog::getExistingDirectory(nullptr,
+                                                tr("Select target direcory"));
+  if (dirname.isEmpty()) return;
+  QDir dir(dirname);
+  for (auto it = paths.cbegin(); it != paths.cend(); ++it) {
+    if (*it == nullptr) continue;
+    QString fname = "img-page" + QString::number(it.key().page);
+    if (it.key().part != PagePart::FullPage &&
+        it.key().part != PagePart::UnknownPagePart)
+      fname += get_page_part_names().value(it.key().part, "");
+    fname += ".svg";
+    fname = dir.absoluteFilePath(fname);
+    exportSvg(it.key(), fname);
+  }
 }

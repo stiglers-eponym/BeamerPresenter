@@ -93,8 +93,12 @@ void ThumbnailWidget::focusPage(const int page)
 {
   if (!isVisible()) return;
   ThumbnailButton *button = buttonAtPage(page);
-  if (button) button->giveFocus();
-  if (current_page_button) current_page_button->clearFocus();
+  if (current_page_button && current_page_button != button)
+    current_page_button->clearFocus();
+  if (button) {
+    ensureWidgetVisible(button);
+    button->giveFocus();
+  }
   current_page_button = button;
 }
 

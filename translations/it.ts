@@ -604,6 +604,10 @@
         <source> could not be opened</source>
         <translation>non poteva essere aperto</translation>
     </message>
+    <message>
+        <source>Select target direcory</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PixCache</name>
@@ -1118,6 +1122,10 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>pdfpc/JSON files (*.pdfpc *.json);;all files (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>export svg</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

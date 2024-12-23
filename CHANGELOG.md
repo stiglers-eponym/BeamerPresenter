@@ -11,6 +11,7 @@
 * loading drawings: improved handling of relative paths
 ### bug fixes
 * laser pointers remaining visible
+* thumbnail widget: focus current page
 * wrong slide shown after fly transition
 ### internal
 * replace encoding of flags in bits of page number integers by structs

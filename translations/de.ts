@@ -604,6 +604,10 @@
         <source> could not be opened</source>
         <translation> konnte nicht geöffnet werden</translation>
     </message>
+    <message>
+        <source>Select target direcory</source>
+        <translation>Zielverzeichnis auswählen</translation>
+    </message>
 </context>
 <context>
     <name>PixCache</name>
@@ -1119,6 +1123,10 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
     <message>
         <source>pdfpc/JSON files (*.pdfpc *.json);;all files (*)</source>
         <translation>pdfpc/JSON Dateien (*.pdfpc *.json);;Alle Dateien (*)</translation>
+    </message>
+    <message>
+        <source>export svg</source>
+        <translation>SVG exportieren</translation>
     </message>
 </context>
 <context>

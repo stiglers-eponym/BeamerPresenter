@@ -142,10 +142,12 @@ Additionally, the graphical interface is defined in a JSON-formatted file gui.js
 .SH FILE FORMAT
 .
 BeamerPresenter can save drawings along with text notes (from a notes widget) and other file-specific settings to a gzipped XML file (.bpr). The PDF document is not included in this file.
-The file type aims for compatibility with Xournal++'s .xopp in saving and loading drawings. BeamerPresenter can read .xoj and .xopp files, but will only consider pages with a PDF page as background. Xournal++ can open BeamerPresenter files, but transformations of text boxes will be ignored. BeamerPresenter can only handle a small subset of the features provided by Xournal++ and also adds a few features which Xournal++ will ignore.
-When opening a file, it does not need to be gzipped. However, when saving to a file it will always be gzipped.
 .PP
-Note: When saving with the file extension .xopp in BeamerPresenter, only annotations will be saved. Text notes and times set for slides will not be saved in this case.
+The file type aims for compatibility with Xournal++'s .xopp in saving and loading drawings. BeamerPresenter can read .xoj (Xournal) and .xopp files if those contain annotations of a PDF document. Xournal++ can open BeamerPresenter files, but transformations of text boxes will be ignored. BeamerPresenter can only handle a small subset of the features provided by Xournal++ and also adds a few features which Xournal++ will ignore.
+.PP
+Exporting notes to a PDF document is currently not supported. But you can use Xournal++ to do this using the command \[dq]xournalpp -p output.pdf input.xopp\[dq].
+.PP
+Note: When saving with the file extension .xopp in BeamerPresenter, only annotations will be saved. Text notes and times set for slides will not be saved in this case. When opening a file, it does not need to be gzipped. However, when saving to a file, it will always be gzipped.
 .
 .
 .SH PDF FEATURES / MULTIMEDIA
