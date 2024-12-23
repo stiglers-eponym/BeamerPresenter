@@ -2,7 +2,7 @@
 ## 0.2.6 (upcoming)
 ### new features
 * flexible mapping of page numbers to slides allows adding empty slides and removing slides
-* zoom into view using buttons or touchscreen
+* zoom into view using buttons, scroll wheel, or touchscreen
 * new tool: drag view
 * read overlays from JSON file created for pdfpc, intended for usage with Polylux
 * allow manually setting view aspect ratio, effectively changing the default zoom
@@ -11,6 +11,7 @@
 * loading drawings: improved handling of relative paths
 ### bug fixes
 * laser pointers remaining visible
+* wrong slide shown after fly transition
 ### internal
 * replace encoding of flags in bits of page number integers by structs
 

@@ -50,8 +50,10 @@ const QStringList ExternalRenderer::getArguments(const int page,
 const PngPixmap *ExternalRenderer::renderPng(const int page,
                                              const qreal resolution) const
 {
-  if (resolution <= 0 || page < 0) return nullptr;
-
+  if (!doc || !doc->checkResolution(page, resolution)) {
+    qWarning() << "Invalid page or resolution" << page << resolution;
+    return nullptr;
+  }
   if (page_part == FullPage) {
     QProcess *process = new QProcess();
     process->start(renderingCommand, getArguments(page, resolution, "png"),
@@ -77,7 +79,10 @@ const PngPixmap *ExternalRenderer::renderPng(const int page,
 const QPixmap ExternalRenderer::renderPixmap(const int page,
                                              const qreal resolution) const
 {
-  if (resolution <= 0 || page < 0) return QPixmap();
+  if (!doc || !doc->checkResolution(page, resolution)) {
+    qWarning() << "Invalid page or resolution" << page << resolution;
+    return QPixmap();
+  }
   QProcess *process = new QProcess();
   process->start(renderingCommand, getArguments(page, resolution, "pnm"),
                  QProcess::ReadOnly);

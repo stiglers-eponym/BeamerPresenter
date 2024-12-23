@@ -131,9 +131,11 @@ class Preferences : public QObject
   // RENDERING
   /// Threshold of page aspect ratio for splitting pages in notes and
   /// presentation.
-  float page_part_threshold{2.5};
+  float page_part_threshold = 2.5;
   /// PagePart which represents the presentation.
   PagePart default_page_part = FullPage;
+  /// Maximum image size in pixels.
+  qreal max_image_size = 3e7;
 
 #ifdef USE_MUPDF
   /// PDF engine (should be same as renderer except if renderer is external)
@@ -429,6 +431,10 @@ inline Master *master() noexcept
 /// Create tool from JSON formatted input.
 std::shared_ptr<Tool> createTool(const QJsonObject &obj,
                                  const int default_device = 0);
+
+/// Create default tool from string.
+std::shared_ptr<Tool> createToolFromString(const QString &str,
+                                           const int default_device = 0);
 
 /// Write tool properties to JSON object.
 void toolToJson(std::shared_ptr<const Tool> tool, QJsonObject &obj);

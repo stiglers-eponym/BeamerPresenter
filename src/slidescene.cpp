@@ -87,6 +87,7 @@ SlideScene::~SlideScene()
 {
   debug_verbose(DebugFunctionCalls, "DELETING SlideScene" << this);
   delete animation;
+  delete zoom_timer;
   if (searchResults) removeItem(searchResults);
   delete searchResults;
   QList<QGraphicsItem *> list = items();
@@ -732,24 +733,25 @@ void SlideScene::handleSelectionStopEvents(std::shared_ptr<SelectionTool> tool,
     tool->reset();
 }
 
-void SlideScene::setZoom(const qreal new_zoom, const bool render)
+void SlideScene::renderZoom()
 {
-  const QRectF rect = sceneRect();
-  const qreal shift = (1 - zoom / new_zoom) / 2;
-  setSceneRect(rect.x() + shift * rect.width(),
-               rect.y() + shift * rect.height(), zoom / new_zoom * rect.width(),
-               zoom / new_zoom * rect.height());
-  zoom = new_zoom;
   const auto all_views = views();
   for (auto view : all_views) {
     auto *sview = dynamic_cast<SlideView *>(view);
-    if (sview) sview->setZoom(zoom, render);
+    if (sview) sview->setZoom(zoom, true);
   }
+}
+
+void SlideScene::setZoom(const qreal new_zoom, const bool render)
+{
+  const QRectF rect = sceneRect();
+  setZoom(new_zoom, rect.center(), render);
 }
 
 void SlideScene::setZoom(const qreal new_zoom, const QPointF reference,
                          const bool render)
 {
+  if (zoom_timer) zoom_timer->stop();
   const QRectF rect = sceneRect();
   const qreal shift = 1 - zoom / new_zoom;
   setSceneRect(rect.x() + shift * (reference.x() - rect.x()),
@@ -760,6 +762,18 @@ void SlideScene::setZoom(const qreal new_zoom, const QPointF reference,
   for (auto view : all_views) {
     auto *sview = dynamic_cast<SlideView *>(view);
     if (sview) sview->setZoom(zoom, render);
+  }
+  if (render) {
+    if (zoom_timer) {
+      delete zoom_timer;
+      zoom_timer = nullptr;
+    }
+  } else {
+    if (!zoom_timer) {
+      zoom_timer = new QTimer(this);
+      connect(zoom_timer, &QTimer::timeout, this, &SlideScene::renderZoom);
+    }
+    zoom_timer->start(250);
   }
 }
 

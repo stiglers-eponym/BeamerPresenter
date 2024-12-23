@@ -86,6 +86,9 @@ class SlideScene : public QGraphicsScene
   /// settings for this slide scene.
   SlideFlags slide_flags = SlideFlag::Default;
 
+  /// timer for rendering after zoom
+  QTimer *zoom_timer{nullptr};
+
   /// Path which is currently being drawn.
   /// nullptr if currenty no path is drawn.
   QGraphicsItem *currentlyDrawnItem{nullptr};
@@ -223,6 +226,8 @@ class SlideScene : public QGraphicsScene
    * @param render if true, views will render the slide with adjusted resolution
    */
   void setZoom(const qreal new_zoom, const bool render = true);
+
+  void renderZoom();
 
   /// modifiable slide flags.
   SlideFlags &flags() noexcept { return slide_flags; }

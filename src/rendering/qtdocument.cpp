@@ -137,7 +137,8 @@ bool QtDocument::loadDocument()
 const QPixmap QtDocument::getPixmap(const int page, const qreal resolution,
                                     const PagePart page_part) const
 {
-  if (resolution <= 0 || page < 0 || page >= doc->pageCount()) {
+  if (page >= doc->pageCount() || page < 0 ||
+      !checkResolution(page, resolution)) {
     qWarning() << "Tried to render invalid page or invalid resolution" << page;
     return QPixmap();
   }
@@ -159,7 +160,8 @@ const QPixmap QtDocument::getPixmap(const int page, const qreal resolution,
 const PngPixmap *QtDocument::getPng(const int page, const qreal resolution,
                                     const PagePart page_part) const
 {
-  if (resolution <= 0 || page < 0 || page >= doc->pageCount()) {
+  if (page >= doc->pageCount() || page < 0 ||
+      !checkResolution(page, resolution)) {
     qWarning() << "Tried to render invalid page or invalid resolution" << page;
     return nullptr;
   }

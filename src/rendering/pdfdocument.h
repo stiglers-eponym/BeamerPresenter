@@ -341,6 +341,9 @@ class PdfDocument
   /// Duration of given page in secons. Default value is -1 is interpreted as
   /// infinity.
   virtual qreal duration(const int page) const noexcept { return -1.; }
+
+  /// Return true if resolution can be used (positive but not too high)
+  bool checkResolution(const int page, const qreal resolution) const;
 };
 
 AbstractRenderer *createRenderer(const std::shared_ptr<const PdfDocument> &doc,

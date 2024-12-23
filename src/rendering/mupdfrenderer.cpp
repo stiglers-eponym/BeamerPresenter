@@ -92,6 +92,7 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page,
 {
   QPixmap qpixmap;
   fz_context *ctx = nullptr;
+  if (!doc || !doc->checkResolution(page, resolution)) return qpixmap;
   fz_pixmap *pixmap = renderFzPixmap(page, resolution, ctx);
   if (!pixmap || !ctx) return qpixmap;
 
@@ -142,7 +143,8 @@ const QPixmap MuPdfRenderer::renderPixmap(const int page,
 const PngPixmap *MuPdfRenderer::renderPng(const int page,
                                           const qreal resolution) const
 {
-  fz_context *ctx;
+  if (!doc || !doc->checkResolution(page, resolution)) return nullptr;
+  fz_context *ctx = nullptr;
   fz_pixmap *pixmap = renderFzPixmap(page, resolution, ctx);
   if (!pixmap || !ctx) return nullptr;
 

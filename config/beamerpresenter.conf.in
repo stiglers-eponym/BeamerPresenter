@@ -101,3 +101,6 @@ P=toggle timer
 page part threshold=2.5
 # default renderer
 #renderer=@DEFAULT_RENDERER@
+
+# Maximum size of rendered images in pixels, useful avoid crash due to memory issues
+max image size=2e7

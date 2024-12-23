@@ -4,6 +4,7 @@
 #include "src/rendering/pdfdocument.h"
 
 #include "src/enumerates.h"
+#include "src/preferences.h"
 #ifdef USE_MUPDF
 #include "src/rendering/mupdfrenderer.h"
 #endif
@@ -87,4 +88,12 @@ const QString PdfDocument::pageLabel(const int page) const
 
   if (pageLabels.isEmpty()) return QString::number(page + 1);
   return (--pageLabels.upperBound(page)).value();
+}
+
+bool PdfDocument::checkResolution(const int page, const qreal resolution) const
+{
+  if (resolution <= 0 || page < 0) return false;
+  const QSizeF size = pageSize(page);
+  const qreal pixels = size.width() * size.height() * resolution * resolution;
+  return (pixels > 2) && (pixels <= preferences()->max_image_size);
 }

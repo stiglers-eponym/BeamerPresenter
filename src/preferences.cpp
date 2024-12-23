@@ -38,6 +38,14 @@ bool Preferences::pageExists(const int page) const noexcept
   return master->pageExits(page);
 }
 
+std::shared_ptr<Tool> createToolFromString(const QString &str,
+                                           const int default_device)
+{
+  QJsonObject json;
+  json.insert("tool", QJsonValue(str));
+  return createTool(json, default_device);
+}
+
 std::shared_ptr<Tool> createTool(const QJsonObject &obj,
                                  const int default_device)
 {
@@ -366,6 +374,9 @@ void Preferences::loadSettings()
   // page_part threshold
   const float threshold = settings.value("page part threshold").toReal(&ok);
   if (ok) page_part_threshold = threshold;
+  // maximum image size
+  const qreal maximgsize = settings.value("max image size").toReal(&ok);
+  if (ok) max_image_size = maximgsize;
   {  // renderer
 #ifdef USE_EXTERNAL_RENDERER
     rendering_command = settings.value("rendering command").toString();
@@ -508,15 +519,18 @@ void Preferences::parseActionsTools(const QVariant &input,
       array.append(doc.object());
   }
   if (array.isEmpty()) {
-    Action action;
     for (const auto &action_str :
          static_cast<const QStringList>(input.toStringList())) {
-      action = get_string_to_action().value(action_str.toLower(),
-                                            Action::InvalidAction);
-      if (action == InvalidAction)
-        qWarning() << "Unknown action in config" << action_str
-                   << "as part of input" << input;
-      else
+      const Action action = get_string_to_action().value(action_str.toLower(),
+                                                         Action::InvalidAction);
+      if (action == InvalidAction) {
+        auto tool = createToolFromString(action_str.toLower(), default_device);
+        if (tool)
+          tools.append(tool);
+        else
+          qWarning() << "Unknown action/tool in config:" << action_str
+                     << "as part of input" << input;
+      } else
         actions.append(action);
     }
     return;
@@ -525,10 +539,15 @@ void Preferences::parseActionsTools(const QVariant &input,
     if (value.isString()) {
       const Action action = get_string_to_action().value(
           value.toString().toLower(), Action::InvalidAction);
-      if (action == InvalidAction)
-        qWarning() << "Unknown action in config:" << value << "as part of input"
-                   << input;
-      else
+      if (action == InvalidAction) {
+        auto tool =
+            createToolFromString(value.toString().toLower(), default_device);
+        if (tool)
+          tools.append(tool);
+        else
+          qWarning() << "Unknown action/tool in config:" << value
+                     << "as part of input" << input;
+      } else
         actions.append(action);
     } else if (value.isObject()) {
       const QJsonObject object = value.toObject();

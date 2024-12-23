@@ -9,8 +9,9 @@ This software uses the Qt framework and the PDF engine MuPDF or Poppler.
 * modular user interface: adapt for your presentation style and technical equipment (number of monitors, required extra information for the speaker, input devices, ...)
 * compressed cache for fast slide changes
 * videos and slide transitions
-* draw in slides, save drawings in a format compatible with [Xournal++](https://xournalpp.github.io)
+* draw in slides, insert empty slides, save drawings in a format compatible with [Xournal++](https://xournalpp.github.io)
 * highlighting tools (pointer, torch, magnifier)
+* zoom into slides
 * rich text notes for the speaker
 * (optionally) show separate presentation file for speaker or use LaTeX-beamer's option to show notes on second screen
 * timer indicates progress relative to a predefined schedule by it's color

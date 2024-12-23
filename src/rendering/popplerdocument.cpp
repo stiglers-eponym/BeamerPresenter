@@ -137,7 +137,7 @@ const QPixmap PopplerDocument::getPixmap(const int page, const qreal resolution,
                                          const PagePart page_part) const
 {
   const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
-  if (resolution <= 0 || !docpage) {
+  if (!docpage || !checkResolution(page, resolution)) {
     qWarning() << "Tried to render invalid page or invalid resolution" << page;
     return QPixmap();
   }
@@ -159,7 +159,7 @@ const PngPixmap *PopplerDocument::getPng(const int page, const qreal resolution,
                                          const PagePart page_part) const
 {
   const std::unique_ptr<Poppler::Page> docpage(doc->page(page));
-  if (resolution <= 0 || !docpage) {
+  if (!docpage || !checkResolution(page, resolution)) {
     qWarning() << "Tried to render invalid page or invalid resolution" << page;
     return nullptr;
   }

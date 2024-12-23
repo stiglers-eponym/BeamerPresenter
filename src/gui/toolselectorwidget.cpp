@@ -47,15 +47,23 @@ void ToolSelectorWidget::addButtons(const QJsonArray &full_array)
           const QString &name = row[column_index].toString();
           const Action action =
               get_string_to_action().value(name, InvalidAction);
-          if (action == InvalidAction)
-            initializeToolPropertyButton(name, {}, row_index, column_index);
-          else {
+          if (action != InvalidAction) {
             ActionButton *button = new ActionButton(action, this);
             connect(this, &ToolSelectorWidget::updateIcons, button,
                     &ActionButton::updateIcon, Qt::QueuedConnection);
             if (button->icon().isNull()) button->setText(name);
             grid_layout->addWidget(button, row_index, column_index);
+            break;
           }
+          auto tool = createToolFromString(name);
+          if (tool) {
+            ToolSelectorButton *button = new ToolSelectorButton(tool, this);
+            connect(this, &ToolSelectorWidget::updateIcons, button,
+                    &ToolSelectorButton::updateIcon, Qt::QueuedConnection);
+            grid_layout->addWidget(button, row_index, column_index);
+            break;
+          }
+          initializeToolPropertyButton(name, {}, row_index, column_index);
           break;
         }
         case QJsonValue::Array: {

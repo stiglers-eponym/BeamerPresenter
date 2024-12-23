@@ -1,7 +1,7 @@
-.TH beamerpresenter-ui 5 "2024-08-25" "0.2.5"
+.TH beamerpresenter-ui 5 "2024-12-23" "0.2.5"
 .
 .SH NAME
-beamerpresenter-ui \- user interface of BeamerPresenter
+beamerpresenter-ui \- user interface configuration of BeamerPresenter
 .
 .SH GENERAL
 .
@@ -267,33 +267,44 @@ list of devices that are included in the group of tablet devices. Possible value
 .
 .TP
 .B tool selector
-grid layout of push buttons. Contains mandatory argument
+Grid layout of buttons. Contains mandatory argument
 .B buttons
-which must be an array of arrays of buttons. The array of arrays constitutes a matrix defining the arrangement of the buttons.
+which must be an array of arrays of buttons. The array of arrays constitutes a matrix defining the arrangement of the buttons. A button can be any of the following:
+.RS
+.TP
+.B string defining an action
+Available actions are listed below in section ACTIONS. Pushing an action button is equivalent to sending a keyboard shortcut connected to that action.
+.TP
+.B JSON array of strings defining actions
+A button can have multiple actions.
+.TP
+.B string defining a tool
+The tool is created with default settings.
+.TP
+.B JSON object defining a tool
+The JSON object must have the property \[dq]tool\[dq] defining the tool. Available tools and their configuration options are listed below in section TOOLS.
+.TP
+.B string defining a tool property
+A drop down menu for this tool property is created. Available tool properties are: \[dq]color\[dq], \[dq]width\[dq] (in points), \[dq]shape\[dq] (for draw tools), \[dq]style\[dq] (pen style for draw tools), \[dq]brush\[dq] (fill pattern for draw tools).
+.TP
+.B JSON object defining a tool property
+.RI "The JSON object must have the items \[dq]select\[dq]:" \[dq]property\[dq] " where " \[dq]property\[dq] " should be replaced."
+It should further have the item \[dq]list\[dq]:[...] containing a list of selectable values for the drop down menu.
 .PP
 .RS
-Each button can either be a string representing an action, or a string defining a tool property, or a JSON dictionary defining a tool property and a selection of values for this property, or a JSON dictionary representing a tool, or an array of multiple strings representing actions.
-.PP
-It is possible to select a different tool for a button while BeamerPresenter is running by clicking the button while pressing the ctrl key. But note that this changes the tool only temporarily and this modification will not be saved.
-.PP
-Available actions and tools are listed below in the sections ACTIONS and TOOLS.
-The following tool properties can be provided to create a drop-down menu:
+Examples:
+.RS
+.nf
+.eo
+{"select":"color", "list":["red", "green", "blue"]}
+{"select":"width", "list":[0.5, 1, 2, 4]}
+.ec
+.fi
+.RE
+.RE
 .
-.TP
-.B color
-Tool color, should be provided as a JSON object in the form {\[dq]select\[dq]:\[dq]color\[dq], \[dq]list\[dq]:[\[dq]red\[dq], \[dq]green\[dq], \[dq]blue\[dq]]} were the list of colors can be adapted.
-.TP
-.B width
-Draw tool widths. This must be provided as a JSON object in the form {\[dq]select\[dq]:\[dq]width\[dq], \[dq]list\[dq]:[0.5,1,2,4]} were the list of widths (measured in point=1/72 inch in the PDF) can be adapted.
-.TP
-.B shape
-Shapes of draw tools.
-.TP
-.B style
-Pen styles for draw tools.
-.TP
-.B brush
-Filling patterns for draw tools.
+.PP
+It is possible to select a different tool for a button while BeamerPresenter is running by clicking the button while pressing the ctrl key. But this changes the tool only temporarily and this modification will not be saved.
 .RE
 
 .SS Layouts
@@ -445,7 +456,7 @@ Tools can be configured in a JSON object of the form {\[dq]tool\[dq]:\[dq]pen\[d
 Some configuration options are common to groups of tools such as draw tools.
 All lengths (e.g. stroke width) are given in points (1/72 inch) in the PDF.
 .
-.SS Common Options
+.SS Common Options for all tools
 .
 The following configuration options are available for every tool:
 .TP
@@ -476,7 +487,8 @@ effect of scroll wheel (only when the tool is active fore a device that supports
 effect of double click with left mouse button (only when the tool is active for a device that supports double click)
 .RE
 .
-.TP text
+.TP
+.B text
 Add a text field. Configurable options:
 .RS
 .TP
@@ -489,7 +501,19 @@ only text tool: font size (positive number).
 .
 .SS Draw Tools
 .TP
-.I Common options
+.B pen
+Pen of variable line width if the input device provides pressure information.
+.
+.TP
+.B fixed width pen
+Pen of fixed line width.
+.
+.TP
+.B highlighter
+Fixed width pen with default options adjusted for highlighting.
+.
+.TP
+.B Common options for draw tools
 .RS
 .TP
 .B width
@@ -511,27 +535,7 @@ Draw this shape instead of a freehand path. Allowed values are \[dq]freehand\[dq
 Composition mode, valid values are: \[dq]source over\[dq] (default for pen), \[dq]darken\[dq] (default for highlighter), \[dq]lighten\[dq], \[dq]difference\[dq], \[dq]plus\[dq], \[dq]multiply\[dq], \[dq]screen\[dq], \[dq]overlay\[dq]
 .RE
 .
-.TP
-.B pen
-Pen of variable line width if the input device provides pressure information.
-.
-.TP
-.B fixed width pen
-Pen of fixed line width.
-.
-.TP
-.B highlighter
-Fixed width pen with default options adjusted for highlighting.
-.
 .SS Pointing Tools
-.TP
-.I Common options
-.RS
-.TP
-.B size
-Radius of the tool (positive number).
-.RE
-.
 .TP
 .B eraser
 Erase previously drawn strokes. Option:
@@ -554,6 +558,14 @@ Magnification factor (number between 0.1 and 5).
 .TP
 .B torch
 Highlight parts of the slide by darkening everything else.
+.
+.TP
+.B Common options for pointing tools
+.RS
+.TP
+.B size
+Radius of the tool (positive number).
+.RE
 .
 .SS Selection Tools
 .
