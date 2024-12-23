@@ -527,7 +527,7 @@ const SlideTransition MuPdfDocument::transition(const int page) const
   trans.properties = (doc_trans.vertical ? SlideTransition::Vertical : 0) |
                      (doc_trans.outwards ? SlideTransition::Outwards : 0);
   if (doc_trans.type > 12 || doc_trans.type < 0)
-    trans.type = -1;
+    trans.type = SlideTransition::Invalid;
   else
     trans.type = static_cast<SlideTransition::Type>(doc_trans.type);
   trans.angle = doc_trans.direction;

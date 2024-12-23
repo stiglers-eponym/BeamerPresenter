@@ -105,6 +105,8 @@ class SlideScene : public QGraphicsScene
   /// Graphics item required during a page transition, usually
   /// represents the old page.
   PixmapGraphicsItem *pageTransitionItem{nullptr};
+  /// Slide transition type
+  SlideTransition::Type transitionType{SlideTransition::Replace};
 
   /// List of (cached or active) video items.
   QList<std::shared_ptr<MediaItem>> mediaItems;

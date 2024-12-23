@@ -194,11 +194,12 @@ bool SlideView::handleGestureEvent(QGestureEvent *event)
   const QPinchGesture *pinch =
       dynamic_cast<QPinchGesture *>(event->gesture(Qt::PinchGesture));
   if (pinch && tool && tool->tool() == Tool::DragViewTool) {
+    const auto dtool = std::dynamic_pointer_cast<DragTool>(tool);
     auto *sscene = dynamic_cast<SlideScene *>(scene());
-    if (sscene) {
+    if (sscene && dtool && (dtool->flags() & DragTool::TouchZoom)) {
       event->accept();
       handled = true;
-      std::static_pointer_cast<DragTool>(tool)->clear();
+      dtool->clear();
       const qreal zoom = pinch->scaleFactor() * sscene->getZoom();
       debug_msg(DebugOtherInput, pinch);
       sscene->setZoom(zoom, mapToScene(pinch->centerPoint()),

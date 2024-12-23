@@ -227,12 +227,12 @@ Default configuration:
 .nf
 .eo
 "colormap" : {
-    "-300" : "#ff0000",
-    "-90"  : "#ffff00",
-    "0"    : "#00ff00",
-    "90"   : "#00ffff",
-    "300"  : "#ffffff"
-    }
+"-300" : "#ff0000",
+"-90"  : "#ffff00",
+"0"    : "#00ff00",
+"90"   : "#00ffff",
+"300"  : "#ffffff"
+}
 .ec
 .fi
 .RE
@@ -270,10 +270,60 @@ list of devices that are included in the group of tablet devices. Possible value
 grid layout of push buttons. Contains mandatory argument
 .B buttons
 which must be an array of arrays of buttons. The array of arrays constitutes a matrix defining the arrangement of the buttons.
-Each button can either be a string representing an action, or a string defining a tool property, or a JSON dictionary defining a tool property and a selection of values for this property, or a JSON dictionary representing a tool, or an array of multiple strings representing actions.
-.RS
 .PP
-Valid action strings:
+.RS
+Each button can either be a string representing an action, or a string defining a tool property, or a JSON dictionary defining a tool property and a selection of values for this property, or a JSON dictionary representing a tool, or an array of multiple strings representing actions.
+.PP
+It is possible to select a different tool for a button while BeamerPresenter is running by clicking the button while pressing the ctrl key. But note that this changes the tool only temporarily and this modification will not be saved.
+.PP
+Available actions and tools are listed below in the sections ACTIONS and TOOLS.
+The following tool properties can be provided to create a drop-down menu:
+.
+.TP
+.B color
+Tool color, should be provided as a JSON object in the form {\[dq]select\[dq]:\[dq]color\[dq], \[dq]list\[dq]:[\[dq]red\[dq], \[dq]green\[dq], \[dq]blue\[dq]]} were the list of colors can be adapted.
+.TP
+.B width
+Draw tool widths. This must be provided as a JSON object in the form {\[dq]select\[dq]:\[dq]width\[dq], \[dq]list\[dq]:[0.5,1,2,4]} were the list of widths (measured in point=1/72 inch in the PDF) can be adapted.
+.TP
+.B shape
+Shapes of draw tools.
+.TP
+.B style
+Pen styles for draw tools.
+.TP
+.B brush
+Filling patterns for draw tools.
+.RE
+
+.SS Layouts
+.
+.TP
+.B horizontal
+horizontally arranged child widgets. The relative size of the widgets is determined by their preferred aspect ratios to ensure maximal usage of the screen by slide widgets.
+.
+.TP
+.B vertical
+vertically arranged child widgets, see horizontal.
+.
+.TP
+.B stacked
+stacked child widgets, shown in the same place. The currently visible widget can only be selected by keyboard shortcuts defined using the \[dq]keys\[dq] argument of the subwidgets.
+.
+.TP
+.B tabbed
+similar to stacked widget, but shows the child widgets as tabs, which can be selected using the cursor.
+.PP
+.RS
+Arguments:
+.TP
+.BI "orientation " "north/east/south/west"
+position of the tab bar.
+.RE
+.
+.SH ACTIONS
+.
+Available actions are:
 .TP
 .B previous
 navigate to previous page
@@ -389,96 +439,133 @@ close BeamerPresenter. Ask for confirmation if there are unsaved changes. Note t
 .B quit unsafe
 close BeamerPresenter ignoring unsaved changes.
 .
-.PP
-Valid tool properties are:
-.TP
-.B shape
-drop-down menu of shapes.
-.TP
-.B style
-drop-down menu of pen styles.
-.TP
-.B brush
-drop-down menu of filling patterns.
-.TP
-.B color
-drop-down menu of colors. This must be provided as a JSON object in the form {\[dq]select\[dq]:\[dq]color\[dq], \[dq]list\[dq]:[\[dq]red\[dq], \[dq]green\[dq], \[dq]blue\[dq]]} were the list of colors can be adapted.
-.TP
-.B width
-drop-down menu of draw tool widths. This must be provided as a JSON object in the form {\[dq]select\[dq]:\[dq]width\[dq], \[dq]list\[dq]:[0.5,1,2,4]} were the list of widths (measured in point=1/72 inch in the PDF) can be adapted.
+.SH TOOLS
 .
-.PP
-Options in the dictionary for tools. All lengths (e.g. stroke width) are given in points (1/72 inch) in the PDF:
-.TP
-.B tool
-mandatory: pen, fixed width pen, highlighter, eraser, pointer, magnifier, torch, text, click select, rectangle select, freehand select, drag view, or none
+Tools can be configured in a JSON object of the form {\[dq]tool\[dq]:\[dq]pen\[dq], ...} with the configuration options listed below.
+Some configuration options are common to groups of tools such as draw tools.
+All lengths (e.g. stroke width) are given in points (1/72 inch) in the PDF.
+.
+.SS Common Options
+.
+The following configuration options are available for every tool:
 .TP
 .B color
 color name known to Qt or #RRGGBB or #AARRGGBB
+.
 .TP
-.B width
-only draw tools (pen, highlighter, fixed width pen): stroke width (positive number).
+.B device
+device name (e.g. \[dq]tablet pen\[dq], \[dq]touch\[dq]), \[dq]all\[dq], or \[dq]all+\[dq] (see also beamerpresenter.conf (5)). If this property is set, pushing this button will set the tool for the defined input devices. If this property is not set, then the tool will always be set only for the input device with which the button was pressed.
+.
+.SS General Tools
+.
 .TP
-.B size
-only pointing tools (eraser, pointer, torch, highlighter): radius of tool (positive number).
+.B none
+No tool or hand tool. Follow hyperlinks and click on videos to start or stop them.
 .TP
-.B fill
-only draw tools: color to fill the path. Leave empty if paths should not be filled.
+.B drag view
+Drag and zoom view. Available configuration options:
+.RS
 .TP
-.BR style " = SolidLine"
-only draw tools: Pen style for stroking the path. Possible values are \[dq]nopen\[dq] , \[dq]solid\[dq], \[dq]dash\[dq], \[dq]dot\[dq], \[dq]dashdot\[dq], and \[dq]dashdotdot\[dq].
+.BI touch-zoom " bool"
+zoom using touch screen pinch gesture
 .TP
-.BR brush " = SolidPattern"
-only draw tools: Filling style of the path, see https://doc.qt.io/qt-6/qt.html#BrushStyle-enum for valid names. Gradients are not allowed.
+.BI scroll " \[dq]zoom\[dq] | \[dq]move\[dq] | \[dq]none\[dq]"
+effect of scroll wheel (only when the tool is active fore a device that supports scrolling)
 .TP
-.BR shape " = freehand"
-only draw tools: Draw this shape instead of a freehand path. Allowed values are \[dq]freehand\[dq], \[dq]rectangle\[dq], \[dq]ellipse\[dq], \[dq]line\[dq], and \[dq]arrow\[dq].
-.TP
-.BR scale " = 2"
-only magnifier: magnification factor (number between 0.1 and 5).
-.TP
-.BR linewidth " = 0"
-only eraser: draw a circle of given line width around the eraser. The circle is only drawn on the currently active widget.
-.TP
-.B composition
-only draw tools: composition mode, valid values are: \[dq]source over\[dq] (default for pen), \[dq]darken\[dq] (default for highlighter), \[dq]lighten\[dq], \[dq]difference\[dq], \[dq]plus\[dq], \[dq]multiply\[dq], \[dq]screen\[dq], \[dq]overlay\[dq]
+.BI double-click " \[dq]zoom\[dq] | \[dq]none\[dq]"
+effect of double click with left mouse button (only when the tool is active for a device that supports double click)
+.RE
+.
+.TP text
+Add a text field. Configurable options:
+.RS
 .TP
 .B font
 only text tool: anything that Qt can interpret as a font name.
 .TP
 .B font size
 only text tool: font size (positive number).
-.TP
-.B device
-all tools: tool name (e.g. \[dq]tablet pen\[dq], \[dq]touch\[dq]), \[dq]all\[dq], or \[dq]all+\[dq] (see also beamerpresenter.conf (5)). If this property is set, pushing this button will set the tool for the defined input devices. If this property is not set, then the tool will always be set only for the input device with which the button was pressed.
-.PP
-It is possible to select a different tool for a button while BeamerPresenter is running by clicking the button while pressing the ctrl key. But note that this changes the tool only temporarily and this modification will not be saved.
 .RE
-
-.SS Layouts
 .
+.SS Draw Tools
 .TP
-.B horizontal
-horizontally arranged child widgets. The relative size of the widgets is determined by their preferred aspect ratios to ensure maximal usage of the screen by slide widgets.
-.
-.TP
-.B vertical
-vertically arranged child widgets, see horizontal.
-.
-.TP
-.B stacked
-stacked child widgets, shown in the same place. The currently visible widget can only be selected by keyboard shortcuts defined using the \[dq]keys\[dq] argument of the subwidgets.
-.
-.TP
-.B tabbed
-similar to stacked widget, but shows the child widgets as tabs, which can be selected using the cursor.
-.PP
+.I Common options
 .RS
-Arguments:
 .TP
-.BI "orientation " "north/east/south/west"
-position of the tab bar.
+.B width
+Stroke width in pt (positive number).
+.TP
+.B fill
+Color to fill the path. Leave empty if paths should not be filled.
+.TP
+.BR style " = SolidLine"
+Pen style for stroking the path. Possible values are \[dq]nopen\[dq] , \[dq]solid\[dq], \[dq]dash\[dq], \[dq]dot\[dq], \[dq]dashdot\[dq], and \[dq]dashdotdot\[dq].
+.TP
+.BR brush " = SolidPattern"
+Filling style of the path, see https://doc.qt.io/qt-6/qt.html#BrushStyle-enum for valid names. Gradients are not allowed.
+.TP
+.BR shape " = freehand"
+Draw this shape instead of a freehand path. Allowed values are \[dq]freehand\[dq], \[dq]rectangle\[dq], \[dq]ellipse\[dq], \[dq]line\[dq], and \[dq]arrow\[dq].
+.TP
+.B composition
+Composition mode, valid values are: \[dq]source over\[dq] (default for pen), \[dq]darken\[dq] (default for highlighter), \[dq]lighten\[dq], \[dq]difference\[dq], \[dq]plus\[dq], \[dq]multiply\[dq], \[dq]screen\[dq], \[dq]overlay\[dq]
 .RE
+.
+.TP
+.B pen
+Pen of variable line width if the input device provides pressure information.
+.
+.TP
+.B fixed width pen
+Pen of fixed line width.
+.
+.TP
+.B highlighter
+Fixed width pen with default options adjusted for highlighting.
+.
+.SS Pointing Tools
+.TP
+.I Common options
+.RS
+.TP
+.B size
+Radius of the tool (positive number).
+.RE
+.
+.TP
+.B eraser
+Erase previously drawn strokes. Option:
+.RS
+.TP
+.BR linewidth " = 0"
+Draw a circle of given line width around the eraser. The circle is only drawn on the currently active widget.
+.RE
+.TP
+.B pointer
+Laser pointer.
+.TP
+.B magnifier
+Enlargen the slide in a circular region. Option:
+.RS
+.TP
+.BR scale " = 2"
+Magnification factor (number between 0.1 and 5).
+.RE
+.TP
+.B torch
+Highlight parts of the slide by darkening everything else.
+.
+.SS Selection Tools
+.
+.TP
+.B click select
+Click on items to select them.
+.TP
+.B rectangle select
+Select items in a rectangular region.
+.TP
+.B freehand select
+Select items in a drawn region.
 .
 .SH SEE ALSO
 .

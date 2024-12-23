@@ -134,9 +134,12 @@ std::shared_ptr<Tool> createTool(const QJsonObject &obj,
       tool = new TextTool(font, color, device);
       break;
     }
-    case Tool::DragViewTool:
-      tool = new DragTool(device);
+    case Tool::DragViewTool: {
+      auto dtool = new DragTool(device);
+      dtool->setFlags(obj);
+      tool = dtool;
       break;
+    }
     case Tool::BasicSelectionTool:
     case Tool::RectSelectionTool:
     case Tool::FreehandSelectionTool:

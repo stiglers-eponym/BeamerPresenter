@@ -207,12 +207,23 @@ bool SlideScene::event(QEvent *event)
       const auto wheelevent = static_cast<QGraphicsSceneWheelEvent *>(event);
       std::shared_ptr<Tool> tool =
           preferences()->currentTool(wheelevent->buttons() << 1);
-      if (!tool) return false;
+      if (!tool && wheelevent->buttons() == 0)
+        tool = preferences()->currentTool(Tool::MouseLeftButton);
+      if (!tool || tool->tool() != Tool::DragViewTool) return false;
       event->accept();
-      if (tool->tool() == Tool::DragViewTool) {
+      const auto dtool = std::static_pointer_cast<DragTool>(tool);
+      if (dtool->flags().testFlag(DragTool::ScrollWheelZoom)) {
         setZoom((1.0 + 0.002 * wheelevent->delta()) * zoom,
                 wheelevent->scenePos(), false);
         slide_flags |= UnrenderedZoom;
+        return true;
+      } else if (dtool->flags().testFlag(DragTool::ScrollWheelMove)) {
+        QRectF rect = sceneRect();
+        if (wheelevent->modifiers().testFlag(Qt::ShiftModifier))
+          rect.translate(-0.3 * wheelevent->delta(), 0);
+        else
+          rect.translate(0, -0.3 * wheelevent->delta());
+        setSceneRect(rect);
         return true;
       }
       break;
@@ -228,8 +239,11 @@ bool SlideScene::event(QEvent *event)
       if (tool->tool() == Tool::TextInputTool)
         return QGraphicsScene::event(event);
       if (tool->tool() == Tool::DragViewTool) {
-        setZoom(1.25 * zoom, mouseevent->scenePos());
-        return true;
+        const auto dtool = std::static_pointer_cast<DragTool>(tool);
+        if (dtool->flags().testFlag(DragTool::DoubleClickZoom)) {
+          setZoom(1.25 * zoom, mouseevent->scenePos());
+          return true;
+        }
       }
       return false;
     }
@@ -629,7 +643,8 @@ void SlideScene::handleSelectionStartEvents(std::shared_ptr<SelectionTool> tool,
     switch (tool->tool()) {
       case Tool::BasicSelectionTool: {
         QGraphicsItem *item = itemAt(pos, QTransform());
-        if (!(item && item->flags() & QGraphicsItem::ItemIsSelectable)) break;
+        if (!(item && item->flags().testFlag(QGraphicsItem::ItemIsSelectable)))
+          break;
         item->setSelected(true);
         selection.append(item);
         selection.append(&selection_bounding_rect);
@@ -909,6 +924,7 @@ void SlideScene::navigationEvent(const int newslide, const int newpage,
       (slide_flags & ShowTransitions)) {
     SlideTransition transition =
         master->transition(newpage > page ? newpage : page);
+    transitionType = transition.type;
     if (transition.type > 0 && transition.duration > 1e-3) {
       if (newpage < page) transition.invert();
       debug_msg(DebugTransitions,
@@ -1112,6 +1128,8 @@ void SlideScene::startTransition(const int newpage,
       break;
     case SlideTransition::Fade:
       createFadeTransition(transition, pageTransitionItem);
+      break;
+    default:
       break;
   }
   if (animation) {
@@ -1424,6 +1442,13 @@ void SlideScene::endTransition()
 {
   debug_verbose(DebugFunctionCalls, this);
   pageItem->setOpacity(1.);
+  if (transitionType == SlideTransition::Fly ||
+      transitionType == SlideTransition::FlyRectangle) {
+    /* TODO: This patch can lead to flickering of the slide view after the
+     * transition. */
+    pageItem->trackNew();
+    emit navigationToViews(page, this);
+  }
   if (pageTransitionItem) {
     removeItem(pageTransitionItem);
     delete pageTransitionItem;

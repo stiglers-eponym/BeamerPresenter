@@ -147,7 +147,7 @@ struct SlideTransition {
   };
 
   /// Type of the slide transition.
-  qint8 type = Replace;
+  Type type = Replace;
 
   /// Direction of the transition.
   /// first bit: inward (0) or outward (1) direction.

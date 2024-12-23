@@ -83,12 +83,12 @@
             "type" : "tool selector",
             "buttons" : [
               [
-                "toggle timer",
                 "undo",
                 "redo",
                 "clear",
                 "pause media",
-                {"tool":"rectangle select"}
+                {"select":"color", "list":["red","yellow","green","blue","magenta","black"]},
+                "shape"
               ],
               [
                 {"tool":"pen", "color":"blue", "width":2},
@@ -96,15 +96,15 @@
                 {"tool":"pen", "color":"green", "width":2},
                 {"tool":"highlighter", "width":20},
                 {"tool":"eraser", "size":10},
-                "shape"
+                {"tool":"text"}
               ],
               [
                 {"tool":"none"},
+                {"tool":"drag view", "scroll":"zoom", "double-click":"zoom", "touch-zoom":true},
                 {"tool":"pointer", "color":"#e0ff0000", "size":4},
                 {"tool":"torch", "color":"#80080808", "size":60},
                 {"tool":"magnifier", "color":"gray", "size":100, "scale":1.75},
-                {"tool":"text"},
-                {"select":"color", "list":["red","yellow","green","blue","magenta","black"]}
+                {"tool":"rectangle select"}
               ]
             ]
           }
