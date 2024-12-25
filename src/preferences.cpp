@@ -315,10 +315,14 @@ void Preferences::loadSettings()
     global_flags |= OpenExternalLinks;
   else
     global_flags &= ~OpenExternalLinks;
-  const int frame_time = settings.value("frame time").toInt(&ok);
-  if (ok && frame_time > 0) slide_duration_animation = frame_time;
-  if (!settings.value("gestures", true).toBool()) gesture_actions.clear();
+
+  qreal num;
   {
+    const int frame_time = settings.value("frame time").toInt(&ok);
+    if (ok && frame_time > 0) slide_duration_animation = frame_time;
+    if (!settings.value("gestures", true).toBool()) gesture_actions.clear();
+    num = settings.value("max zoom increment", 0.2).toReal(&ok);
+    if (ok && num > 0) max_zoom_increment = 1.0 + num;
     const QColor color(settings.value("search highlight color").toString());
     if (color.isValid()) search_highlighting_color = color;
   }
@@ -331,7 +335,7 @@ void Preferences::loadSettings()
   if (ok) history_length_hidden_slides = value;
   overlay_mode = get_string_to_overlay_mode().value(
       settings.value("mode").toString(), OverlayDrawingMode::Cumulative);
-  qreal num = settings.value("line sensitifity").toDouble(&ok);
+  num = settings.value("line sensitifity").toDouble(&ok);
   if (ok && 0 < num && num < 0.1) line_sensitivity = num;
   num = settings.value("snap angle").toDouble(&ok);
   if (ok && 0 < num && num < 0.5) snap_angle = num;
@@ -357,16 +361,18 @@ void Preferences::loadSettings()
 
   // SELECTION
   settings.beginGroup("selection");
-  num = settings.value("handle size").toDouble(&ok);
-  if (ok && 0.1 < num && num < 100) selection_rect_handle_size = num;
-  num = settings.value("minimal path width").toDouble(&ok);
-  if (ok && 0.1 < num && num < 100) path_min_selectable_width = num;
-  QColor color = QColor(settings.value("selection color").toString());
-  if (color.isValid()) selection_rect_brush = color;
-  color = QColor(settings.value("selection outline color").toString());
-  if (color.isValid()) selection_rect_pen.setColor(color);
-  num = settings.value("selection outline width").toDouble(&ok);
-  if (ok && 0 <= num && num < 50) selection_rect_pen.setWidthF(num);
+  {
+    num = settings.value("handle size").toDouble(&ok);
+    if (ok && 0.1 < num && num < 100) selection_rect_handle_size = num;
+    num = settings.value("minimal path width").toDouble(&ok);
+    if (ok && 0.1 < num && num < 100) path_min_selectable_width = num;
+    QColor color = QColor(settings.value("selection color").toString());
+    if (color.isValid()) selection_rect_brush = color;
+    color = QColor(settings.value("selection outline color").toString());
+    if (color.isValid()) selection_rect_pen.setColor(color);
+    num = settings.value("selection outline width").toDouble(&ok);
+    if (ok && 0 <= num && num < 50) selection_rect_pen.setWidthF(num);
+  }
   settings.endGroup();
 
   // RENDERING

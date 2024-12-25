@@ -203,6 +203,8 @@ void ThumbnailWidget::generate()
     for (; position < document->numberOfPages(); position++)
       createButton(position, position, position, col_width);
   }
+  current_page_button =
+      dynamic_cast<ThumbnailButton *>(layout->itemAt(0)->widget());
   emit startRendering();
 }
 

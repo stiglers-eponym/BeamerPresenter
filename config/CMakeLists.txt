@@ -15,4 +15,5 @@ install(FILES
     gui.json
     gui-2files.json
     gui-interactive.json
+    gui-lecture.json
     DESTINATION "${DOC_PATH}/examples")

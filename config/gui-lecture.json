@@ -1,0 +1,102 @@
+[
+  {
+    "type" : "horizontal",
+    "children" : [
+      {
+        "type" : "vertical",
+        "title" : "Slide",
+        "children" : [
+          {
+            "type" : "slide",
+            "title" : "Slide",
+            "file" : "notes",
+            "page part" : "right",
+            "shift" : 0,
+            "media controls" : true,
+            "mute" : true,
+            "threads" : 1,
+            "color" : "white"
+          },
+          {
+            "type" : "horizontal",
+            "children" : [
+              {
+                "type" : "tools"
+              },
+              {
+                "type" : "tool selector",
+                "buttons" : [[
+                  {"tool":"pen", "color":"blue", "width":2.5},
+                  {"tool":"pen", "color":"green", "width":2.5},
+                  {"tool":"pen", "color":"red", "width":2.5},
+                  {"tool":"pen", "color":"black", "width":2.5},
+                  {"tool":"highlighter", "width":20},
+                  {"tool":"eraser", "size":15},
+                  "shape",
+                  "style",
+                  {"tool":"freehand select"},
+                  {"tool":"rectangle select"},
+                  "clear",
+                  "zoom in",
+                  "scroll normal",
+                  "zoom out"
+                ],
+                [
+                  {"tool":"none"},
+                  {"tool":"drag view"},
+                  {"tool":"torch", "color":"#80080808", "size":67},
+                  {"tool":"magnifier", "color":"gray", "size":100, "scale":1.5},
+                  {"tool":"pointer", "color":"#e0ff0000", "size":4.5},
+                  {"tool":"text"},
+                  {"select":"color", "list":["red","yellow","green","blue","magenta","black"]},
+                  {"select":"width", "list":[0.5,1,2.5,4,8]},
+                  {"tool":"click select"},
+                  "undo",
+                  "redo",
+                  "insert slide",
+                  "remove slide",
+                  "restore slide"
+                ]]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type" : "vertical",
+        "title" : "overview",
+        "children" : [
+          {
+            "type" : "clock",
+            "touch input" : false
+          },
+          {
+            "type" : "tabbed",
+            "children" : [
+              {
+                "type" : "thumbnails",
+                "title" : "Thumbnails",
+                "overlays" : "skip",
+                "columns" : 1
+              },
+              {
+                "type" : "toc",
+                "title" : "Outline"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type" : "slide",
+    "file" : "presentation",
+    "page part" : "left",
+    "shift" : 0,
+    "threads" : 2,
+    "master" : true,
+    "mute" : false,
+    "color" : "white"
+  }
+]

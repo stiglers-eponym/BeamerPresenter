@@ -126,6 +126,8 @@
     "threads" : 2,
     "master" : true,
     "mute" : false,
-    "color" : "black"
+    "color" : "black",
+    "width" : 1200,
+    "heigth" : 720
   }
 ]

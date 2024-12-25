@@ -53,8 +53,6 @@ class Master : public QObject
 
   static constexpr int thread_wait_time_ms = 10000;
   static constexpr int notes_widget_default_zoom = 10;
-  static constexpr int default_window_width = 400;
-  static constexpr int default_window_height = 300;
   static constexpr qreal min_duration_cache_videos = 0.5;
   static constexpr int cache_videos_after_ms = 200;
 

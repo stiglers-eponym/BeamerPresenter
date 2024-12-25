@@ -109,6 +109,8 @@ Master::Status Master::readGuiConfig(const QString &filename)
     QMainWindow *const window = new QMainWindow();
     windows.append(window);
     window->setCentralWidget(widget);  // window takes ownership of widget
+    window->resize(obj.value("width").toInt(640),
+                   obj.value("height").toInt(400));
     if (obj.contains("title"))
       window->setWindowTitle(obj.value("title").toString());
     else
@@ -776,10 +778,7 @@ void Master::fillContainerWidget(
 
 void Master::showAll() const
 {
-  for (const auto window : std::as_const(windows)) {
-    window->setGeometry(0, 0, default_window_width, default_window_height);
-    window->show();
-  }
+  for (const auto window : std::as_const(windows)) window->show();
 }
 
 bool Master::eventFilter(QObject *obj, QEvent *event)

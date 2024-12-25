@@ -168,6 +168,8 @@ class Preferences : public QObject
   int max_cache_pages = -1;
 
   // INTERACTION
+  /// Touch screen gestures
+  qreal max_zoom_increment = 1.2;
   /// Map key combinations to actions for global keyboard shortcuts.
   QMultiMap<QKeySequence, Action> key_actions{
       {Qt::Key_PageDown, Action::NextPage},

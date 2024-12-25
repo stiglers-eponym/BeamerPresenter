@@ -1,4 +1,4 @@
-.TH beamerpresenter-ui 5 "2024-12-23" "0.2.5"
+.TH beamerpresenter-ui 5 "2024-12-25" "0.2.6"
 .
 .SH NAME
 beamerpresenter-ui \- user interface configuration of BeamerPresenter
@@ -12,21 +12,24 @@ Example configuration files can be found in /usr/share/doc/beamerpresenter/examp
 Arguments shared by all widgets:
 .TP
 .BI "type" " name"
-widget type defined in section WIDGETS. This is the only mandatory argument.
+Widget type defined in section WIDGETS. This is the only mandatory argument.
 .TP
 .BI "keys " "keyboard shortcut"
 Key combination to set focus to this widget. Example: use \[dq]keys\[dq]:\[dq]Ctrl+F\[dq] for a search widget.
 .TP
 .BI "title " "text"
-title of the widget, visible only if the widget is shown in a tabbed widget.
+Title of the widget, visible only if the widget is shown in a tabbed widget or as a top level widget (own window).
 .TP
 .BI "color " "color name / #RRGGBB / #AARRGGBB"
-background color, color name known to Qt. Some Qt styles may override colors set in the GUI config.
+Background color, color name known to Qt. Some Qt styles may override colors set in the GUI config.
 .PP
 Arguments for all top level widgets (widgets that are shown as windows):
 .TP
 .BI "always show " bool
 This window should always be shown on top of other windows if the window manager supports that. Default value is false except if the widget is of type \[dq]tool selector\[dq].
+.TP
+.BI "width/height " integer
+Default window width or height in pixels.
 .
 .SH WIDGETS
 .
@@ -73,7 +76,7 @@ Preferred aspect ratio (width/height) of the widget. Adjust this if the clock is
 .
 .TP
 .B notes
-rich text editable notes.
+Rich text editable notes.
 Notes are included when saving drawings to gzipped xml file (.bpr/.xopp).
 Alternatively, they can be saved separately in an xml file using the keyboard actions while the notes widget has focus:
 save notes with Ctrl+S, save under new file name with Ctrl+Shift+S, open from file with Ctrl+O.
@@ -82,17 +85,17 @@ Currently the notes are saved as HTML string, which is escaped when saving in xm
 .PP
 Arguments:
 .TP
-.B identifier
-\[dq]label\[dq] or \[dq]number\[dq]: notes are associated with a page (number) or a group of pages with the same page label.
+.BI identifier " \[dq]label\[dq] or \[dq]number\[dq]"
+Notes are associated with a page (number) or a group of pages with the same page label.
 .TP
 .B id
 Only required when using multiple distinct notes widgets: unique ID of this widget used when saving or loading notes.
 .TP
 .BI "zoom " "integer"
-zoom step for the widget (defined by QTextEdit).
+Zoom step for the widget (defined by QTextEdit).
 .TP
 .BI "file " "path"
-path to xml-file to read notes from. The notes file contains a root element <speakernotes> with child elements <page-notes> containing the rich text notes. Each page element has an attribute \[dq]label\[dq] or \[dq]number\[dq] to identify a page or a group of pages. Which of \[dq]label\[dq] or \[dq]number\[dq] is used must be specified by the attribute \[dq]identifier\[dq] or the root element.
+Path to xml-file to read notes from. The notes file contains a root element <speakernotes> with child elements <page-notes> containing the rich text notes. Each page element has an attribute \[dq]label\[dq] or \[dq]number\[dq] to identify a page or a group of pages. Which of \[dq]label\[dq] or \[dq]number\[dq] is used must be specified by the attribute \[dq]identifier\[dq] or the root element.
 
 Example file:
 .nf
@@ -110,15 +113,15 @@ Example file:
 .
 .TP
 .B search
-search text in PDF document. This jumps to the next slide on which the searched text is found and highlights all occurrences (or up to 20 occurrences when using MuPDF) on this slide. To highlight occurrences of the text on another slide you need to start a new search. The search is case-insensitive. You can use the option \[dq]keys\[dq]:\[dq]Ctrl+F\[dq] to start a search with Ctrl+F.
+Search text in PDF document. This jumps to the next slide on which the searched text is found and highlights all occurrences (or up to 20 occurrences when using MuPDF) on this slide. To highlight occurrences of the text on another slide you need to start a new search. The search is case-insensitive. You can use the option \[dq]keys\[dq]:\[dq]Ctrl+F\[dq] to start a search with Ctrl+F.
 .
 .TP
 .B settings
-change settings and get help.
+Change settings and get help.
 .
 .TP
 .B slide
-slide of a presentation. This is the main widget shown to the audience and on the speaker's screen.
+Slide of a presentation. This is the main widget shown to the audience and on the speaker's screen.
 .RS
 .PP
 Arguments:
@@ -127,58 +130,59 @@ Arguments:
 PDF file shown in the presentation or alias name. Aliases such as \[dq]presentation\[dq] or \[dq]notes\[dq] will be filled with command line arguments or by asking in a file open dialog.
 .TP
 .BI "shift " "integer"
-shift slide number relative to the main presentation slide. E.g. shift=1 creates a preview of the next slide, which can be shown in the speaker's view.
+Shift slide number relative to the main presentation slide. E.g. shift=1 creates a preview of the next slide, which can be shown in the speaker's view.
 .TP
 .BI "page part " "left/right"
-side of the page to be shown if the pages are split into a left and a right side showing presentation and notes on the same page.
+Side of the page to be shown if the pages are split into a left and a right side showing presentation and notes on the same page.
 .TP
 .BI "media controls " "= false"
-show/hide a slider to navigate inside a video
+Show/hide a slider to navigate inside a video
 .TP
 .BI "show tools " "= true"
-enable/disable pointing tools.
+Enable/disable pointing tools.
 .TP
 .BI "media " "= true"
-enable/disable multimedia content on this widget.
+Enable/disable multimedia content on this widget.
 .B Caution:
 If multiple widgets show the same slide, the configuration of one of these widgets is used for the other widgets. Switching off multimedia for one widget may also disable multimedia for other widgets.
 .TP
 .BI "mute " "= true"
-mute or unmute the slide connected to this widget.
+Mute or unmute the slide connected to this widget.
 By default normal slides are muted and slides marked as \[dq]master\[dq] are unmuted.
 Make sure that exactly one slide widget is unmuted in the GUI configuration (typically the presentation slide widget).
 .TP
 .BI "transitions " "= true"
-enable/disable slide transitions.
+Enable/disable slide transitions.
 .B Caution:
 If multiple widgets show the same slide, the configuration of one of these widgets is used for the other widgets. Switching off transitions for one widget may also disable transitions for other widgets.
 .TP
 .BI "autoplay " "= true"
-automatically play videos on this slide.
+Automatically play videos on this slide.
 .B Caution:
 If multiple widgets show the same slide, the configuration of one of these widgets is used for the other widgets. Switching off autoplay for one widget may also disable it for other widgets.
 .TP
 .BI "cache videos " "= true"
-cache videos before the slide with the video is reached.
+Cache videos before the slide with the video is reached.
 .B Caution:
 If multiple widgets show the same slide, the configuration of one of these widgets is used for the other widgets.
 .TP
 .BI "draw " "= true"
-enable/disable drawing on the this widget.
+Enable/disable drawing on the this widget.
 .B Caution:
 If multiple widgets show the same slide, the configuration of one of these widgets is used for the other widgets. Disabling drawing for one widget may disable it also for other ones.
 .TP
 .BI "cache hash " "integer"
-integer to identify slide widgets with the same geometry, which should use the same cached slides. Set the same \[dq]cache hash\[dq] for multiple slides to make them use the same cache. Note that this can also cause problems if the geometry of the widgets is not exactly the same.
+Integer to identify slide widgets with the same geometry, which should use the same cached slides. Set the same \[dq]cache hash\[dq] for multiple slides to make them use the same cache. Note that this can also cause problems if the geometry of the widgets is not exactly the same.
 .TP
 .BI "threads " "integer"
-number of threads used to pre-render pages in cache. Disable pre-rendering by setting this to zero.
+Number of threads used to pre-render pages in cache. Disable pre-rendering by setting this to zero.
 .TP
 .BI "overlays " "first/last/none"
-show only first/last page of each group of pages with the same page label.
+Show only first/last page of each group of pages with the same page label.
 .TP
 .BI "scroll mode aspect " "number"
-experimental: set width / height ratio of scroll view widget. Scroll view means that the page size is not completely fit to the window size. Instead, pages will be shown with fixed width and you probably want to scroll down. See also: actions \[dq]scroll down\[dq] and similar.
+.I Experimental:
+Set width / height ratio of scroll view widget. Scroll view means that the page size is not completely fit to the window size. Instead, pages will be shown with fixed width and you probably want to scroll down. See also: actions \[dq]scroll down\[dq] and similar.
 .RE
 .
 .TP
@@ -191,7 +195,7 @@ Show number of current slide and allow navigation by editing this number.
 .
 .TP
 .B thumbnails
-thumbnail overview of all slides.
+Thumbnail overview of all slides.
 .PP
 .RS
 Arguments:
@@ -200,15 +204,15 @@ Arguments:
 Set this option to \[dq]skip\[dq] to show only one preview slide for each group of pages with the same page label.
 .TP
 .BI "columns " "integer"
-number of columns in which the thumbnail slides are arranged.
+Number of columns in which the thumbnail slides are arranged.
 .TP
 .BI "file " "path or alias"
-path to PDF document defining which thumbnail images are shown. By default, this is the alias \[dq]presentation\[dq] for the default file shown to the audience.
+Path to PDF document defining which thumbnail images are shown. By default, this is the alias \[dq]presentation\[dq] for the default file shown to the audience.
 .RE
 .
 .TP
 .B timer
-timer for the presentation.
+Timer for the presentation.
 Both the total time and the passed time are editable text fields. By double-clicking between these two text fields you can store the passed time (left field) as the target time for the currently visible page. These times per page are stored when saving drawings. The times per page are used to indicate the current progress relative to the planned progress by the background color of the passed time text field.
 .PP
 .RS
@@ -239,30 +243,30 @@ Default configuration:
 .
 .TP
 .B toc
-outline / table of contents, shows document outline tree.
+Outline / table of contents, shows document outline tree.
 .PP
 .RS
 Arguments:
 .TP
 .BI "file " "path or alias"
-path to PDF document defining which outline is shown. By default, this is the alias \[dq]presentation\[dq] for the default file shown to the audience.
+Path to PDF document defining which outline is shown. By default, this is the alias \[dq]presentation\[dq] for the default file shown to the audience.
 .RE
 .
 .TP
 .B tools
-shows current mapping of devices to tools. The tools can be changed using a pop-up dialog. Currently this shows a block of mouse buttons (a touch pad is treated like a mouse), the touch input (if available), and a block of tablet devices (if available). For simple usage this is best combined with a tool selector widget.
+Shows current mapping of devices to tools. The tools can be changed using a pop-up dialog. Currently this shows a block of mouse buttons (a touch pad is treated like a mouse), the touch input (if available), and a block of tablet devices (if available). For simple usage this is best combined with a tool selector widget.
 .PP
 .RS
 Arguments:
 .TP
 .BI orientation " horizontal/vertical"
-arrange different devices next to each other or above each other.
+Arrange different devices next to each other or above each other.
 .TP
 .BI "mouse devices " array
-list of devices that are included in the group of mouse devices. Possible values: \[dq]left button\[dq], \[dq]right button\[dq], \[dq]middle button\[dq], \[dq]no button\[dq]
+List of devices that are included in the group of mouse devices. Possible values: \[dq]left button\[dq], \[dq]right button\[dq], \[dq]middle button\[dq], \[dq]no button\[dq]
 .TP
 .BI "tablet devices " array
-list of devices that are included in the group of tablet devices. Possible values: \[dq]tablet pen\[dq], \[dq]tablet eraser\[dq], \[dq]tablet hover\[dq], \[dq]tablet cursor\[dq], \[dq]tablet mod\[dq], \[dq]tablet other\[dq]
+List of devices that are included in the group of tablet devices. Possible values: \[dq]tablet pen\[dq], \[dq]tablet eraser\[dq], \[dq]tablet hover\[dq], \[dq]tablet cursor\[dq], \[dq]tablet mod\[dq], \[dq]tablet other\[dq]
 .RE
 .
 .TP
@@ -311,19 +315,19 @@ It is possible to select a different tool for a button while BeamerPresenter is 
 .
 .TP
 .B horizontal
-horizontally arranged child widgets. The relative size of the widgets is determined by their preferred aspect ratios to ensure maximal usage of the screen by slide widgets.
+Horizontally arranged child widgets. The relative size of the widgets is determined by their preferred aspect ratios to ensure maximal usage of the screen by slide widgets.
 .
 .TP
 .B vertical
-vertically arranged child widgets, see horizontal.
+Vertically arranged child widgets, see horizontal.
 .
 .TP
 .B stacked
-stacked child widgets, shown in the same place. The currently visible widget can only be selected by keyboard shortcuts defined using the \[dq]keys\[dq] argument of the subwidgets.
+Stacked child widgets, shown in the same place. The currently visible widget can only be selected by keyboard shortcuts defined using the \[dq]keys\[dq] argument of the subwidgets.
 .
 .TP
 .B tabbed
-similar to stacked widget, but shows the child widgets as tabs, which can be selected using the cursor.
+Similar to stacked widget, but shows the child widgets as tabs, which can be selected using the cursor.
 .PP
 .RS
 Arguments:
@@ -349,109 +353,110 @@ navigate to first page
 navigate to last page
 .TP
 .B update
-update view (technically navigates to current page)
+Update view (technically navigates to current page)
 .TP
 .B next skipping overlay
-navigate to next page which has a different page label than current page
+Navigate to next page which has a different page label than current page
 .TP
 .B previous skipping overlays
-navigate to previous page which has a different page label than current page
+Navigate to previous page which has a different page label than current page
 .TP
 .B insert slide
-experimental: insert a new empty slide that can be used for drawing.
+Insert a new empty slide that can be used for drawing.
 .TP
 .B remove slide
-experimental: remove current slide. Restore slides by navigating to the previous slide and inserting a slide.
+Remove current slide. Restore slides by navigating to the previous slide and inserting a slide.
 .TP
 .B restore slide
-experimental: restore a previously removed slide. If the current slide is a PDF page, try to restore PDF pages before trying to restore non-PDF pages.
+Restore a previously removed slide. If the current slide is a PDF page, try to restore PDF pages before trying to restore non-PDF pages.
 .TP
 .B reload
-reload the presentation PDF (if it has been modified).
+Reload the presentation PDF (if it has been modified).
 .TP
 .B undo
-undo last drawing action on current page
+Undo last drawing action on current page
 .TP
 .BR "undo left" / right
-undo last drawing action on left/right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
+Undo last drawing action on left/right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
 .TP
 .B redo
-redo last drawing action on current page
+Redo last drawing action on current page
 .TP
 .BR "redo left" / right
-redo last drawing action on left/right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
+Redo last drawing action on left/right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
 .TP
 .B clear
-clear all drawings on the current page.
+Clear all drawings on the current page.
 .TP
 .BR "clear left" / right
-clear all drawings on the left/right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
+Clear all drawings on the left/right part of current page, assuming that the page is split into a left and right half which represent presentation and notes, respectively
 .TP
 .BR "scroll up" / normal / down
-scroll the slide view up / to normal position / down. This allows the presenter to add extra space for drawings. \[dq]scroll normal\[dq] also resets zoom.
+Scroll the slide view up / to normal position / down. This allows the presenter to add extra space for drawings. \[dq]scroll normal\[dq] also resets zoom.
 .TP
 .BR "zoom in" / reset / out
-experimental: zoom the slide view. Use the tool \[dq]drag view\[dq] (experimental) to drag the zoomed view and to zoom using double-click, click and scroll, or touch zoom gestures.
+Zoom the slide view. Use the tool \[dq]drag view\[dq] (experimental) to drag the zoomed view and to zoom using double-click, click and scroll, or touch zoom gestures.
 .TP
 .B save
-save drawings to file. Does not ask for file name if a file name is known.
+Save drawings to file. Does not ask for file name if a file name is known.
 .TP
 .B save as
-save drawings to file. Always asks for the file name.
+Save drawings to file. Always asks for the file name.
 .TP
 .B open
-load drawings from file.
+Load drawings from file.
 .TP
 .B open unsafe
-load drawings from file without clearing existing paths.
+Load drawings from file without clearing existing paths.
 .TP
 .B export svg
-experimental: export all drawings as SVG images, one image per page.
+.I Experimental:
+Export all drawings as SVG images, one image per page.
 .TP
 .B copy
-copy selected items on currently focused slide to clipboard.
+Copy selected items on currently focused slide to clipboard.
 .TP
 .B paste
-paste clipboard on currently focused slide.
+Paste clipboard on currently focused slide.
 .TP
 .B cut
-copy selected items on currently focused slide to clipboard and remove them.
+Copy selected items on currently focused slide to clipboard and remove them.
 .TP
 .B to foreground
-move selected items on currently focused slide to the foreground.
+Move selected items on currently focused slide to the foreground.
 .TP
 .B to background
-move selected items on currently focused slide to the background.
+Move selected items on currently focused slide to the background.
 .TP
 .B delete
-delete selected items on currently focused slide.
+Delete selected items on currently focused slide.
 .TP
 .B select all
-select all items on currently focused slide.
+Select all items on currently focused slide.
 .TP
 .B clear selection
-clear selection on currently focused slide.
+Clear selection on currently focused slide.
 .TP
 .BR start / stop / "toggle timer"
-start or stop timer in timer widget.
+Start or stop timer in timer widget.
 .TP
 .B reset timer
-reset the timer (passed time) in timer widget.
+Reset the timer (passed time) in timer widget.
 .TP
 .BR play / pause / "stop media"
-start, pause or stop playing multimedia content.
+Start, pause or stop playing multimedia content.
 .TP
 .BR mute / unmute
-mute or unmute all multimedia content. Media on slides views which are muted in the GUI config are not affected.
+Mute or unmute all multimedia content. Media on slides views which are muted in the GUI config are not affected.
 .TP
 .B fullscreen
-toggle full screen view for currently active window.
+Toggle full screen view for currently active window.
 .TP
 .B quit
-close BeamerPresenter. Ask for confirmation if there are unsaved changes. Note that the detection of unsaved changes is not reliable yet.
+Close BeamerPresenter. Ask for confirmation if there are unsaved changes. Note that the detection of unsaved changes is not reliable yet.
 .TP
 .B quit unsafe
-close BeamerPresenter ignoring unsaved changes.
+Close BeamerPresenter ignoring unsaved changes.
 .
 .SH TOOLS
 .
@@ -464,11 +469,11 @@ All lengths (e.g. stroke width) are given in points (1/72 inch) in the PDF.
 The following configuration options are available for every tool:
 .TP
 .B color
-color name known to Qt or #RRGGBB or #AARRGGBB
+Color name known to Qt or #RRGGBB or #AARRGGBB
 .
 .TP
 .B device
-device name (e.g. \[dq]tablet pen\[dq], \[dq]touch\[dq]), \[dq]all\[dq], or \[dq]all+\[dq] (see also beamerpresenter.conf (5)). If this property is set, pushing this button will set the tool for the defined input devices. If this property is not set, then the tool will always be set only for the input device with which the button was pressed.
+Device name (e.g. \[dq]tablet pen\[dq], \[dq]touch\[dq]), \[dq]all\[dq], or \[dq]all+\[dq] (see also beamerpresenter.conf (5)). If this property is set, pushing this button will set the tool for the defined input devices. If this property is not set, then the tool will always be set only for the input device with which the button was pressed.
 .
 .SS General Tools
 .
@@ -481,13 +486,13 @@ Drag and zoom view. Available configuration options:
 .RS
 .TP
 .BI touch-zoom " bool"
-zoom using touch screen pinch gesture
+Zoom using touch screen pinch gesture
 .TP
 .BI scroll " \[dq]zoom\[dq] | \[dq]move\[dq] | \[dq]none\[dq]"
-effect of scroll wheel (only when the tool is active fore a device that supports scrolling)
+Effect of scroll wheel (only when the tool is active fore a device that supports scrolling)
 .TP
 .BI double-click " \[dq]zoom\[dq] | \[dq]none\[dq]"
-effect of double click with left mouse button (only when the tool is active for a device that supports double click)
+Effect of double click with left mouse button (only when the tool is active for a device that supports double click)
 .RE
 .
 .TP
@@ -496,10 +501,10 @@ Add a text field. Configurable options:
 .RS
 .TP
 .B font
-only text tool: anything that Qt can interpret as a font name.
+Anything that Qt can interpret as a font name.
 .TP
 .B font size
-only text tool: font size (positive number).
+Font size (positive number).
 .RE
 .
 .SS Draw Tools

@@ -13,6 +13,8 @@ cache pages=-1
 memory=2.09719e+08
 # enable/disable gestures
 gestures=false
+# maximum zoom increment in touch pinch gestures
+max zoom increment=0.2
 # minimum time per frame in animations
 frame time=50
 # enable automatic slide changes as defined in the PDF

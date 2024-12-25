@@ -1,4 +1,4 @@
-.TH beamerpresenter.conf 5 "2024-09-01" "0.2.5"
+.TH beamerpresenter.conf 5 "2024-12-25" "0.2.6"
 .
 .SH NAME
 beamerpresenter.conf \- configuration file for BeamerPresenter
@@ -58,6 +58,10 @@ The actual frame time can be longer depending on the time needed to show the fra
 .TP
 .BR gestures " = false"
 Enable or disable gesture navigation (if available). In wayland and Xorg, 3 fingers swiping on a touch screen trigger a gesture event. Currently not configurable in the GUI.
+.
+.TP
+.BR "max zoom increment" " = 0.2"
+Maximum zoom increment when interpreting touch pinch gestures. 0.25 means that zoom increments must lie within the range -20% < increment < +25%. Value must be a positive number. This cutoff value helps avoiding wrong interpretation of pinch gestures with extreme zoom steps.
 .
 .TP
 .BR "log " "= false"

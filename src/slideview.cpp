@@ -200,10 +200,22 @@ bool SlideView::handleGestureEvent(QGestureEvent *event)
       event->accept();
       handled = true;
       dtool->clear();
-      const qreal zoom = pinch->scaleFactor() * sscene->getZoom();
-      debug_msg(DebugOtherInput, pinch);
-      sscene->setZoom(zoom, mapToScene(pinch->centerPoint()),
-                      pinch->state() == Qt::GestureFinished);
+      const qreal scale = pinch->scaleFactor();
+      if (scale < preferences()->max_zoom_increment &&
+          scale * preferences()->max_zoom_increment > 1) {
+        debug_msg(DebugOtherInput, pinch);
+        /* Pinch gestures seem to work better when transforming center point
+         * from parent window coordinates. (Further testing required to
+         * determine whether this is a bug in Qt.) */
+        sscene->setZoom(scale * sscene->getZoom(),
+#if (QT_VERSION_MAJOR >= 6)
+                        mapToScene(mapFrom(window(), pinch->centerPoint())),
+#else
+                        mapToScene(
+                            mapFrom(window(), pinch->centerPoint().toPoint())),
+#endif
+                        pinch->state() == Qt::GestureFinished);
+      }
     }
   }
   return handled || QGraphicsView::event(event);
