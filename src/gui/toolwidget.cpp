@@ -55,7 +55,7 @@ void ToolWidget::initialize()
 #endif
 }
 
-void ToolWidget::addDeviceGroup(const QList<int> &new_devices)
+void ToolWidget::addDeviceGroup(const QList<Tool::InputDevice> &new_devices)
 {
   auto frame = new QFrame(this);
   frame->setFrameStyle(QFrame::Box | QFrame::Raised);
@@ -64,7 +64,7 @@ void ToolWidget::addDeviceGroup(const QList<int> &new_devices)
   int used_devices = 0;
   ToolWidgetButton *button;
   IconLabel *label;
-  for (int device : new_devices) {
+  for (Tool::InputDevice device : new_devices) {
     if (devices & device) continue;
     std::shared_ptr<Tool> tool = preferences()->currentTool(device);
     if (tool) {
@@ -100,7 +100,7 @@ void ToolWidget::addDeviceGroup(const QList<int> &new_devices)
     delete frame;
 }
 
-const char *device_icon(int device) noexcept
+const char *device_icon(Tool::InputDevice device) noexcept
 {
   switch (device) {
     case Tool::MouseNoButton:
@@ -128,7 +128,7 @@ const char *device_icon(int device) noexcept
   }
 }
 
-const char *device_description(int device) noexcept
+const char *device_description(Tool::InputDevice device) noexcept
 {
   switch (device) {
     case Tool::MouseNoButton:

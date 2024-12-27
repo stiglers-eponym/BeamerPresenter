@@ -68,7 +68,8 @@ class SelectionTool : public Tool
 
  public:
   /// trivial constructor, only initializes Tool
-  SelectionTool(BasicTool base_tool, const int default_device) noexcept
+  SelectionTool(BasicTool base_tool,
+                const Tool::InputDevices default_device) noexcept
       : Tool(base_tool, default_device)
   {
   }

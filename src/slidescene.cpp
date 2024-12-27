@@ -180,34 +180,36 @@ bool SlideScene::event(QEvent *event)
 {
   debug_verbose(DebugDrawing | DebugFunctionCalls,
                 event->type() << event->spontaneous() << event << this);
-  int device = 0;
+  Tool::InputDevices device;
   QList<QPointF> pos;
   QPointF start_pos;
   switch (event->type()) {
     case QEvent::GraphicsSceneMousePress: {
       const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
-      device = (mouseevent->buttons() << 1) | Tool::StartEvent;
+      device =
+          Tool::mouseButtonToDevice(mouseevent->buttons()) | Tool::StartEvent;
       pos.append(mouseevent->scenePos());
       break;
     }
     case QEvent::GraphicsSceneMouseMove: {
       const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
-      device = (mouseevent->buttons() ? mouseevent->buttons() << 1 : 1) |
-               Tool::UpdateEvent;
+      device =
+          Tool::mouseButtonToDevice(mouseevent->buttons()) | Tool::UpdateEvent;
       pos.append(mouseevent->scenePos());
       break;
     }
     case QEvent::GraphicsSceneMouseRelease: {
       const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
-      device = (mouseevent->button() << 1) | Tool::StopEvent;
+      device =
+          Tool::mouseButtonToDevice(mouseevent->button()) | Tool::StopEvent;
       pos.append(mouseevent->scenePos());
       start_pos = mouseevent->buttonDownScenePos(mouseevent->button());
       break;
     }
     case QEvent::GraphicsSceneWheel: {
       const auto wheelevent = static_cast<QGraphicsSceneWheelEvent *>(event);
-      std::shared_ptr<Tool> tool =
-          preferences()->currentTool(wheelevent->buttons() << 1);
+      std::shared_ptr<Tool> tool = preferences()->currentTool(
+          Tool::mouseButtonToDevice(wheelevent->buttons()));
       if (!tool && wheelevent->buttons() == 0)
         tool = preferences()->currentTool(Tool::MouseLeftButton);
       if (!tool || tool->tool() != Tool::DragViewTool) return false;
@@ -233,8 +235,8 @@ bool SlideScene::event(QEvent *event)
       // Double click: These events are ignored, except if a text or drag tool
       // is used.
       const auto *mouseevent = static_cast<QGraphicsSceneMouseEvent *>(event);
-      std::shared_ptr<Tool> tool =
-          preferences()->currentTool(mouseevent->buttons() << 1);
+      std::shared_ptr<Tool> tool = preferences()->currentTool(
+          Tool::mouseButtonToDevice(mouseevent->buttons()));
       if (!tool) return false;
       event->accept();
       if (tool->tool() == Tool::TextInputTool)
@@ -249,7 +251,7 @@ bool SlideScene::event(QEvent *event)
       return false;
     }
     case QEvent::TouchBegin: {
-      device = int(Tool::TouchInput) | Tool::StartEvent;
+      device = Tool::TouchInput | Tool::StartEvent;
       const auto touchevent = static_cast<QTouchEvent *>(event);
 #if (QT_VERSION_MAJOR >= 6)
       for (const auto &point : touchevent->points())
@@ -261,7 +263,7 @@ bool SlideScene::event(QEvent *event)
       break;
     }
     case QEvent::TouchUpdate: {
-      device = int(Tool::TouchInput) | Tool::UpdateEvent;
+      device = Tool::TouchInput | Tool::UpdateEvent;
       const auto touchevent = static_cast<QTouchEvent *>(event);
 #if (QT_VERSION_MAJOR >= 6)
       for (const auto &point : touchevent->points())
@@ -273,7 +275,7 @@ bool SlideScene::event(QEvent *event)
       break;
     }
     case QEvent::TouchEnd: {
-      device = int(Tool::TouchInput) | Tool::StopEvent;
+      device = Tool::TouchInput | Tool::StopEvent;
       const auto touchevent = static_cast<QTouchEvent *>(event);
 #if (QT_VERSION_MAJOR >= 6)
       if (touchevent->points().size() > 0) {
@@ -291,7 +293,7 @@ bool SlideScene::event(QEvent *event)
       break;
     }
     case QEvent::TouchCancel:
-      device = int(Tool::TouchInput) | Tool::CancelEvent;
+      device = Tool::TouchInput | Tool::CancelEvent;
       break;
     case QEvent::Leave:
     case QEvent::DragLeave:
@@ -323,7 +325,8 @@ bool SlideScene::event(QEvent *event)
   return QGraphicsScene::event(event);
 }
 
-bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos,
+bool SlideScene::handleEvents(const Tool::InputDevices device,
+                              const QList<QPointF> &pos,
                               const QPointF &start_pos, const float pressure)
 {
   debug_verbose(DebugFunctionCalls,
@@ -385,7 +388,8 @@ bool SlideScene::handleEvents(const int device, const QList<QPointF> &pos,
 }
 
 bool SlideScene::handleDragView(std::shared_ptr<DragTool> tool,
-                                const int device, const QList<QPointF> &pos,
+                                const Tool::InputDevices device,
+                                const QList<QPointF> &pos,
                                 const QPointF &start_pos)
 {
   if (!tool || pos.size() != 1) return false;
@@ -407,8 +411,8 @@ bool SlideScene::handleDragView(std::shared_ptr<DragTool> tool,
   return true;
 }
 
-bool SlideScene::maybeStartSelectionEvent(const QPointF &pos,
-                                          const int device) noexcept
+bool SlideScene::maybeStartSelectionEvent(
+    const QPointF &pos, const Tool::InputDevices device) noexcept
 {
   debug_verbose(DebugFunctionCalls, pos << device << this);
   // Try to handle selection (if available)
@@ -460,7 +464,8 @@ bool SlideScene::maybeStartSelectionEvent(const QPointF &pos,
 }
 
 void SlideScene::handleDrawEvents(std::shared_ptr<const DrawTool> tool,
-                                  const int device, const QList<QPointF> &pos,
+                                  const Tool::InputDevices device,
+                                  const QList<QPointF> &pos,
                                   const float pressure)
 {
   debug_verbose(DebugFunctionCalls, tool.get()
@@ -486,7 +491,7 @@ void SlideScene::handleDrawEvents(std::shared_ptr<const DrawTool> tool,
 }
 
 void SlideScene::handlePointingEvents(std::shared_ptr<PointingTool> tool,
-                                      const int device,
+                                      const Tool::InputDevices device,
                                       const QList<QPointF> &pos)
 {
   debug_verbose(DebugFunctionCalls, tool.get() << device << pos << this);
@@ -530,23 +535,23 @@ void SlideScene::handlePointingEvents(std::shared_ptr<PointingTool> tool,
 }
 
 void SlideScene::handleSelectionEvents(std::shared_ptr<SelectionTool> tool,
-                                       const int device,
+                                       const Tool::InputDevices device,
                                        const QList<QPointF> &pos,
                                        const QPointF &start_pos)
 {
   debug_verbose(DebugFunctionCalls, tool.get()
                                         << device << pos << start_pos << this);
   const QPointF &single_pos = pos.constFirst();
-  switch (device & Tool::DeviceEventType::AnyEvent) {
-    case Tool::DeviceEventType::StartEvent:
+  switch (device & Tool::AnyEvent) {
+    case Tool::StartEvent:
       handleSelectionStartEvents(tool, single_pos);
       break;
-    case Tool::DeviceEventType::UpdateEvent:
+    case Tool::UpdateEvent:
       tool->liveUpdate(single_pos);
       // TODO: select area for higher efficiency
       invalidate(QRectF(), QGraphicsScene::ForegroundLayer);
       break;
-    case Tool::DeviceEventType::StopEvent:
+    case Tool::StopEvent:
       handleSelectionStopEvents(tool, single_pos, start_pos);
       invalidate(QRectF(), QGraphicsScene::ForegroundLayer);
       break;
@@ -554,7 +559,8 @@ void SlideScene::handleSelectionEvents(std::shared_ptr<SelectionTool> tool,
 }
 
 bool SlideScene::handleTextEvents(std::shared_ptr<const TextTool> tool,
-                                  const int device, const QList<QPointF> &pos)
+                                  const Tool::InputDevices device,
+                                  const QList<QPointF> &pos)
 {
   debug_verbose(DebugFunctionCalls, tool.get() << device << pos << this);
   // TODO: bug fixes
@@ -1610,7 +1616,7 @@ bool SlideScene::stopInputEvent(std::shared_ptr<const DrawTool> tool)
   return false;
 }
 
-void SlideScene::initTmpSelectionTool(const int device) noexcept
+void SlideScene::initTmpSelectionTool(const Tool::InputDevices device) noexcept
 {
   debug_verbose(DebugFunctionCalls, device << this);
   if (tmp_selection_tool)

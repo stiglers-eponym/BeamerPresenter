@@ -304,13 +304,13 @@ ToolDialog::ToolDialog(QWidget *parent)
     QGridLayout *device_layout = new QGridLayout();
     device_layout->setSpacing(0);
     int i = 0;
-    const auto &string_to_input_device = get_string_to_input_device();
+    const auto &string_to_input_device = get_devices_to_string();
     for (auto it = string_to_input_device.cbegin();
          it != string_to_input_device.cend(); ++it) {
       QCheckBox *button =
-          new QCheckBox(Tool::tr(it.key().c_str()), device_group);
+          new QCheckBox(Tool::tr(it.value().c_str()), device_group);
       device_layout->addWidget(button, i / 2, i % 2);
-      device_buttons.insert(*it, button);
+      device_buttons.insert(it.key(), button);
       ++i;
     }
     device_group->setLayout(device_layout);
@@ -419,7 +419,7 @@ std::shared_ptr<Tool> ToolDialog::createTool() const
       tool_box->currentData().value<Tool::BasicTool>();
   debug_verbose(DebugDrawing, "Dialog selected basic tool" << basic_tool);
   if (basic_tool == Tool::InvalidTool) return nullptr;
-  int device = 0;
+  Tool::InputDevices device;
   for (auto it = device_buttons.cbegin(); it != device_buttons.cend(); ++it)
     if ((*it)->isChecked()) device |= it.key();
   const QColor color = color_button->palette().color(QPalette::Button);

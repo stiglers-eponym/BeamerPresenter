@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "src/config.h"
+#include "src/drawing/tool.h"
 #include "src/enumerates.h"
 #include "src/media/mediaslider.h"
 
@@ -59,7 +60,7 @@ class SlideView : public QGraphicsView
   /// Map unique ids of active tablet devices to BeamerPresenter device numbers.
   /// This is required to clean up when the BeamerPresenter device changes, e.g.
   /// because a button is pressed or released.
-  QMap<qint64, int> active_tablet_devices;
+  QMap<qint64, Tool::InputDevices> active_tablet_devices;
 
   /// Send request for rendering page with resolution increased by zoom relative
   /// to normal view.

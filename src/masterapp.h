@@ -105,7 +105,8 @@ class MasterApp : public QApplication
       case QEvent::TabletLeaveProximity: {
         const auto tevent = dynamic_cast<const QTabletEvent *>(event);
         if (tevent == nullptr) return false;
-        const int device = tablet_event_to_input_device(tevent);
+        const Tool::InputDevices device =
+            Tool::tabletEventToInputDevice(tevent);
         for (const auto &tool : std::as_const(preferences()->current_tools)) {
           if (tool && (tool->device() & device) &&
               (tool->tool() & Tool::AnyPointingTool)) {

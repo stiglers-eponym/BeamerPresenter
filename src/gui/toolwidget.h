@@ -30,18 +30,19 @@ class ToolWidget : public QWidget
   Q_OBJECT
 
   /// Devices which are currently included in the view.
-  int devices{0};
+  Tool::InputDevices devices;
   /// Number of devices shown, used to calculate the layout.
   int total_columns{0};
   /// Direction of the layout.
   const QBoxLayout::Direction direction{QBoxLayout::LeftToRight};
   /// Devices listed in the group for mouse devices.
-  QList<int> mouse_devices{Tool::MouseLeftButton, Tool::MouseRightButton};
+  QList<Tool::InputDevice> mouse_devices{Tool::MouseLeftButton,
+                                         Tool::MouseRightButton};
   /// Devices listed in the group for tablet devices.
-  QList<int> tablet_devices{Tool::TabletPen, Tool::TabletEraser};
+  QList<Tool::InputDevice> tablet_devices{Tool::TabletPen, Tool::TabletEraser};
 
   /// Add a given set of devices as a new group, in an own QFrame.
-  void addDeviceGroup(const QList<int> &new_devices);
+  void addDeviceGroup(const QList<Tool::InputDevice> &new_devices);
 
  public:
   /// Constructor: does not add devices, initialize() must be called separately.
@@ -64,11 +65,17 @@ class ToolWidget : public QWidget
 
   /// Set the devices included in the group for mouse devices.
   /// Should only be called before initialization.
-  void setMouseDevices(QList<int> devices) { mouse_devices = devices; }
+  void setMouseDevices(QList<Tool::InputDevice> devices)
+  {
+    mouse_devices = devices;
+  }
 
   /// Set the devices included in the group for tablet devices.
   /// Should only be called before initialization.
-  void setTabletDevices(QList<int> devices) { tablet_devices = devices; }
+  void setTabletDevices(QList<Tool::InputDevice> devices)
+  {
+    tablet_devices = devices;
+  }
 
   /// Add all devices currently known to Qt
   void initialize();
@@ -87,8 +94,8 @@ class ToolWidget : public QWidget
 };
 
 /// Get icon file name for device.
-const char *device_icon(int device) noexcept;
+const char *device_icon(Tool::InputDevice device) noexcept;
 /// Get tool tip description for device.
-const char *device_description(int device) noexcept;
+const char *device_description(Tool::InputDevice device) noexcept;
 
 #endif  // TOOLWIDGET_H

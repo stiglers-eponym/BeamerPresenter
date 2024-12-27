@@ -68,9 +68,9 @@ class Tool
   enum InputDevice {
     NoDevice = 0,
     MouseNoButton = 1,
-    MouseLeftButton = Qt::LeftButton << 1,
-    MouseRightButton = Qt::RightButton << 1,
-    MouseMiddleButton = Qt::MiddleButton << 1,
+    MouseLeftButton = 1 << 1,
+    MouseRightButton = 1 << 2,
+    MouseMiddleButton = 1 << 3,
     TabletPen = 1 << 4,
     TabletEraser = 1 << 5,
     TabletCursor = 1 << 6,
@@ -91,31 +91,45 @@ class Tool
     AnyMouseDevice =
         MouseNoButton | MouseLeftButton | MouseRightButton | MouseMiddleButton,
     AnyActiveDevice = AnyDevice ^ (MouseNoButton | TabletHover),
-  };
-  Q_FLAG(InputDevice)
-
-  /// Distinguish singular, start, stop, update, and cancel events.
-  enum DeviceEventType {
+    // Distinguish singular, start, stop, update, and cancel events.
     SingularEvent = 1 << 12,  ///< Singular event, e.g. double-click
     StartEvent = 2 << 12,     ///< Start of an event, e.g. push mouse button
     UpdateEvent = 3 << 12,    ///< Update event, e.g. move mouse
     StopEvent = 4 << 12,      ///< End of event, e.g. release mouse button
     CancelEvent =
-        5
-        << 12,  ///< Cancel event, e.g. if touch event is recognized as gesture
-    AnyEvent = 0xf000,  ///< Any of the mentioned events
+        5 << 12,        ///< Cancel event, e.g. if touch gesture is recognized
+    AnyEvent = 0xf000,  ///< Any of the mentioned events types
   };
+  Q_DECLARE_FLAGS(InputDevices, InputDevice)
+  Q_FLAG(InputDevices)
+
+  static InputDevices mouseButtonToDevice(Qt::MouseButtons buttons) noexcept
+  {
+    InputDevices devices;
+    if (buttons.testFlag(Qt::LeftButton)) devices |= MouseLeftButton;
+    if (buttons.testFlag(Qt::RightButton)) devices |= MouseRightButton;
+    if (buttons.testFlag(Qt::MiddleButton)) devices |= MouseMiddleButton;
+    if (devices == 0) devices = MouseNoButton;
+    return devices;
+  }
+
+  /**
+   * @brief Get input device from tablet event
+   * @param event
+   * @return device
+   */
+  static InputDevice tabletEventToInputDevice(const QTabletEvent *event);
 
  protected:
   /// Type of the tool.
   const BasicTool _tool;
 
   /// Device is a InputDevice or a combination of these.
-  int _device;
+  InputDevices _device;
 
  public:
   /// Trivial constructor.
-  Tool(const BasicTool tool, const int device = AnyDevice) noexcept
+  Tool(const BasicTool tool, const InputDevices device = AnyDevice) noexcept
       : _tool(tool), _device(device)
   {
   }
@@ -141,10 +155,10 @@ class Tool
   BasicTool tool() const noexcept { return _tool; }
 
   /// get function for _device
-  int device() const noexcept { return _device; }
+  InputDevices device() const noexcept { return _device; }
 
   /// set _device.
-  void setDevice(const int device) noexcept { _device = device; }
+  void setDevice(const InputDevices device) noexcept { _device = device; }
 
   /// get color. Useless for this class, but very helpfull for child classes.
   virtual QColor color() const noexcept { return Qt::black; };
@@ -159,16 +173,11 @@ class Tool
   virtual QString description() const noexcept;
 };
 Q_DECLARE_METATYPE(std::shared_ptr<Tool>);
+Q_DECLARE_OPERATORS_FOR_FLAGS(Tool::InputDevices);
 
 const QMap<QString, Tool::BasicTool> get_string_to_tool() noexcept;
 
-/**
- * @brief Get input device from tablet event
- * @param event
- * @return device
- */
-int tablet_event_to_input_device(const QTabletEvent *event);
-
-const QMap<std::string, int> &get_string_to_input_device() noexcept;
+const QMap<Tool::InputDevice, std::string> &get_device_to_string() noexcept;
+const QMap<Tool::InputDevices, std::string> &get_devices_to_string() noexcept;
 
 #endif  // TOOL_H

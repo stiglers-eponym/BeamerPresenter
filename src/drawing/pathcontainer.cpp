@@ -1038,7 +1038,7 @@ QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item)
       stream >> brush;
       quint16 composition_mode;
       stream >> composition_mode;
-      DrawTool tool(Tool::BasicTool(base_tool), 0, pen, brush,
+      DrawTool tool(Tool::BasicTool(base_tool), Tool::NoDevice, pen, brush,
                     QPainter::CompositionMode(composition_mode));
       QVector<QPointF> coordinates;
       stream >> coordinates;
@@ -1055,7 +1055,7 @@ QDataStream &operator>>(QDataStream &stream, QGraphicsItem *&item)
       stream >> brush;
       quint16 composition_mode;
       stream >> composition_mode;
-      DrawTool tool(Tool::BasicTool(base_tool), 0, pen, brush,
+      DrawTool tool(Tool::BasicTool(base_tool), Tool::NoDevice, pen, brush,
                     QPainter::CompositionMode(composition_mode));
       QVector<QPointF> coordinates;
       stream >> coordinates;

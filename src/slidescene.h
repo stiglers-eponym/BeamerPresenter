@@ -270,21 +270,23 @@ class SlideScene : public QGraphicsScene
 
   /// Handle tablet move event, mainly for drawing.
   /// Called from SlideView.
-  void tabletMove(const QPointF &pos, const int device, const qreal pressure)
+  void tabletMove(const QPointF &pos, const Tool::InputDevices device,
+                  const qreal pressure)
   {
     handleEvents(device | Tool::UpdateEvent, {pos}, QPointF(), pressure);
   }
 
   /// Handle tablet press event, mainly for drawing.
   /// Called from SlideView.
-  void tabletPress(const QPointF &pos, const int device, const qreal pressure)
+  void tabletPress(const QPointF &pos, const Tool::InputDevices device,
+                   const qreal pressure)
   {
     handleEvents(device | Tool::StartEvent, {pos}, QPointF(), pressure);
   }
 
   /// Handle tablet release event, mainly for drawing.
   /// Called from SlideView.
-  void tabletRelease(const QPointF &pos, const int device,
+  void tabletRelease(const QPointF &pos, const Tool::InputDevices device,
                      const qreal pressure = 0.)
   {
     handleEvents(device | Tool::StopEvent, {pos}, QPointF(), pressure);
@@ -326,10 +328,11 @@ class SlideScene : public QGraphicsScene
   void pasteFromClipboard();
 
   /// Check if a selection rect handle is clicked, start selection if necessary.
-  bool maybeStartSelectionEvent(const QPointF &pos, const int device) noexcept;
+  bool maybeStartSelectionEvent(const QPointF &pos,
+                                const Tool::InputDevices device) noexcept;
 
   /// Initialize tmp_selection_tool with current selection.
-  void initTmpSelectionTool(const int device) noexcept;
+  void initTmpSelectionTool(const Tool::InputDevices device) noexcept;
 
  protected:
   /**
@@ -346,23 +349,28 @@ class SlideScene : public QGraphicsScene
   bool noToolClicked(const QPointF &pos, const QPointF &startpos = QPointF());
 
   /// Handle events from different pointing devices.
-  bool handleEvents(const int device, const QList<QPointF> &pos,
+  bool handleEvents(const Tool::InputDevices device, const QList<QPointF> &pos,
                     const QPointF &start_pos, const float pressure);
 
   /// Helper function for handleEvents: draw tool events
-  void handleDrawEvents(std::shared_ptr<const DrawTool> tool, const int device,
+  void handleDrawEvents(std::shared_ptr<const DrawTool> tool,
+                        const Tool::InputDevices device,
                         const QList<QPointF> &pos, const float pressure);
   /// Helper function for handleEvents: pointing tool events
   void handlePointingEvents(std::shared_ptr<PointingTool> tool,
-                            const int device, const QList<QPointF> &pos);
+                            const Tool::InputDevices device,
+                            const QList<QPointF> &pos);
   /// Helper function for handleEvents: selection tool events
   void handleSelectionEvents(std::shared_ptr<SelectionTool> tool,
-                             const int device, const QList<QPointF> &pos,
+                             const Tool::InputDevices device,
+                             const QList<QPointF> &pos,
                              const QPointF &start_pos);
   /// Helper function for handleEvents: text tool events
-  bool handleTextEvents(std::shared_ptr<const TextTool> tool, const int device,
+  bool handleTextEvents(std::shared_ptr<const TextTool> tool,
+                        const Tool::InputDevices device,
                         const QList<QPointF> &pos);
-  bool handleDragView(std::shared_ptr<DragTool> tool, const int device,
+  bool handleDragView(std::shared_ptr<DragTool> tool,
+                      const Tool::InputDevices device,
                       const QList<QPointF> &pos, const QPointF &start_pos);
   /// Handle selection start events (only called from handleEvents().
   void handleSelectionStartEvents(std::shared_ptr<SelectionTool> tool,

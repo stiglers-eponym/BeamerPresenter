@@ -38,8 +38,8 @@ bool Preferences::pageExists(const int page) const noexcept
   return master->pageExits(page);
 }
 
-std::shared_ptr<Tool> createToolFromString(const QString &str,
-                                           const int default_device)
+std::shared_ptr<Tool> createToolFromString(
+    const QString &str, const Tool::InputDevices default_device)
 {
   QJsonObject json;
   json.insert("tool", QJsonValue(str));
@@ -47,23 +47,22 @@ std::shared_ptr<Tool> createToolFromString(const QString &str,
 }
 
 std::shared_ptr<Tool> createTool(const QJsonObject &obj,
-                                 const int default_device)
+                                 const Tool::InputDevices default_device)
 {
   const Tool::BasicTool base_tool = get_string_to_tool().value(
       obj.value("tool").toString(), Tool::InvalidTool);
   const QJsonValue dev_obj = obj.value("device");
-  const auto &string_to_input_device = get_string_to_input_device();
-  int device = 0;
-  if (dev_obj.isDouble())
-    device = dev_obj.toInt();
-  else if (dev_obj.isString())
-    device |= string_to_input_device.value(dev_obj.toString().toStdString(), 0);
+  const auto &device_to_string = get_devices_to_string();
+  Tool::InputDevices device;
+  if (dev_obj.isString())
+    device |=
+        device_to_string.key(dev_obj.toString().toStdString(), Tool::NoDevice);
   else if (dev_obj.isArray())
-    for (const auto &dev :
-         static_cast<const QJsonArray>(obj.value("device").toArray()))
-      device |= string_to_input_device.value(dev.toString().toStdString(), 0);
+    for (const auto &dev : static_cast<const QJsonArray>(dev_obj.toArray()))
+      device |=
+          device_to_string.key(dev.toString().toStdString(), Tool::NoDevice);
   debug_msg(DebugSettings, "device:" << device);
-  if (device == 0) device = default_device;
+  if (device == Tool::NoDevice) device = default_device;
   Tool *tool;
   switch (base_tool) {
     case Tool::Pen:
@@ -178,7 +177,12 @@ void toolToJson(std::shared_ptr<const Tool> tool, QJsonObject &obj)
 {
   if (!tool) return;
   obj.insert("tool", get_string_to_tool().key(tool->tool()));
-  obj.insert("device", tool->device());
+  const auto &device_to_string = get_device_to_string();
+  QJsonArray devices;
+  for (auto device : device_to_string.keys())
+    if (tool->device().testFlag(device))
+      devices.append(QString::fromStdString(device_to_string[device]));
+  obj.insert("device", devices);
   if (tool->tool() & Tool::AnyDrawTool) {
     const auto drawtool = std::static_pointer_cast<const DrawTool>(tool);
     obj.insert("width", drawtool->width());
@@ -445,12 +449,12 @@ void Preferences::loadSettings()
   QList<Action> actions;
   if (!allKeys.isEmpty()) {
     current_tools.clear();
-    const auto &string_to_input_device = get_string_to_input_device();
+    const auto &device_to_string = get_devices_to_string();
     QList<std::shared_ptr<Tool>> tools;
     for (const auto &dev : std::as_const(allKeys))
-      parseActionsTools(settings.value(dev), actions, tools,
-                        string_to_input_device.value(dev.toStdString(),
-                                                     Tool::AnyNormalDevice));
+      parseActionsTools(
+          settings.value(dev), actions, tools,
+          device_to_string.key(dev.toStdString(), Tool::AnyNormalDevice));
     actions.clear();
     for (const auto &tool : std::as_const(tools))
       current_tools.insert(tool->tool(), tool);
@@ -507,7 +511,7 @@ void Preferences::loadSettings()
 void Preferences::parseActionsTools(const QVariant &input,
                                     QList<Action> &actions,
                                     QList<std::shared_ptr<Tool>> &tools,
-                                    const int default_device)
+                                    const Tool::InputDevices default_device)
 {
   // First try to interpret sequence as json object.
   // Here the way how Qt changes the string is not really optimal.
@@ -801,7 +805,8 @@ QUrl Preferences::resolvePath(const QString &identifier) const noexcept
     return QUrl();
 }
 
-std::shared_ptr<Tool> Preferences::currentTool(const int device) const noexcept
+std::shared_ptr<Tool> Preferences::currentTool(
+    const Tool::InputDevices device) const noexcept
 {
   const auto end = current_tools.cend();
   for (auto tool = current_tools.cbegin(); tool != end; ++tool)
@@ -961,10 +966,10 @@ bool Preferences::setGuiConfigFile(const QString &file)
   return false;
 }
 
-void Preferences::removeCurrentTool(const int device,
+void Preferences::removeCurrentTool(const Tool::InputDevices device,
                                     const bool no_mouse_hover) noexcept
 {
-  int newdevice;
+  Tool::InputDevices newdevice;
   for (auto tool_it = current_tools.begin(); tool_it != current_tools.end();) {
     if ((*tool_it)->device() & device) {
       newdevice = (*tool_it)->device() & ~device;
@@ -983,7 +988,7 @@ void Preferences::removeCurrentTool(const int device,
 
 void Preferences::setCurrentTool(std::shared_ptr<Tool> tool) noexcept
 {
-  int device = tool->device();
+  Tool::InputDevices device = tool->device();
   // Delete mouse no button devices if MouseLeftButton is overwritten.
   if (tool->device() & Tool::MouseLeftButton) device |= Tool::MouseNoButton;
   // Delete tablet no pressure device if any tablet device is overwritten.

@@ -239,7 +239,8 @@ bool SlideView::event(QEvent *event)
       const auto sscene = dynamic_cast<SlideScene *>(scene());
       const auto tabletevent = dynamic_cast<const QTabletEvent *>(event);
       if (!sscene || !tabletevent) return false;
-      const int device = tablet_event_to_input_device(tabletevent);
+      const Tool::InputDevices device =
+          Tool::tabletEventToInputDevice(tabletevent);
 #if (QT_VERSION_MAJOR >= 6)
       const qint64 id = tabletevent->pointingDevice()->uniqueId().numericId();
       const auto pos = mapToScene(tabletevent->position());
@@ -247,9 +248,11 @@ bool SlideView::event(QEvent *event)
       const qint64 id = tabletevent->uniqueId();
       const auto pos = mapToScene(tabletevent->posF());
 #endif
-      const int old_device = active_tablet_devices.value(id, -1);
+      const Tool::InputDevices old_device =
+          active_tablet_devices.value(id, Tool::NoDevice);
       if (id > 0 && old_device != device) {
-        if (old_device > 0) sscene->tabletRelease(pos, old_device, 0);
+        if (old_device != Tool::NoDevice)
+          sscene->tabletRelease(pos, old_device, 0);
         if (event->type() == QEvent::TabletRelease) {
           active_tablet_devices.remove(id);
           sscene->tabletRelease(pos, device, 0);

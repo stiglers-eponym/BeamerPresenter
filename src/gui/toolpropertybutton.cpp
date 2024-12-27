@@ -31,24 +31,24 @@ ToolPropertyButton::ToolPropertyButton(QWidget *parent) : QComboBox(parent)
 
 bool ToolPropertyButton::event(QEvent *event)
 {
-  const int olddevice = device;
+  const Tool::InputDevices olddevice = device;
   switch (event->type()) {
     case QEvent::MouseButtonDblClick:
     case QEvent::MouseButtonPress: {
       const QMouseEvent *mouse_event = static_cast<QMouseEvent *>(event);
       if (mouse_event->source() != Qt::MouseEventSynthesizedByQt)
-        device = mouse_event->buttons() << 1;
+        device = Tool::mouseButtonToDevice(mouse_event->buttons());
       break;
     }
     case QEvent::MouseButtonRelease: {
       const QMouseEvent *mouse_event = static_cast<QMouseEvent *>(event);
       if (mouse_event->source() != Qt::MouseEventSynthesizedByQt)
-        device = mouse_event->button() << 1;
+        device = Tool::mouseButtonToDevice(mouse_event->buttons());
       break;
     }
     case QEvent::TabletPress:
     case QEvent::TabletRelease:
-      device = tablet_event_to_input_device(
+      device = Tool::tabletEventToInputDevice(
           static_cast<const QTabletEvent *>(event));
       break;
     case QEvent::TouchBegin:

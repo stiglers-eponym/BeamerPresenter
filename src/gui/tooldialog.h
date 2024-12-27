@@ -145,7 +145,7 @@ class ToolDialog : public QDialog
   /// select color (opens QColorDialog)
   QPushButton *color_button = nullptr;
   /// list of checkboxes for input devices
-  QMap<int, QCheckBox *> device_buttons;
+  QMap<Tool::InputDevices, QCheckBox *> device_buttons;
 
   /// Adjust selection possibilities according to basic tool.
   void adaptToBasicTool(const Tool::BasicTool tool);

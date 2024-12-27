@@ -314,16 +314,17 @@ QWidget *Master::createWidget(
               : QBoxLayout::TopToBottom;
       ToolWidget *toolwidget = new ToolWidget(parent, direction);
       widget = toolwidget;
-      QList<int> devices;
-      const auto &string_to_input_device = get_string_to_input_device();
+      QList<Tool::InputDevice> devices;
+      const auto &device_to_string = get_device_to_string();
       auto collect_devices = [&](const QString &name) -> void {
         if (!object.contains(name)) return;
         devices.clear();
         const QJsonArray arr = object.value(name).toArray();
-        int dev;
+        Tool::InputDevice dev;
         for (const auto &dev_obj : arr) {
-          dev = string_to_input_device.value(dev_obj.toString().toStdString());
-          if (dev != 0 &&
+          dev = device_to_string.key(dev_obj.toString().toStdString(),
+                                     Tool::NoDevice);
+          if (dev != Tool::NoDevice &&
               (dev & Tool::AnyNormalDevice) != Tool::AnyNormalDevice)
             devices.append(dev);
         }

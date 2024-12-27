@@ -276,7 +276,8 @@ class Preferences : public QObject
 
   /// Get the current tool for a given input device or nullptr if there
   /// is no tool for this device. The tool remains owned by preferences().
-  std::shared_ptr<Tool> currentTool(const int device) const noexcept;
+  std::shared_ptr<Tool> currentTool(
+      const Tool::InputDevices device) const noexcept;
   /// Remove (but don't delete) all occurences of tool in key_tools.
   /// This should be called by an object owning tool before it deletes tool.
   void removeKeyTool(std::shared_ptr<const Tool> tool,
@@ -298,9 +299,10 @@ class Preferences : public QObject
   /// Append these tools and actions to the given lists.
   /// This function is used for reading tools/actions for
   /// key shortcuts.
-  static void parseActionsTools(const QVariant &input, QList<Action> &actions,
-                                QList<std::shared_ptr<Tool>> &tools,
-                                const int default_device = 0);
+  static void parseActionsTools(
+      const QVariant &input, QList<Action> &actions,
+      QList<std::shared_ptr<Tool>> &tools,
+      const Tool::InputDevices default_device = Tool::NoDevice);
 
   /// Show error message in dialog in front of main window.
   void showErrorMessage(const QString &title, const QString &text) const;
@@ -311,7 +313,7 @@ class Preferences : public QObject
   /// Disconnect tools from the given device.
   /// Deletes tools if necessary.
   /// @param no_mouse_hover delete tools if only device MouseNoButton remains.
-  void removeCurrentTool(const int device,
+  void removeCurrentTool(const Tool::InputDevices device,
                          const bool no_mouse_hover = false) noexcept;
   /// Append tool to currently used tools. This takes ownership of tool.
   void setCurrentTool(std::shared_ptr<Tool> tool) noexcept;
@@ -431,12 +433,14 @@ inline Master *master() noexcept
 }
 
 /// Create tool from JSON formatted input.
-std::shared_ptr<Tool> createTool(const QJsonObject &obj,
-                                 const int default_device = 0);
+std::shared_ptr<Tool> createTool(
+    const QJsonObject &obj,
+    const Tool::InputDevices default_device = Tool::NoDevice);
 
 /// Create default tool from string.
-std::shared_ptr<Tool> createToolFromString(const QString &str,
-                                           const int default_device = 0);
+std::shared_ptr<Tool> createToolFromString(
+    const QString &str,
+    const Tool::InputDevices default_device = Tool::NoDevice);
 
 /// Write tool properties to JSON object.
 void toolToJson(std::shared_ptr<const Tool> tool, QJsonObject &obj);

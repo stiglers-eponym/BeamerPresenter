@@ -11,7 +11,7 @@
 
 class QJsonObject;
 
-/** Experimental: DragTool for dragging view */
+/** DragTool for moving and zooming view */
 class DragTool : public Tool
 {
   Q_DECLARE_TR_FUNCTIONS(DragTool)
@@ -27,13 +27,23 @@ class DragTool : public Tool
   Q_FLAG(DragToolFlags);
 
  private:
+  /// Flags defining how input is handled.
   DragToolFlags _flags = {TouchZoom ^ ScrollWheelZoom ^ DoubleClickZoom};
+  /// When dragging the view, only one out of skip_events events will be
+  /// handled and the other events will be ignored. This done is because
+  /// moving the view will cause another event that cannot simply be
+  /// distingished from "real" events caused by the user.
+  static constexpr qint8 skip_events = 3;
+  /// counter of events, used to determine whether the next event should
+  /// be handled or ignored.
+  qint8 event_counter = skip_events - 1;
+  /// When dragging the view using a pointing tool, reference_point is
+  /// the last position of the pointing tool.
   QPointF reference_point;
-  static constexpr int skip_events = 3;
-  int event_counter = skip_events - 1;
 
  public:
-  DragTool(const int device = AnyDevice) noexcept : Tool(DragViewTool, device)
+  DragTool(const Tool::InputDevices device = AnyDevice) noexcept
+      : Tool(DragViewTool, device)
   {
   }
 

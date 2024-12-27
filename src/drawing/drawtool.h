@@ -67,8 +67,8 @@ class DrawTool : public Tool
   /// @param pen pen used for stroking path
   /// @param brush brush used for filling path
   /// @param mode composition mode for stroking and filling path
-  DrawTool(const BasicTool tool, const int device, const QPen &pen,
-           const QBrush &brush = QBrush(),
+  DrawTool(const BasicTool tool, const Tool::InputDevices device,
+           const QPen &pen, const QBrush &brush = QBrush(),
            const QPainter::CompositionMode mode =
                QPainter::CompositionMode_SourceOver,
            const Shape shape = Freehand) noexcept

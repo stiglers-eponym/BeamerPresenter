@@ -16,24 +16,24 @@
 
 std::shared_ptr<Tool> Tool::copy() const
 {
-  Tool* newtool;
+  Tool *newtool;
   if (_tool & Tool::AnyDrawTool)
-    newtool = new DrawTool(*static_cast<const DrawTool*>(this));
+    newtool = new DrawTool(*static_cast<const DrawTool *>(this));
   else if (_tool & Tool::AnyPointingTool)
-    newtool = new PointingTool(*static_cast<const PointingTool*>(this));
+    newtool = new PointingTool(*static_cast<const PointingTool *>(this));
   else if (_tool & Tool::AnySelectionTool)
-    newtool = new SelectionTool(*static_cast<const SelectionTool*>(this));
+    newtool = new SelectionTool(*static_cast<const SelectionTool *>(this));
   else if (_tool == Tool::TextInputTool)
-    newtool = new TextTool(*static_cast<const TextTool*>(this));
+    newtool = new TextTool(*static_cast<const TextTool *>(this));
   else if (_tool == Tool::DragViewTool)
-    newtool = new DragTool(*static_cast<const DragTool*>(this));
+    newtool = new DragTool(*static_cast<const DragTool *>(this));
   else
     newtool = new Tool(*this);
   newtool->setDevice(_device);
   return std::shared_ptr<Tool>(newtool);
 }
 
-int tablet_event_to_input_device(const QTabletEvent* event)
+Tool::InputDevice Tool::tabletEventToInputDevice(const QTabletEvent *event)
 {
   debug_verbose(DebugDrawing,
                 event << event->pointerType() << event->buttons());
@@ -91,35 +91,42 @@ const QMap<QString, Tool::BasicTool> get_string_to_tool() noexcept
   return string_to_tool;
 }
 
-const QMap<std::string, int>& get_string_to_input_device() noexcept
+const QMap<Tool::InputDevice, std::string> &get_device_to_string() noexcept
 {
   /// convert string (from configuration file) to InputDevice
-  static const QMap<std::string, int> string_to_input_device{
-      {QT_TRANSLATE_NOOP("Tool", "touch"), Tool::TouchInput},
-      {QT_TRANSLATE_NOOP("Tool", "tablet pen"), Tool::TabletPen},
-      {QT_TRANSLATE_NOOP("Tool", "tablet mod"), Tool::TabletMod},
-      {QT_TRANSLATE_NOOP("Tool", "tablet"),
-       Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther |
-           Tool::TabletMod},
-      {QT_TRANSLATE_NOOP("Tool", "tablet eraser"), Tool::TabletEraser},
-      {QT_TRANSLATE_NOOP("Tool", "tablet hover"), Tool::TabletHover},
-      {QT_TRANSLATE_NOOP("Tool", "tablet cursor"), Tool::TabletCursor},
-      {QT_TRANSLATE_NOOP("Tool", "tablet mod"), Tool::TabletMod},
-      {QT_TRANSLATE_NOOP("Tool", "tablet other"), Tool::TabletOther},
-      {QT_TRANSLATE_NOOP("Tool", "tablet all"),
-       Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther |
-           Tool::TabletEraser | Tool::TabletMod},
-      {QT_TRANSLATE_NOOP("Tool", "all"), Tool::AnyNormalDevice},
-      {QT_TRANSLATE_NOOP("Tool", "all+"), Tool::AnyPointingDevice},
-      {QT_TRANSLATE_NOOP("Tool", "all++"), Tool::AnyDevice},
-      {QT_TRANSLATE_NOOP("Tool", "left button"), Tool::MouseLeftButton},
-      {QT_TRANSLATE_NOOP("Tool", "mouse"), Tool::MouseLeftButton},
-      {QT_TRANSLATE_NOOP("Tool", "right button"), Tool::MouseRightButton},
-      {QT_TRANSLATE_NOOP("Tool", "middle button"), Tool::MouseMiddleButton},
-      {QT_TRANSLATE_NOOP("Tool", "no button"), Tool::MouseNoButton},
-      {QT_TRANSLATE_NOOP("Tool", "double-click"), Tool::MouseDoubleClick},
+  static const QMap<Tool::InputDevice, std::string> device_to_string{
+      {Tool::TouchInput, QT_TRANSLATE_NOOP("Tool", "touch")},
+      {Tool::TabletPen, QT_TRANSLATE_NOOP("Tool", "tablet pen")},
+      {Tool::TabletMod, QT_TRANSLATE_NOOP("Tool", "tablet mod")},
+      {Tool::TabletEraser, QT_TRANSLATE_NOOP("Tool", "tablet eraser")},
+      {Tool::TabletHover, QT_TRANSLATE_NOOP("Tool", "tablet hover")},
+      {Tool::TabletCursor, QT_TRANSLATE_NOOP("Tool", "tablet cursor")},
+      {Tool::TabletMod, QT_TRANSLATE_NOOP("Tool", "tablet mod")},
+      {Tool::TabletOther, QT_TRANSLATE_NOOP("Tool", "tablet other")},
+      {Tool::AnyNormalDevice, QT_TRANSLATE_NOOP("Tool", "all")},
+      {Tool::AnyPointingDevice, QT_TRANSLATE_NOOP("Tool", "all+")},
+      {Tool::AnyDevice, QT_TRANSLATE_NOOP("Tool", "all++")},
+      {Tool::MouseLeftButton, QT_TRANSLATE_NOOP("Tool", "left button")},
+      {Tool::MouseRightButton, QT_TRANSLATE_NOOP("Tool", "right button")},
+      {Tool::MouseMiddleButton, QT_TRANSLATE_NOOP("Tool", "middle button")},
+      {Tool::MouseNoButton, QT_TRANSLATE_NOOP("Tool", "no button")},
+      {Tool::MouseDoubleClick, QT_TRANSLATE_NOOP("Tool", "double-click")},
   };
-  return string_to_input_device;
+  return device_to_string;
+}
+
+const QMap<Tool::InputDevices, std::string> &get_devices_to_string() noexcept
+{
+  const auto &base = get_device_to_string();
+  static QMap<Tool::InputDevices, std::string> device_to_string;
+  for (auto it = base.constBegin(); it != base.constEnd(); ++it)
+    device_to_string[it.key()] = *it;
+  device_to_string[Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther |
+                   Tool::TabletMod] = QT_TRANSLATE_NOOP("Tool", "tablet");
+  device_to_string[Tool::TabletPen | Tool::TabletCursor | Tool::TabletOther |
+                   Tool::TabletEraser | Tool::TabletMod] =
+      QT_TRANSLATE_NOOP("Tool", "tablet all");
+  return device_to_string;
 }
 
 QString Tool::description() const noexcept

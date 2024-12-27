@@ -53,7 +53,8 @@ class PointingTool : public Tool
   /// @param scale For magnifier: magnification factor. For eraser: width of
   /// drawn circle.
   PointingTool(const BasicTool tool, const float size, const QBrush &brush,
-               const int device = AnyDevice, const float scale = 2.) noexcept
+               const Tool::InputDevices device = AnyDevice,
+               const float scale = 2.) noexcept
       : Tool(tool, device), _brush(brush), _size(size), _scale(scale)
   {
   }

@@ -37,7 +37,7 @@ class TextTool : public Tool
   /// @param color text color
   /// @param device input device(s) defined by combination of flags
   TextTool(const QFont &font = QFont(), const QColor &color = Qt::black,
-           const int device = 0) noexcept
+           const Tool::InputDevices device = Tool::NoDevice) noexcept
       : Tool(TextInputTool, device), _font(font), _color(color)
   {
   }

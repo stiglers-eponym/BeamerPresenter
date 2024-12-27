@@ -25,11 +25,11 @@ class ToolWidgetButton : public ToolButton
   Q_OBJECT
 
   /// Input device, for which the tool is shown.
-  const int device;
+  const Tool::InputDevices device;
 
  public:
   /// Almost trivial constructor.
-  ToolWidgetButton(std::shared_ptr<Tool> tool, const int device,
+  ToolWidgetButton(std::shared_ptr<Tool> tool, const Tool::InputDevices device,
                    QWidget *parent = nullptr) noexcept;
   /// Trivial desctructor.
   virtual ~ToolWidgetButton() {}

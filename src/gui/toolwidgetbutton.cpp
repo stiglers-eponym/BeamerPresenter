@@ -10,7 +10,8 @@
 #include "src/master.h"
 #include "src/preferences.h"
 
-ToolWidgetButton::ToolWidgetButton(std::shared_ptr<Tool> tool, const int device,
+ToolWidgetButton::ToolWidgetButton(std::shared_ptr<Tool> tool,
+                                   const Tool::InputDevices device,
                                    QWidget *parent) noexcept
     : ToolButton(tool, parent), device(device)
 {
