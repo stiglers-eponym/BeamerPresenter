@@ -127,10 +127,10 @@ When using QtPDF:
 ### Download
 Download the sources:
 ```sh
-wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.5.tar.gz
-sha256sum -c - <<< "87d5ba4b369636862638edf9e67d162d94d43b0335101ff975b188c55316e40e v0.2.5.tar.gz"
-tar -xf v0.2.5.tar.gz
-cd BeamerPresenter-0.2.5
+wget https://github.com/stiglers-eponym/BeamerPresenter/archive/v0.2.6.tar.gz
+sha256sum -c - <<< "ed6b397ea4ec0afdf7a9bf8f3db272ae9999fab1d485a29b9f9b82615472b1fd v0.2.6.tar.gz"
+tar -xf v0.2.6.tar.gz
+cd BeamerPresenter-0.2.6
 ```
 Alternatively, you can clone the git repository
 ```sh

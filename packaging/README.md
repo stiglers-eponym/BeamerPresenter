@@ -32,12 +32,12 @@ sudo apt install --no-install-recommends libmujs-dev libgumbo-dev
 sudo apt install --no-install-recommends qt6-multimedia-dev libqt6opengl6-dev libgl1-mesa-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
 ```
 
-For version 0.2.5, the source can be [downloaded here](https://github.com/stiglers-eponym/BeamerPresenter/archive/refs/tags/v0.2.5.tar.gz).
+For version 0.2.6, the source can be [downloaded here](https://github.com/stiglers-eponym/BeamerPresenter/archive/refs/tags/v0.2.6.tar.gz).
 Check and unpack the download:
 ```sh
-sha256sum -c - <<< "87d5ba4b369636862638edf9e67d162d94d43b0335101ff975b188c55316e40e v0.2.5.tar.gz"
-tar -xvf v0.2.5.tar.gz
-cd BeamerPresenter-0.2.5
+sha256sum -c - <<< "ed6b397ea4ec0afdf7a9bf8f3db272ae9999fab1d485a29b9f9b82615472b1fd v0.2.6.tar.gz"
+tar -xvf v0.2.6.tar.gz
+cd BeamerPresenter-0.2.6
 ```
 
 Now configure the package using CMake. This requires the configuration of the Qt version (major and minor version), and the PDF engine (Poppler or MuPDF). The Qt minor version is only needed for version checking of dependencies.
@@ -81,7 +81,7 @@ cpack --config build_dir/CPackConfig.cmake
 
 Now you can install the package:
 ```sh
-sudo apt install ./beamerpresenter-poppler-0.2.5-qt6.4-x86_64.deb
+sudo apt install ./beamerpresenter-poppler-0.2.6-qt6.4-x86_64.deb
 ```
 
 
