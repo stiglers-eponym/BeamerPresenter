@@ -230,6 +230,33 @@
     </message>
 </context>
 <context>
+    <name>DragTool</name>
+    <message>
+        <source>touch pinch gesture</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>double click</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>scroll wheel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>drag/move/zoom view. Zoom using </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> Scroll to move up/down.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>drag/move view.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>DrawTool</name>
     <message>
         <source>freehand</source>
@@ -1392,7 +1419,11 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>drag/move the view. When active, double-click, scrolling while pressing the left mouse button, and touch gestures can be used to zoom.</source>
+        <source>laser pointer</source>
+        <translation type="unfinished">puntatore</translation>
+    </message>
+    <message>
+        <source>drag/move/zoom the view. When active, double-click, scrolling, and touch gestures can be used to zoom.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -39,7 +39,8 @@
                   "clear",
                   "zoom in",
                   "scroll normal",
-                  "zoom out"
+                  "zoom out",
+                  "previous"
                 ],
                 [
                   {"tool":"none"},
@@ -55,7 +56,8 @@
                   "redo",
                   "insert slide",
                   "remove slide",
-                  "restore slide"
+                  "restore slide",
+                  "next"
                 ]]
               }
             ]

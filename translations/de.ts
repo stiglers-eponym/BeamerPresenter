@@ -230,6 +230,33 @@
     </message>
 </context>
 <context>
+    <name>DragTool</name>
+    <message>
+        <source>touch pinch gesture</source>
+        <translation>Touchscreen-Geste</translation>
+    </message>
+    <message>
+        <source>double click</source>
+        <translation>Doppelklick</translation>
+    </message>
+    <message>
+        <source>scroll wheel</source>
+        <translation>Scrollen</translation>
+    </message>
+    <message>
+        <source>drag/move/zoom view. Zoom using </source>
+        <translation>verschiebe oder vergrößere/verkleinere die Ansicht. Vergrößere durch </translation>
+    </message>
+    <message>
+        <source> Scroll to move up/down.</source>
+        <translation> Scrolle, um die Ansicht zu verschieben.</translation>
+    </message>
+    <message>
+        <source>drag/move view.</source>
+        <translation>Verschiebe die Ansicht.</translation>
+    </message>
+</context>
+<context>
     <name>DrawTool</name>
     <message>
         <source>freehand</source>
@@ -1392,8 +1419,12 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <translation>Ansicht verschieben</translation>
     </message>
     <message>
-        <source>drag/move the view. When active, double-click, scrolling while pressing the left mouse button, and touch gestures can be used to zoom.</source>
-        <translation>Ansicht verschieben. Doppelklick oder scrollen mit gedrückter linker Maustaste oder Touchscreen-Gesten können zum vergrößern verwendet werden, solange das Werkzeug aktiv ist.</translation>
+        <source>laser pointer</source>
+        <translation>Laserpointer</translation>
+    </message>
+    <message>
+        <source>drag/move/zoom the view. When active, double-click, scrolling, and touch gestures can be used to zoom.</source>
+        <translation>Ansicht verschieben oder vergrößern/verkleinern. Doppelklick, scrollen oder Touchscreen-Gesten können zum vergrößern verwendet werden, solange das Werkzeug aktiv ist.</translation>
     </message>
 </context>
 <context>

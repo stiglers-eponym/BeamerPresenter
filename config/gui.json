@@ -127,7 +127,7 @@
     "master" : true,
     "mute" : false,
     "color" : "black",
-    "width" : 1200,
-    "heigth" : 720
+    "width" : 1280,
+    "height" : 720
   }
 ]

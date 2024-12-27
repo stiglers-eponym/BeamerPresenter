@@ -109,7 +109,7 @@ void SettingsWidget::initShortcuts()
         Tool::tr(
             tool_to_string.value((*it)->tool(), "none").toStdString().c_str()),
         shortcuts);
-    label->setToolTip(Tool::tr(tool_to_description((*it)->tool())));
+    label->setToolTip((*it)->description());
     layout->addRow(label, input_shortcut);
   }
   QPushButton *add_shortcut_button =

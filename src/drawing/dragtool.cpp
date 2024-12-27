@@ -24,3 +24,18 @@ QPointF DragTool::dragTo(const QPointF target, const bool force) noexcept
   if (reference_point.isNull()) reference_point = target;
   return reference_point - target;
 }
+
+QString DragTool::description() const noexcept
+{
+  QStringList zoom;
+  if (_flags.testFlag(TouchZoom)) zoom.append(tr("touch pinch gesture"));
+  if (_flags.testFlag(DoubleClickZoom)) zoom.append(tr("double click"));
+  if (_flags.testFlag(ScrollWheelZoom)) zoom.append(tr("scroll wheel"));
+  QString desc;
+  if (zoom.isEmpty())
+    desc = tr("drag/move view.");
+  else
+    desc = tr("drag/move/zoom view. Zoom using ") + zoom.join(", ") + ".";
+  if (_flags.testFlag(ScrollWheelMove)) desc += tr(" Scroll to move up/down.");
+  return desc;
+}

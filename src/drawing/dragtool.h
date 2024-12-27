@@ -14,6 +14,8 @@ class QJsonObject;
 /** Experimental: DragTool for dragging view */
 class DragTool : public Tool
 {
+  Q_DECLARE_TR_FUNCTIONS(DragTool)
+
  public:
   enum DragToolFlag {
     TouchZoom = 1 << 0,
@@ -54,6 +56,8 @@ class DragTool : public Tool
   void setReference(const QPointF &pos) noexcept { reference_point = pos; }
 
   void clear() noexcept { reference_point = QPointF(); }
+
+  virtual QString description() const noexcept;
 
   /** Set reference_point to target and return difference (reference_point -
    * target). When calling this function DragTool::skip_events times, it will

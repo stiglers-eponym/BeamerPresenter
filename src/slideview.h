@@ -43,6 +43,10 @@ class SlideView : public QGraphicsView
  private:
   qreal resolution = 0.0;
 
+#ifdef QT_DEBUG
+  QPointF debug_gesture_center;
+#endif
+
   /// List of slides for video annotations in this view.
   std::list<std::unique_ptr<MediaSlider>> sliders;
 

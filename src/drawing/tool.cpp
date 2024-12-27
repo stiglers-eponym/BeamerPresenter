@@ -69,56 +69,6 @@ int tablet_event_to_input_device(const QTabletEvent* event)
   }
 }
 
-const char* tool_to_description(const Tool::BasicTool tool) noexcept
-{
-  switch (tool) {
-    case Tool::NoTool:
-      return QT_TRANSLATE_NOOP(
-          "Tool", "no tool: follow links and control audio/video content");
-    case Tool::Pen:
-      return QT_TRANSLATE_NOOP(
-          "Tool",
-          "pen with variable width if the input device supports "
-          "variable pressure");
-    case Tool::FixedWidthPen:
-      return QT_TRANSLATE_NOOP(
-          "Tool",
-          "pen with fixed width (independent of input device pressure)");
-    case Tool::Eraser:
-      return QT_TRANSLATE_NOOP("Tool", "eraser: deletes drawings");
-    case Tool::Highlighter:
-      return QT_TRANSLATE_NOOP(
-          "Tool",
-          "highlighter: fixed width drawing which only darkens colors "
-          "(full color on white background, invisible on black background)");
-    case Tool::Pointer:
-      return QT_TRANSLATE_NOOP("Tool", "pointer");
-    case Tool::Torch:
-      return QT_TRANSLATE_NOOP(
-          "Tool",
-          "torch: darken the slide leaving only a disk unchanged "
-          "to focus attention on this area");
-    case Tool::Magnifier:
-      return QT_TRANSLATE_NOOP("Tool", "enlarge part of the slide");
-    case Tool::TextInputTool:
-      return QT_TRANSLATE_NOOP("Tool", "add or edit text on slide");
-    case Tool::BasicSelectionTool:
-      return QT_TRANSLATE_NOOP("Tool", "select objects by clicking on them");
-    case Tool::RectSelectionTool:
-      return QT_TRANSLATE_NOOP("Tool", "select objects in a rectangle");
-    case Tool::FreehandSelectionTool:
-      return QT_TRANSLATE_NOOP("Tool", "select objects inside a drawn shape");
-    case Tool::DragViewTool:
-      return QT_TRANSLATE_NOOP(
-          "Tool",
-          "drag/move the view. When active, double-click, "
-          "scrolling while pressing the left mouse button, "
-          "and touch gestures can be used to zoom.");
-    default:
-      return "";
-  };
-}
-
 const QMap<QString, Tool::BasicTool> get_string_to_tool() noexcept
 {
   /// convert string (from configuration files or saved file) to tool
@@ -170,4 +120,46 @@ const QMap<std::string, int>& get_string_to_input_device() noexcept
       {QT_TRANSLATE_NOOP("Tool", "double-click"), Tool::MouseDoubleClick},
   };
   return string_to_input_device;
+}
+
+QString Tool::description() const noexcept
+{
+  switch (_tool) {
+    case Tool::NoTool:
+      return tr("no tool: follow links and control audio/video content");
+    case Tool::Pen:
+      return tr(
+          "pen with variable width if the input device supports "
+          "variable pressure");
+    case Tool::FixedWidthPen:
+      return tr("pen with fixed width (independent of input device pressure)");
+    case Tool::Eraser:
+      return tr("eraser: deletes drawings");
+    case Tool::Highlighter:
+      return tr(
+          "highlighter: fixed width drawing which only darkens colors "
+          "(full color on white background, invisible on black background)");
+    case Tool::Pointer:
+      return tr("laser pointer");
+    case Tool::Torch:
+      return tr(
+          "torch: darken the slide leaving only a disk unchanged "
+          "to focus attention on this area");
+    case Tool::Magnifier:
+      return tr("enlarge part of the slide");
+    case Tool::TextInputTool:
+      return tr("add or edit text on slide");
+    case Tool::BasicSelectionTool:
+      return tr("select objects by clicking on them");
+    case Tool::RectSelectionTool:
+      return tr("select objects in a rectangle");
+    case Tool::FreehandSelectionTool:
+      return tr("select objects inside a drawn shape");
+    case Tool::DragViewTool:
+      return tr(
+          "drag/move/zoom the view. When active, double-click, "
+          "scrolling, and touch gestures can be used to zoom.");
+    default:
+      return "";
+  };
 }

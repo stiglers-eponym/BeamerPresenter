@@ -1,4 +1,4 @@
-# Configuration for BeamerPresenter, see man 5 beamerpresenter.conf
+# Configuration for BeamerPresenter 0.2.6, see man 5 beamerpresenter.conf
 
 [General]
 # maximum number of pages in cache (negative numbers treated as infinity)

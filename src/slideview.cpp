@@ -197,6 +197,7 @@ bool SlideView::handleGestureEvent(QGestureEvent *event)
     const auto dtool = std::dynamic_pointer_cast<DragTool>(tool);
     auto *sscene = dynamic_cast<SlideScene *>(scene());
     if (sscene && dtool && (dtool->flags() & DragTool::TouchZoom)) {
+      debug_msg(DebugOtherInput, "Pinch gesture" << this);
       event->accept();
       handled = true;
       dtool->clear();
@@ -205,15 +206,21 @@ bool SlideView::handleGestureEvent(QGestureEvent *event)
           scale * preferences()->max_zoom_increment > 1) {
         debug_msg(DebugOtherInput, pinch);
         /* Pinch gestures seem to work better when transforming center point
-         * from parent window coordinates. (Further testing required to
-         * determine whether this is a bug in Qt.) */
-        sscene->setZoom(scale * sscene->getZoom(),
+         * from parent window coordinates. Further testing is required to
+         * determine whether this is a bug in Qt. More severe bug: When using
+         * SlideViews in multiple windows, all PinchGestures are sent to the
+         * same window. */
 #if (QT_VERSION_MAJOR >= 6)
-                        mapToScene(mapFrom(window(), pinch->centerPoint())),
+        const QPointF point =
+            mapToScene(mapFrom(window(), pinch->centerPoint()));
 #else
-                        mapToScene(
-                            mapFrom(window(), pinch->centerPoint().toPoint())),
+        const QPointF point =
+            mapToScene(mapFrom(window(), pinch->centerPoint().toPoint()));
 #endif
+#ifdef QT_DEBUG
+        debug_gesture_center = point;
+#endif
+        sscene->setZoom(scale * sscene->getZoom(), point,
                         pinch->state() == Qt::GestureFinished);
       }
     }
@@ -362,6 +369,12 @@ void SlideView::drawForeground(QPainter *painter, const QRectF &rect)
     }
   }
 #ifdef QT_DEBUG
+  if ((preferences()->debug_level & (DebugOtherInput | DebugVerbose)) ==
+      (DebugOtherInput | DebugVerbose)) {
+    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter->setPen(QPen(Qt::red, 3));
+    painter->drawPoint(debug_gesture_center);
+  }
   if ((preferences()->debug_level & (DebugMedia | DebugVerbose)) ==
       (DebugMedia | DebugVerbose)) {
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);

@@ -154,13 +154,13 @@ class Tool
 
   /// create copy of this.
   std::shared_ptr<Tool> copy() const;
+
+  /// tool tip description of tools
+  virtual QString description() const noexcept;
 };
 Q_DECLARE_METATYPE(std::shared_ptr<Tool>);
 
 const QMap<QString, Tool::BasicTool> get_string_to_tool() noexcept;
-
-/// tool tip description of tools
-const char *tool_to_description(const Tool::BasicTool tool) noexcept;
 
 /**
  * @brief Get input device from tablet event

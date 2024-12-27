@@ -37,7 +37,7 @@ void ToolButton::setTool(std::shared_ptr<Tool> newtool)
     setText(get_string_to_tool().key(tool->tool()));
   else
     setIcon(icon);
-  setToolTip(Tool::tr(tool_to_description(tool->tool())));
+  setToolTip(tool->description());
 }
 
 void ToolButton::updateIcon()
