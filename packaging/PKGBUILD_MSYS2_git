@@ -17,7 +17,7 @@ fi
 _basename='beamerpresenter'
 _pkgname="${_basename}${_renderer}-qt${_qt_version_major}-git"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_pkgname}"
-pkgver=0.2.5_981.4bee6d5
+pkgver=0.2.6_1009.2000c05
 pkgrel=1
 pkgdesc="Modular multi-screen pdf presenter (mingw-w64)"
 arch=('any')
@@ -45,7 +45,7 @@ then
 fi
 
 pkgver() {
-    printf "0.2.5_%s.%s" \
+    printf "0.2.6_%s.%s" \
         "$(git -C "${srcdir}/BeamerPresenter" rev-list --count HEAD)" \
         "$(git -C "${srcdir}/BeamerPresenter" rev-parse --short HEAD)"
 }

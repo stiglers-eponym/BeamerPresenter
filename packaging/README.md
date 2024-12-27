@@ -10,9 +10,9 @@ The version with poppler as PDF engine and Qt 6 can be build using:
 _qt_version_major=6 makepkg -p PKGBUILD_poppler
 ```
 The packages for Qt 5 and with MuPDF can be built analogously.
-You can install the newly created package using (for version 0.2.5):
+You can install the newly created package using (for version 0.2.6):
 ```sh
-sudo pacman -U beamerpresenter-poppler-qt6-0.2.5-1-x86_64.pkg.tar.zst
+sudo pacman -U beamerpresenter-poppler-qt6-0.2.6-1-x86_64.pkg.tar.zst
 ```
 The file `PKGBUILD_git` can be used to test new and experimental features by selecting a git branch.
 

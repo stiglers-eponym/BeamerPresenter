@@ -17,7 +17,7 @@ fi
 _basename='beamerpresenter'
 _pkgname="${_basename}${_renderer}-qt${_qt_version_major}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_pkgname}"
-pkgver=0.2.5
+pkgver=0.2.6
 pkgrel=1
 pkgdesc="Modular multi-screen pdf presenter (mingw-w64)"
 arch=('any')
@@ -30,7 +30,7 @@ provides=("beamerpresenter=${pkgver}")
 conflicts=('beamerpresenter')
 backup=("etc/xdg/beamerpresenter/beamerpresenter.conf" "etc/xdg/beamerpresenter/gui.json")
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
-sha256sums=('87d5ba4b369636862638edf9e67d162d94d43b0335101ff975b188c55316e40e')
+sha256sums=('SKIP')
 
 if [ "${_use_mupdf}" == 'ON' ]
 then

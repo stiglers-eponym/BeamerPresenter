@@ -42,7 +42,7 @@ else
 fi
 
 pkgname=beamerpresenter-git
-pkgver=0.2.5_983.c30fca1
+pkgver=0.2.6_1009.2000c05
 pkgrel=1
 pkgdesc="Modular multi-screen pdf presenter (git)"
 arch=('x86_64')
@@ -80,7 +80,7 @@ fi
 
 
 pkgver() {
-    printf "0.2.5_%s.%s" \
+    printf "0.2.6_%s.%s" \
         "$(git -C "${srcdir}/${pkgname}-${_git_branch}" rev-list --count HEAD)" \
         "$(git -C "${srcdir}/${pkgname}-${_git_branch}" rev-parse --short HEAD)"
 }

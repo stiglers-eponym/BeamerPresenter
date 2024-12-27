@@ -1,5 +1,5 @@
 # Changelog
-## 0.2.6 (upcoming)
+## 0.2.6
 ### new features
 * flexible mapping of page numbers to slides allows adding empty slides and removing slides
 * zoom into view using buttons, scroll wheel, or touchscreen
@@ -14,7 +14,7 @@
 * thumbnail widget: focus current page
 * wrong slide shown after fly transition
 ### internal
-* replace encoding of flags in bits of page number integers by structs
+* replace integer values containing bit-wise flags by structs and QFlags
 
 ## 0.2.5
 * embedded videos: play media files embedded in the PDF file (experimental)
