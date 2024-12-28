@@ -177,11 +177,11 @@
     </message>
     <message>
         <source>insert a new empty slide</source>
-        <translation type="unfinished"></translation>
+        <translation>inserisci una nuova diapositiva vuota</translation>
     </message>
     <message>
         <source>remove the current slide</source>
-        <translation type="unfinished"></translation>
+        <translation>rimuovere la diapositiva corrente</translation>
     </message>
     <message>
         <source>restore a previously removed slide</source>
@@ -189,19 +189,19 @@
     </message>
     <message>
         <source>reset view after scrolling or zooming, show full slide again</source>
-        <translation type="unfinished">reimposta la visualizzazione dopo lo scorrimento per mostrare nuovamente la diapositiva completa</translation>
+        <translation>reimposta la visualizzazione dopo lo scorrimento per mostrare nuovamente la diapositiva completa</translation>
     </message>
     <message>
         <source>zoom in (enlargen slide)</source>
-        <translation type="unfinished"></translation>
+        <translation>ingrandire (ingrandire la diapositiva)</translation>
     </message>
     <message>
         <source>zoom out (shrink slide)</source>
-        <translation type="unfinished"></translation>
+        <translation>rimpicciolisci (rimpicciolisci diapositiva)</translation>
     </message>
     <message>
         <source>reset zoom to fit size of slide</source>
-        <translation type="unfinished"></translation>
+        <translation>reimposta lo zoom per adattarlo alle dimensioni della diapositiva</translation>
     </message>
 </context>
 <context>
@@ -233,27 +233,27 @@
     <name>DragTool</name>
     <message>
         <source>touch pinch gesture</source>
-        <translation type="unfinished"></translation>
+        <translation>gesto di tocco pizzicamento</translation>
     </message>
     <message>
         <source>double click</source>
-        <translation type="unfinished"></translation>
+        <translation>doppio click</translation>
     </message>
     <message>
         <source>scroll wheel</source>
-        <translation type="unfinished"></translation>
+        <translation>rotellina di scorrimento</translation>
     </message>
     <message>
         <source>drag/move/zoom view. Zoom using </source>
-        <translation type="unfinished"></translation>
+        <translation>trascina/sposta/ingrandisci la vista. Zoom usando</translation>
     </message>
     <message>
         <source> Scroll to move up/down.</source>
-        <translation type="unfinished"></translation>
+        <translation>Scorrere per spostarsi su/giù.</translation>
     </message>
     <message>
         <source>drag/move view.</source>
-        <translation type="unfinished"></translation>
+        <translation>trascinare/spostare la visualizzazione.</translation>
     </message>
 </context>
 <context>
@@ -280,7 +280,7 @@
     </message>
     <message>
         <source>recognize</source>
-        <translation type="unfinished"></translation>
+        <translation>riconosci</translation>
     </message>
 </context>
 <context>
@@ -529,11 +529,11 @@
     </message>
     <message>
         <source>Could not read file:</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossibile leggere il file:</translation>
     </message>
     <message>
         <source>JSON file is empty or parsing failed:</source>
-        <translation type="unfinished"></translation>
+        <translation>Il file JSON è vuoto o l'analisi non è riuscita:</translation>
     </message>
 </context>
 <context>
@@ -633,7 +633,7 @@
     </message>
     <message>
         <source>Select target direcory</source>
-        <translation type="unfinished"></translation>
+        <translation>Seleziona la directory di destinazione</translation>
     </message>
 </context>
 <context>
@@ -925,7 +925,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>JSON files (*.json);;all files (*)</source>
-        <translation type="unfinished">File SON (*.json);;tutti i file (*)</translation>
+        <translation>File SON (*.json);;tutti i file (*)</translation>
     </message>
     <message>
         <source>misc (restart required)</source>
@@ -945,7 +945,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>next skipping overlays</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">prossimo salto sovrapposizioni</translation>
     </message>
     <message>
         <source>previous skipping overlays</source>
@@ -1001,11 +1001,11 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>scroll up</source>
-        <translation>scorrere verso l&apos;alto</translation>
+        <translation>scorrere verso l'alto</translation>
     </message>
     <message>
         <source>scroll home</source>
-        <translation>scorrere verso home</translation>
+        <translation>scorrere la home</translation>
     </message>
     <message>
         <source>scroll normal</source>
@@ -1117,43 +1117,43 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>insert slide</source>
-        <translation type="unfinished"></translation>
+        <translation>inserire slide</translation>
     </message>
     <message>
         <source>remove slide</source>
-        <translation type="unfinished"></translation>
+        <translation>rimuoi slide</translation>
     </message>
     <message>
         <source>restore slide</source>
-        <translation type="unfinished"></translation>
+        <translation>ripristinare slide</translation>
     </message>
     <message>
         <source>zoom in</source>
-        <translation type="unfinished"></translation>
+        <translation>Ingrandire</translation>
     </message>
     <message>
         <source>zoom out</source>
-        <translation type="unfinished"></translation>
+        <translation>Rimpicciolire</translation>
     </message>
     <message>
         <source>zoom reset</source>
-        <translation type="unfinished"></translation>
+        <translation>Ripristina zoom</translation>
     </message>
     <message>
         <source>select pdfpc/JSON file containing overlay information</source>
-        <translation type="unfinished"></translation>
+        <translation>seleziona il file pdfpc/JSON contenente le informazioni di sovrapposizione</translation>
     </message>
     <message>
         <source>Select JSON file containing overlay information</source>
-        <translation type="unfinished"></translation>
+        <translation>Seleziona il file JSON contenente le informazioni di sovrapposizione</translation>
     </message>
     <message>
         <source>pdfpc/JSON files (*.pdfpc *.json);;all files (*)</source>
-        <translation type="unfinished"></translation>
+        <translation>file pdfpc/JSON (*.pdfpc *.json);;tutti i file (*)</translation>
     </message>
     <message>
         <source>export svg</source>
-        <translation type="unfinished"></translation>
+        <translation>esporta svg</translation>
     </message>
 </context>
 <context>
@@ -1416,15 +1416,15 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>drag view</source>
-        <translation type="unfinished"></translation>
+        <translation>trascina vista</translation>
     </message>
     <message>
         <source>laser pointer</source>
-        <translation type="unfinished">puntatore</translation>
+        <translation>puntatore laser</translation>
     </message>
     <message>
         <source>drag/move/zoom the view. When active, double-click, scrolling, and touch gestures can be used to zoom.</source>
-        <translation type="unfinished"></translation>
+        <translation>trascina/sposta/ingrandisci la vista. Quando è attivo, è possibile usare il doppio clic, lo scorrimento e i gesti touch per ingrandire.</translation>
     </message>
 </context>
 <context>
