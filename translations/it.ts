@@ -1396,7 +1396,7 @@ Configura cache. Le diapositive vengono renderizzate in una cache compressa. Que
     </message>
     <message>
         <source>mouse</source>
-        <translation>mouse</translation>
+        <translation type="vanished">mouse</translation>
     </message>
     <message>
         <source>right button</source>

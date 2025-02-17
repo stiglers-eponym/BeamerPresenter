@@ -85,7 +85,7 @@ When compiling with Poppler:
 * `poppler-qt6`
 
 When compiling with MuPDF:
-* `libmupdf` (tested versions: 1.16.1 – 1.25.2)
+* `libmupdf` (tested versions: 1.16.1 – 1.25.4)
 * `jbig2dec`
 * `openjpeg2`
 * `gumbo-parser`

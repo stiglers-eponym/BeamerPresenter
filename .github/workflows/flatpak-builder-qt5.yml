@@ -9,9 +9,9 @@ on:
 jobs:
   flatpak:
     name: "Flatpak Builder with Qt 5.15 and Poppler"
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container:
-      image: bilelmoussaoui/flatpak-github-actions:kde-5.15-22.08
+      image: bilelmoussaoui/flatpak-github-actions:kde-5.15-24.08
       options: --privileged
     steps:
     - name: Checkout

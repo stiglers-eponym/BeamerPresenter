@@ -1395,10 +1395,6 @@ Konfiguriere Zwischenspeicher (Cache). Folien werden in gerendert und in einen k
         <translation>linke Maustaste</translation>
     </message>
     <message>
-        <source>mouse</source>
-        <translation>Maus</translation>
-    </message>
-    <message>
         <source>right button</source>
         <translation>rechte Maustaste</translation>
     </message>

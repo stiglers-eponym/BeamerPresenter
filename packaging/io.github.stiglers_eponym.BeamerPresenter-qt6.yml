@@ -1,7 +1,7 @@
 app-id: io.github.stiglers_eponym.BeamerPresenter
 branch: master
 runtime: org.kde.Platform
-runtime-version: "6.5"
+runtime-version: "6.8"
 sdk: org.kde.Sdk
 command: beamerpresenter
 build-options:
@@ -38,13 +38,13 @@ modules:
     - "/bin"
     sources:
     - type: archive
-      url: https://poppler.freedesktop.org/poppler-24.12.0.tar.xz
-      sha256: 1cf374c3146f3f685d9257701bf0c2866c61d6c202c14d1f5c01a1f3a089028a
+      url: https://poppler.freedesktop.org/poppler-25.02.0.tar.xz
+      sha256: 21234cb2a9647d73c752ce4031e65a79d11a511a835f2798284c2497b8701dee
   - name: beamerpresenter
     buildsystem: cmake-ninja
     config-opts:
     - "-DQT_VERSION_MAJOR=6"
-    - "-DQT_VERSION_MINOR=5"
+    - "-DQT_VERSION_MINOR=8"
     - "-DUSE_POPPLER=ON"
     - "-DUSE_MUPDF=OFF"
     - "-DUSE_QTPDF=OFF"

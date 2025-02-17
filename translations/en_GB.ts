@@ -1381,10 +1381,6 @@ Configure cache. Slides are rendered to compressed cache. These settings defined
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>mouse</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>right button</source>
         <translation type="unfinished"></translation>
     </message>

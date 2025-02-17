@@ -8,10 +8,10 @@ on:
 
 jobs:
   flatpak:
-    name: "Flatpak Builder with Qt 6.5 and Poppler"
-    runs-on: ubuntu-22.04
+    name: "Flatpak Builder with Qt 6.8 and Poppler"
+    runs-on: ubuntu-24.04
     container:
-      image: bilelmoussaoui/flatpak-github-actions:kde-6.5
+      image: bilelmoussaoui/flatpak-github-actions:kde-6.8
       options: --privileged
     steps:
     - name: Checkout
