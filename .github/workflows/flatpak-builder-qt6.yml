@@ -11,7 +11,7 @@ jobs:
     name: "Flatpak Builder with Qt 6.8 and Poppler"
     runs-on: ubuntu-24.04
     container:
-      image: bilelmoussaoui/flatpak-github-actions:kde-6.8
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.8
       options: --privileged
     steps:
     - name: Checkout
